@@ -14,8 +14,8 @@
 import { supabase } from './supabase';
 import { trackEvent } from './analytics';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://uahvdqzgbmrndmkhiqlb.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhaHZkcXpnYm1ybmRta2hpcWxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMTY2MDEsImV4cCI6MjA4MTU5MjYwMX0.QUSGKkNQMk3v0B97ZxMeyiYNg0d1W8M2dnFeYL43LyM';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 const DOC_BUCKET = 'deal-documents';
 
 // ── Types ────────────────────────────────────────────────────────────────────
