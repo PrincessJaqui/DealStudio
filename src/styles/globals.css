@@ -1,0 +1,382 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=pickleball,sports');
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Force light rendering everywhere. The app UI is light-only; without this,
+     iOS Safari in system dark mode paints UA surfaces (overscroll, the area
+     behind/below the URL bar) dark. */
+  color-scheme: light only;
+  /* Updated Color System - Green & Blue Palette */
+  --primary: #76b252;
+  --primary-foreground: #ffffff;
+  --secondary: #191f1d;
+  --secondary-foreground: #ffffff;
+  --accent: #7f8c85;
+  --accent-foreground: #ffffff;
+  --medium-green: #4a8072;
+  --medium-green-foreground: #ffffff;
+  --blue: #0086ef;
+  --blue-foreground: #ffffff;
+  
+  /* Base Colors */
+  --font-size: 16px;
+  --background: #ffffff;
+  --foreground: #191f1d;
+  --card: #ffffff;
+  --card-foreground: #191f1d;
+  --popover: #ffffff;
+  --popover-foreground: #191f1d;
+  --muted: #F5F5F5;
+  --muted-foreground: #7f8c85;
+  --destructive: #EF4444;
+  --destructive-foreground: #ffffff;
+  
+  /* Border & Input */
+  --border: #E0E0E0;
+  --input: #E0E0E0;
+  --input-background: #F9F9F9;
+  --switch-background: #D1D5DB;
+  --ring: #76b252;
+  
+  /* Typography */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Spacing Scale (Swedish) */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 16px;
+  --spacing-4: 24px;
+  --spacing-5: 32px;
+  --spacing-6: 48px;
+  
+  /* Border Radius (Minimal Swedish) */
+  --radius: 8px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  /* Charts */
+  --chart-1: #76b252;
+  --chart-2: #4a8072;
+  --chart-3: #0086ef;
+  --chart-4: #7f8c85;
+  --chart-5: #191f1d;
+  
+  /* Sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #191f1d;
+  --sidebar-primary: #76b252;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #7f8c85;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #E0E0E0;
+  --sidebar-ring: #76b252;
+}
+
+.dark {
+  --background: #191f1d;
+  --foreground: #ffffff;
+  --card: #2A2A2A;
+  --card-foreground: #ffffff;
+  --popover: #2A2A2A;
+  --popover-foreground: #ffffff;
+  --primary: #76b252;
+  --primary-foreground: #ffffff;
+  --secondary: #3A3A3A;
+  --secondary-foreground: #ffffff;
+  --muted: #2A2A2A;
+  --muted-foreground: #9CA3AF;
+  --accent: #4a8072;
+  --accent-foreground: #ffffff;
+  --destructive: #EF4444;
+  --destructive-foreground: #ffffff;
+  --border: #3A3A3A;
+  --input: #3A3A3A;
+  --ring: #76b252;
+  --medium-green: #4a8072;
+  --medium-green-foreground: #ffffff;
+  --blue: #0086ef;
+  --blue-foreground: #ffffff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-teal: var(--teal);
+  --color-teal-foreground: var(--teal-foreground);
+  --color-blue: var(--blue);
+  --color-blue-foreground: var(--blue-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/**
+ * Swedish Typography System
+ */
+@layer base {
+  h1 {
+    font-size: 2.5rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-size: 2rem;
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+  }
+
+  h4 {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+  }
+
+  h5 {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h6 {
+    font-size: 1rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  p {
+    font-size: 1rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.6;
+  }
+
+  label {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+
+  button {
+    font-size: 0.9375rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+
+  input {
+    font-size: 1rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+  
+  .caption {
+    font-size: 0.875rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+  
+  .overline {
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.5;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+}
+
+html {
+  font-size: var(--font-size);
+  scroll-behavior: smooth;
+  /* Overscroll / rubber-band and the area behind the URL bar paint white
+     instead of the dark UA default. */
+  background-color: #ffffff;
+}
+
+/* Smooth transitions for interactive elements */
+@layer base {
+  button, a, [role="button"] {
+    @apply transition-all duration-200 ease-in-out;
+  }
+}
+
+/* Custom scrollbar - Swedish minimalist style */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* Swedish Elevation System */
+.elevation-1 {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.elevation-2 {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.elevation-3 {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.elevation-4 {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* iOS Safe Area Support */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Hide scrollbar for horizontal scroll containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth horizontal scrolling */
+.overflow-x-auto {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Home-view avatar pulse ──────────────────────────────────────────────
+   Subtle expanding green ring applied to clickable creator/profile avatars
+   on the home discovery view only, signaling that the avatar is tappable.
+   Driven by the `pulseAvatar` prop on EventCard/AmbassadorCard/CourtCard/
+   PlayerCard. Respects reduced-motion. */
+@keyframes dsAvatarPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(118, 178, 82, 0.55); }
+  70%  { box-shadow: 0 0 0 9px rgba(118, 178, 82, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(118, 178, 82, 0); }
+}
+
+.ds-avatar-pulse {
+  animation: dsAvatarPulse 2.2s ease-out infinite;
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ds-avatar-pulse:hover { transform: scale(1.05); }
+.ds-avatar-pulse:active { transform: scale(0.94); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-avatar-pulse { animation: none; }
+}
+
+/* ── Page enter transition ───────────────────────────────────────────────
+   Consistent fade + slight rise applied to detail page roots so navigating
+   into a detail screen feels smooth instead of an abrupt content swap.
+   Respects reduced-motion.
+
+   fill-mode is `backwards` (NOT `both`): `both` would keep the final
+   keyframe's `transform: translateY(0)` applied permanently, and any non-none
+   transform creates a containing block that breaks `position: fixed`
+   descendants (the sticky DetailStickyFooter anchored to this element instead
+   of the viewport). `backwards` still applies the `from` state before the
+   animation starts (no flash) but reverts to the element's own (transform-
+   free) styles once the animation ends, so fixed footers pin to the viewport. */
+@keyframes dsPageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ds-page-enter {
+  animation: dsPageEnter 0.32s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-page-enter { animation: none; }
+}
+
+/* Staggered fade-in for directory cards (Courts / Ambassadors) so the list
+   eases in instead of snapping in abruptly. Per-card delay set inline. */
+@keyframes dsCardEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ds-card-enter {
+  animation: dsCardEnter 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-card-enter { animation: none; }
+}

@@ -1,0 +1,48 @@
+-- ============================================================================
+-- DealStudio — database surface used by the deal studio.
+--
+-- IMPORTANT: The deal studio relies on Postgres FUNCTIONS (RPCs) whose bodies are
+-- NOT in this repo (they live in the original Supabase project). The most
+-- reliable way to stand up the new database is to export them from the existing
+-- project rather than hand-recreating them:
+--
+--   1) In the OLD Supabase project → Database → run:
+--        (or use the CLI: `supabase db dump --schema public -f dump.sql`)
+--      then import the deal studio tables + functions into the NEW project.
+--   2) Or, in the SQL editor, script out each function below with:
+--        select pg_get_functiondef(oid) from pg_proc where proname = '<fn>';
+--
+-- Tables the app reads/writes (create if starting fresh):
+--   dealstudios          -- room config: slug, company_name, meeting_enabled,
+--                          require_password, invite_only, require_email,
+--                          availability (jsonb), hero_image_url, is_active, ...
+--   deal_documents      -- documents/deck attached to a room
+--   dealstudio_access    -- pipeline rows (DealAccessRow): email, name, firm,
+--                          status, stage, reached_out_at, committed_amount,
+--                          committed_at, meeting_at, notes, ...
+--   dealstudio_visits    -- per-visitor rollups: email, session_token,
+--                          page_views, deck_views, total_seconds, sections(jsonb),
+--                          last_seen_at
+--   deal_meetings       -- meeting requests: email, name, date, start, note, ...
+--   analytics_events    -- raw analytics events
+--   analytics_sessions  -- analytics sessions
+--   user_roles          -- admin gating (which auth users are admins)
+--
+-- RPCs the app calls (recreate these in the new project — signatures shown as
+-- called from the client):
+--   get_dealstudio_public(p_slug text)
+--   get_dealstudio_extras(p_slug text)
+--   get_dealstudio_field_labels(p_slug text)
+--   dealstudio_verify_access(p_slug text, p_email text, p_password text)
+--   dealstudio_request_access(p_slug text, p_email text, p_name text)
+--   dealstudio_record_visit(p_slug text, p_email text, p_sections jsonb,
+--                          p_total_seconds numeric, p_deck_views int)
+--   dealstudio_request_meeting(p_slug text, p_email text, p_name text,
+--                          p_date text, p_start text, p_end text, p_note text)
+--   dealstudio_invite(p_room_id uuid, p_email text, p_name text, p_password text)
+--   dealstudio_set_access_password(...)
+--   dealstudio_set_shared_password(...)
+--
+-- Edge function to deploy: supabase/functions/send-deal-meeting-request
+--   secrets: RESEND_API_KEY, DEALSTUDIO_INBOX, SITE_URL
+-- ============================================================================

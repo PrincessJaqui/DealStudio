@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- Self-heal stale deploys: if a cached page references build chunks that
+         no longer exist, the SPA fallback returns index.html (text/html) for a
+         .js request and Safari throws "not a valid JavaScript MIME type". Catch
+         that (and dynamic-import failures) and reload once to fetch fresh assets. -->
+    <script>
+      (function () {
+        function isStale(m) {
+          return /not a valid JavaScript MIME type|Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module|Unexpected token '<'/i.test(m || '');
+        }
+        function heal() {
+          try {
+            if (sessionStorage.getItem('ds_stale_reloaded')) return;
+            sessionStorage.setItem('ds_stale_reloaded', '1');
+          } catch (e) {}
+          location.reload();
+        }
+        window.addEventListener('error', function (e) { if (isStale(e && e.message)) heal(); }, true);
+        window.addEventListener('vite:preloadError', heal);
+        window.addEventListener('load', function () {
+          setTimeout(function () { try { sessionStorage.removeItem('ds_stale_reloaded'); } catch (e) {} }, 5000);
+        });
+      })();
+    </script>
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+    <!-- Force light chrome so iOS Safari dark mode doesn't paint behind the URL bar. -->
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light only" />
+
+    <title>DealStudio</title>
+    <meta name="description" content="DealStudio is a private, secure space to share your raise with investors." />
+
+    <link rel="canonical" href="https://dealstudio.io/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:site_name"   content="DealStudio" />
+    <meta property="og:title"       content="DealStudio" />
+    <meta property="og:description" content="A private, secure space to share your raise with investors." />
+    <meta property="og:url"         content="https://dealstudio.io/" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card"        content="summary" />
+    <meta name="twitter:title"       content="DealStudio" />
+    <meta name="twitter:description" content="A private, secure space to share your raise with investors." />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "DealStudio",
+      "url": "https://dealstudio.io",
+      "logo": "https://dealstudio.io/favicon.png",
+      "description": "DealStudio is a private, secure space to share your raise with investors."
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
