@@ -479,7 +479,7 @@ export function DealStudioScreen() {
                   <p className="text-xs font-semibold text-[#191f1d] mb-1">Standard link</p>
                   <div className="flex items-center gap-2">
                     <input readOnly value={PUBLIC_URL} className={`${inputCls} flex-1`} />
-                    <button onClick={copyLink} className="h-11 px-3 rounded-xl bg-[#f5f7f9] hover:bg-[#edf0f3] text-[#191f1d] flex items-center gap-1.5 text-sm">{copied ? <Check className="w-4 h-4 text-[var(--ds-brand)]" /> : <Copy className="w-4 h-4" />}{copied ? 'Copied' : 'Copy'}</button>
+                    <button onClick={copyLink} className="h-11 px-3 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:brightness-110 flex items-center gap-1.5 text-sm">{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}{copied ? 'Copied' : 'Copy'}</button>
                   </div>
                 </div>
                 <div className="mt-3">

@@ -25,7 +25,7 @@ function PhotoField({ url, uploading, onPick, onClear }: { url: string; uploadin
         <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-[#edf0f3] bg-[var(--ds-tint)] flex items-center justify-center">
           {url ? <img src={url} alt="" className="h-full w-full object-cover object-top" /> : <ImageIcon className="w-5 h-5 text-[var(--ds-muted)]" />}
         </div>
-        <label className={`inline-flex items-center gap-1.5 rounded-xl border border-[var(--ds-brd)] bg-white px-3 py-2 text-sm font-medium text-[var(--ds-brand)] ${uploading ? 'opacity-60' : 'hover:bg-[var(--ds-tint)] cursor-pointer'}`}>
+        <label className={`inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-3 py-2 text-sm font-medium text-white hover:brightness-110 ${uploading ? 'opacity-60' : 'cursor-pointer'}`}>
           <UploadCloud className="w-4 h-4" /> {uploading ? 'Uploading...' : url ? 'Change photo' : 'Upload photo'}
           <input type="file" accept="image/*" className="hidden" disabled={uploading}
             onChange={e => { const file = e.target.files?.[0]; if (file) onPick(file); e.currentTarget.value = ''; }} />
@@ -48,7 +48,7 @@ function ResumeField({ url, name, uploading, onPick, onLink, onClear }: { url: s
             <FileText className="w-4 h-4 shrink-0" /> <span className="truncate">{name || 'View resume'}</span>
           </a>
         ) : null}
-        <label className={`inline-flex items-center gap-1.5 rounded-xl border border-[var(--ds-brd)] bg-white px-3 py-2 text-sm font-medium text-[var(--ds-brand)] ${uploading ? 'opacity-60' : 'hover:bg-[var(--ds-tint)] cursor-pointer'}`}>
+        <label className={`inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-3 py-2 text-sm font-medium text-white hover:brightness-110 ${uploading ? 'opacity-60' : 'cursor-pointer'}`}>
           <UploadCloud className="w-4 h-4" /> {uploading ? 'Uploading...' : url ? 'Replace PDF' : 'Upload PDF'}
           <input type="file" accept="application/pdf,.pdf" className="hidden" disabled={uploading}
             onChange={e => { const file = e.target.files?.[0]; if (file) onPick(file); e.currentTarget.value = ''; }} />

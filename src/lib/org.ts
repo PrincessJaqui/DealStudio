@@ -151,3 +151,44 @@ export async function deleteDeal(dealId: string, confirmSlug: string) {
   if (error) throw error;
   return data as { deleted: boolean; name: string; slug: string };
 }
+
+/* ── Team members ──────────────────────────────────────────────────────────── */
+
+export type OrgMember = {
+  ref: string;          // auth user id for a member, invite id for a pending one
+  email: string;
+  role: 'owner' | 'admin';
+  is_you: boolean;
+  pending: boolean;
+  created_at: string;
+};
+
+export async function fetchOrgMembers(): Promise<OrgMember[]> {
+  const { data, error } = await supabase.rpc('list_org_members');
+  if (error) { console.warn('[team]', error.message); return []; }
+  return (data as OrgMember[]) ?? [];
+}
+
+/** Adds by email. Existing accounts join at once; others wait as an invite. */
+export async function addOrgMember(email: string, role: 'owner' | 'admin' = 'admin') {
+  const { data, error } = await supabase.rpc('add_org_member', { p_email: email, p_role: role });
+  if (error) throw error;
+  return data as { added: boolean; pending?: boolean; reason?: string };
+}
+
+export async function removeOrgMember(m: OrgMember) {
+  const fn = m.pending ? 'revoke_org_invite' : 'remove_org_member';
+  const args = m.pending ? { p_invite: m.ref } : { p_user: m.ref };
+  const { error } = await supabase.rpc(fn, args);
+  if (error) throw error;
+}
+
+export async function setOrgMemberRole(userId: string, role: 'owner' | 'admin') {
+  const { error } = await supabase.rpc('set_org_member_role', { p_user: userId, p_role: role });
+  if (error) throw error;
+}
+
+/** Attaches a pending invite after sign-in. Safe to call every time. */
+export async function claimPendingInvites() {
+  try { await supabase.rpc('claim_pending_invites'); } catch { /* not fatal */ }
+}

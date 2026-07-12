@@ -224,7 +224,7 @@ export function ModelAnalytics({ value, onChange }: { value: DealBusinessModel; 
       </div>
 
       {/* Growth Projections */}
-      <div className="mt-6 rounded-2xl border border-[#e6e9ec] bg-[#f2f4f6] p-6">
+      <div className="mt-6 rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-6">
         <div className="flex items-center justify-between gap-3 mb-4">
           <h3 className="text-base font-bold text-[#191f1d]">Growth Projections</h3>
           <div className="text-right">

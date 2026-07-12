@@ -115,7 +115,7 @@ export function DealDocumentModal({ roomId, existing, defaultIsDeck, onClose, on
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#7f8c85] mb-1">Replace file (optional)</label>
-                <label className="flex items-center gap-3 rounded-xl border border-dashed border-[#d7dde2] bg-[#f5f6f8] px-4 py-3 cursor-pointer hover:border-[var(--ds-brand)]">
+                <label className="flex items-center gap-3 rounded-xl border border-dashed border-[#d7dde2] bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-4 py-3 cursor-pointer hover:border-[var(--ds-brand)]">
                   <UploadCloud className="w-5 h-5 text-[var(--ds-brand)]" />
                   <span className="text-sm text-[#7f8c85] truncate">{replaceFile ? replaceFile.name : existing?.file_name || 'Keep current file'}</span>
                   <input type="file" accept="application/pdf,image/*" className="hidden" onChange={e => setReplaceFile(e.target.files?.[0] || null)} />
@@ -129,7 +129,7 @@ export function DealDocumentModal({ roomId, existing, defaultIsDeck, onClose, on
             </>
           ) : (
             <>
-              <label className="flex items-center gap-3 rounded-xl border border-dashed border-[#d7dde2] bg-[#f5f6f8] px-4 py-3 cursor-pointer hover:border-[var(--ds-brand)]">
+              <label className="flex items-center gap-3 rounded-xl border border-dashed border-[#d7dde2] bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-4 py-3 cursor-pointer hover:border-[var(--ds-brand)]">
                 <UploadCloud className="w-5 h-5 text-[var(--ds-brand)]" />
                 <span className="text-sm text-[#7f8c85]">Choose one or more files (PDF)</span>
                 <input type="file" accept="application/pdf,image/*" multiple className="hidden" onChange={e => addFiles(e.target.files)} />

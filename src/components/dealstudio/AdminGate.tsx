@@ -12,7 +12,7 @@ import { supabase } from '../../lib/supabase';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { PublicHeader } from './PublicHeader';
 import { refreshUserContext } from '../../lib/analytics';
-import { fetchMyOrg, applyOrgTheme, type Organization } from '../../lib/org';
+import { fetchMyOrg, applyOrgTheme, claimPendingInvites, type Organization } from '../../lib/org';
 import { AccountLock, isEntitled } from './AccountLock';
 import { isPlatformAdmin } from '../../lib/billing';
 
@@ -28,7 +28,13 @@ async function resolve(): Promise<{ status: Status; org: Organization | null }> 
   await refreshUserContext();
   // Membership in an organization is what grants access. RLS enforces the same
   // rule server-side, so a user with no org simply sees nothing.
-  const org = await fetchMyOrg();
+  // An invited colleague has no org until their invite is claimed, so try that
+  // before concluding they have no company.
+  let org = await fetchMyOrg();
+  if (!org) {
+    await claimPendingInvites();
+    org = await fetchMyOrg();
+  }
   return { status: org ? 'admin' : 'notadmin', org };
 }
 

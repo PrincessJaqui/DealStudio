@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { Loader2, Check, Upload, Trash2, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAdminAuth } from '../dealstudio/AdminGate';
+import { TeamMembers } from '../dealstudio/TeamMembers';
 import { saveOrgBranding, uploadOrgLogo } from '../../lib/org';
 
 const card = 'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
@@ -132,7 +133,7 @@ export function SystemSettingsScreen() {
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <label className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm font-medium text-[#191f1d] ${logoBusy ? 'opacity-60' : 'hover:bg-[#f5f6f8] cursor-pointer'}`}>
+                <label className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-sm font-medium text-white ${logoBusy ? 'opacity-60' : 'hover:brightness-110 cursor-pointer'}`}>
                   {logoBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                   {logoUrl ? 'Replace' : 'Upload'}
                   <input
@@ -171,6 +172,8 @@ export function SystemSettingsScreen() {
           {noteEl(nameNote)}
         </div>
 
+
+        <TeamMembers />
         <div className={card}>
           <h2 className="font-bold text-[#191f1d] mb-4">Login email</h2>
           <label className={label}>Email</label>

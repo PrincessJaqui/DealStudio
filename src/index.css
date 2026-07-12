@@ -90,3 +90,16 @@ html, body, #root {
 html.dark, html.dark body, html.dark #root {
   background-color: #0b0e1a;
 }
+
+
+/* Browsers render the inner swatch of input[type=color] with square corners
+   regardless of the input's own radius, so it has to be rounded directly. */
+input[type="color"] {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; border-radius: 0.6rem; }
+input[type="color"]::-webkit-color-swatch { border: none; border-radius: 0.6rem; }
+input[type="color"]::-moz-color-swatch { border: none; border-radius: 0.6rem; }
