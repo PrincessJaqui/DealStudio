@@ -10,6 +10,7 @@ import { Loader2, Check, Upload, Trash2, Image as ImageIcon, Eye, EyeOff } from 
 import { supabase } from '../../lib/supabase';
 import { useAdminAuth } from '../dealstudio/AdminGate';
 import { TeamMembers } from '../dealstudio/TeamMembers';
+import { LogoCropper } from '../dealstudio/LogoCropper';
 import { saveOrgBranding, uploadOrgLogo } from '../../lib/org';
 
 const card = 'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
@@ -19,25 +20,52 @@ const primary = 'inline-flex items-center gap-2 h-9 px-4 rounded-xl text-sm font
 
 type Note = { kind: 'ok' | 'err'; text: string } | null;
 
+
+/** Teal "last saved" pill for a settings card. Renders nothing until saved. */
+function SavedPill({ at }: { at?: string }) {
+  if (!at) return null;
+  return (
+    <span className="ml-auto shrink-0 rounded-full bg-[var(--ds-accent-tint)] text-[var(--ds-accent-ink)] text-xs font-semibold px-3 py-1">
+      Last saved {at}
+    </span>
+  );
+}
+
 export function SystemSettingsScreen() {
-  const { org } = useAdminAuth();
+  const { org, refreshOrg } = useAdminAuth();
 
   const [name, setName] = useState('');
   const [savingName, setSavingName] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(org?.logo_url ?? null);
   const [logoBusy, setLogoBusy] = useState(false);
   const [logoNote, setLogoNote] = useState('');
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [savedAt, setSavedAt] = useState<Record<string, string>>({});
 
-  /** Upload replaces the stored logo; the header and deal rooms pick it up. */
-  const onLogoPick = async (file?: File) => {
-    if (!file || !org) return;
+  const stamp = (key: string) =>
+    setSavedAt(s => ({ ...s, [key]: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) }));
+
+  /** Picking a file opens the cropper; nothing uploads until it is positioned. */
+  const onLogoPick = (file?: File) => {
+    if (!file) return;
     if (!/^image\//.test(file.type)) { setLogoNote('Choose an image file'); return; }
-    if (file.size > 2 * 1024 * 1024) { setLogoNote('Keep it under 2MB'); return; }
-    setLogoBusy(true); setLogoNote('');
+    if (file.size > 4 * 1024 * 1024) { setLogoNote('Keep it under 4MB'); return; }
+    setLogoNote('');
+    setCropFile(file);
+  };
+
+  /** The cropper hands back a square PNG, so the logo fills its container. */
+  const onCropped = async (blob: Blob) => {
+    if (!org) return;
+    setCropFile(null);
+    setLogoBusy(true);
     try {
+      const file = new File([blob], 'logo.png', { type: 'image/png' });
       const url = await uploadOrgLogo(org.id, file);
       await saveOrgBranding(org.id, { logo_url: url });
       setLogoUrl(url);
+      await refreshOrg();          // header picks it up at once
+      stamp('company');
       setLogoNote('Logo updated');
     } catch (e: any) {
       setLogoNote(e?.message || 'Upload failed');
@@ -52,6 +80,8 @@ export function SystemSettingsScreen() {
     try {
       await saveOrgBranding(org.id, { logo_url: null });
       setLogoUrl(null);
+      await refreshOrg();
+      stamp('company');
       setLogoNote('Logo removed');
     } catch (e: any) {
       setLogoNote(e?.message || 'Could not remove');
@@ -82,6 +112,8 @@ export function SystemSettingsScreen() {
     setSavingName(true); setNameNote(null);
     try {
       await saveOrgBranding(org.id, { name: name.trim() });
+      await refreshOrg();          // top-right company name updates immediately
+      stamp('company');
       setNameNote({ kind: 'ok', text: 'Company name saved' });
     } catch (e: any) {
       setNameNote({ kind: 'err', text: e?.message || 'Could not save' });
@@ -106,7 +138,7 @@ export function SystemSettingsScreen() {
     setSavingPw(false);
     if (error) { setPwNote({ kind: 'err', text: error.message }); return; }
     setPw(''); setPw2('');
-    setPwNote({ kind: 'ok', text: 'Password updated' });
+    setPwNote({ kind: 'ok', text: 'Password updated' }); stamp('password');
   };
 
   const noteEl = (n: Note) =>
@@ -121,13 +153,16 @@ export function SystemSettingsScreen() {
 
       <div className="space-y-5">
         <div className={card}>
-          <h2 className="font-bold text-[#191f1d] mb-4">Company</h2>
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="font-bold text-[#191f1d]">Company</h2>
+            <SavedPill at={savedAt.company} />
+          </div>
 
           <label className={label}>Logo</label>
           <div className="flex items-center gap-4 mt-1.5 mb-5">
             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-[#edf0f3] bg-white flex items-center justify-center">
               {logoUrl
-                ? <img src={logoUrl} alt="" className="h-full w-full object-contain p-1" />
+                ? <img src={logoUrl} alt="" className="h-full w-full object-cover" />
                 : <ImageIcon className="w-5 h-5 text-[#c7cdd4]" />}
             </div>
 
@@ -174,8 +209,19 @@ export function SystemSettingsScreen() {
 
 
         <TeamMembers />
+
+      {cropFile && (
+        <LogoCropper
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onCropped={(blob) => { void onCropped(blob); }}
+        />
+      )}
         <div className={card}>
-          <h2 className="font-bold text-[#191f1d] mb-4">Login email</h2>
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="font-bold text-[#191f1d]">Login email</h2>
+            <SavedPill at={savedAt.email} />
+          </div>
           <label className={label}>Email</label>
           <input
             type="email"
@@ -193,7 +239,10 @@ export function SystemSettingsScreen() {
         </div>
 
         <div className={card}>
-          <h2 className="font-bold text-[#191f1d] mb-4">Password</h2>
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="font-bold text-[#191f1d]">Password</h2>
+            <SavedPill at={savedAt.password} />
+          </div>
           <label className={label}>New password</label>
           <div className="relative">
             <input

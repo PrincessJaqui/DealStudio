@@ -19,7 +19,7 @@ import { isPlatformAdmin } from '../../lib/billing';
 type Status = 'loading' | 'signedout' | 'notadmin' | 'admin';
 
 /** Lets the admin screen render Sign out inside its own header. */
-const AdminAuthContext = createContext<{ signOut: () => Promise<void>; org: Organization | null }>({ signOut: async () => {}, org: null });
+const AdminAuthContext = createContext<{ signOut: () => Promise<void>; org: Organization | null; refreshOrg: () => Promise<void> }>({ signOut: async () => {}, org: null, refreshOrg: async () => {} });
 export const useAdminAuth = () => useContext(AdminAuthContext);
 
 async function resolve(): Promise<{ status: Status; org: Organization | null }> {
@@ -75,6 +75,12 @@ export function AdminGate({ children }: { children: ReactNode }) {
     setPassword('');
   }
 
+  /** Re-reads the org so a rename or new logo appears in the header at once. */
+  async function refreshOrg() {
+    const fresh = await fetchMyOrg();
+    if (fresh) { setOrg(fresh); applyOrgTheme(fresh); }
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
     setStatus('signedout');
@@ -105,7 +111,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
     }
 
     return (
-      <AdminAuthContext.Provider value={{ signOut, org }}>
+      <AdminAuthContext.Provider value={{ signOut, org, refreshOrg }}>
         {children}
       </AdminAuthContext.Provider>
     );

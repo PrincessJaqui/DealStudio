@@ -103,3 +103,14 @@ input[type="color"] {
 input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; border-radius: 0.6rem; }
 input[type="color"]::-webkit-color-swatch { border: none; border-radius: 0.6rem; }
 input[type="color"]::-moz-color-swatch { border: none; border-radius: 0.6rem; }
+
+
+/* No focus outline on buttons. The active state is always visible through fill
+   or colour, so the ring is redundant chrome. */
+button:focus,
+button:focus-visible,
+[role="tab"]:focus,
+[role="tab"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}

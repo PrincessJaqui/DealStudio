@@ -58,12 +58,12 @@ export function MasterAdminScreen() {
         <p className="text-sm text-[#7f8c85]">Master Admin</p>
       </div>
 
-      <div className={`${card} p-1.5 inline-flex gap-1 mb-5`}>
+      <div className={`${card} !rounded-full p-1.5 inline-flex gap-1 mb-5`}>
         {(['users', 'plans', 'landing', 'transactions'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-6 py-1.5 rounded-xl text-sm font-medium capitalize transition ${
+            className={`px-6 py-1.5 rounded-full text-sm font-medium capitalize transition ${
               tab === t
                 ? 'bg-gradient-to-r from-[var(--ds-accent)] to-[var(--ds-accent-to)] text-[var(--ds-on-accent)]'
                 : 'text-[#7f8c85] hover:text-[#191f1d]'
@@ -402,12 +402,12 @@ function TransactionsTab() {
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-5">
-        <div className="inline-flex bg-[#f5f6f8] rounded-xl p-1 gap-1">
+        <div className="inline-flex bg-[#f5f6f8] rounded-full p-1 gap-1">
           {[['Revenue', null], ['Subscription', 'subscription'], ['Fees', 'fee']].map(([label, k]) => (
             <button
               key={label as string}
               onClick={() => setKind(k as string | null)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium ${
+              className={`px-4 py-1.5 rounded-full text-sm font-medium ${
                 kind === k
                   ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'
                   : 'text-[#7f8c85]'
@@ -416,12 +416,12 @@ function TransactionsTab() {
           ))}
         </div>
 
-        <div className="sm:ml-auto inline-flex bg-[#f5f6f8] rounded-xl p-1 gap-1">
+        <div className="sm:ml-auto inline-flex bg-[#f5f6f8] rounded-full p-1 gap-1">
           {RANGES.map(r => (
             <button
               key={r.label}
               onClick={() => setDays(r.days)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+              className={`px-3 py-1.5 rounded-full text-sm font-medium ${
                 days === r.days
                   ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'
                   : 'text-[#7f8c85]'
