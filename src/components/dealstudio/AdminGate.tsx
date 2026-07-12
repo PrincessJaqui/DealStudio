@@ -6,13 +6,17 @@
  * data loads only after auth. Investor surfaces are untouched.
  */
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Loader2, LogOut, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { refreshUserContext } from '../../lib/analytics';
 
 type Status = 'loading' | 'signedout' | 'notadmin' | 'admin';
+
+/** Lets the admin screen render Sign out inside its own header. */
+const AdminAuthContext = createContext<{ signOut: () => Promise<void> }>({ signOut: async () => {} });
+export const useAdminAuth = () => useContext(AdminAuthContext);
 
 async function resolveStatus(): Promise<Status> {
   const { data: { user } } = await supabase.auth.getUser();
@@ -71,16 +75,9 @@ export function AdminGate({ children }: { children: ReactNode }) {
 
   if (status === 'admin') {
     return (
-      <div className="relative">
+      <AdminAuthContext.Provider value={{ signOut }}>
         {children}
-        <button
-          onClick={signOut}
-          className="fixed top-4 right-4 z-50 flex items-center gap-1.5 bg-white/90 backdrop-blur rounded-xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] px-3 py-2 text-sm font-semibold text-[#7f8c85] hover:text-[#191f1d]"
-        >
-          <LogOut className="w-4 h-4" />
-          Sign out
-        </button>
-      </div>
+      </AdminAuthContext.Provider>
     );
   }
 
@@ -126,9 +123,13 @@ export function AdminGate({ children }: { children: ReactNode }) {
                 className="w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 pr-10 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40"
                 placeholder="Your password"
               />
-              <button type="button" onClick={() => setShowPw((v) => !v)} aria-label="Show password"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#7f8c85] hover:text-[#191f1d]">
-                {showPw ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                aria-label={showPw ? 'Hide password' : 'Show password'}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#7f8c85] hover:text-[#191f1d]"
+              >
+                {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
 

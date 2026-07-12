@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Presentation, Plus, ExternalLink, Copy, Check, Power, Users, FileText, Trash2, RefreshCw, UploadCloud, GripVertical, Globe, X,
+  Presentation, Plus, ExternalLink, Copy, Check, Power, Users, FileText, Trash2, RefreshCw, UploadCloud, GripVertical, Globe, X, LogOut,
 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
@@ -20,6 +20,8 @@ import { DealDocumentCard } from '../dealstudio/DealDocumentCard';
 import { DealDocumentModal } from '../dealstudio/DealDocumentModal';
 import { AvailabilityModal } from '../dealstudio/AvailabilityModal';
 import { PdfDeckViewer } from '../dealstudio/PdfDeckViewer';
+import { useAdminAuth } from '../dealstudio/AdminGate';
+import dsMark from '../../assets/dealstudio-mark.png';
 import { DealDocViewer } from '../dealstudio/DealDocViewer';
 import { DealFlow } from '../dealstudio/DealFlow';
 import { MarketEditor } from '../dealstudio/MarketEditor';
@@ -68,6 +70,7 @@ export function DealStudioScreen() {
   const [docStats, setDocStats] = useState<Record<string, DocStat>>({});
   const [availOpen, setAvailOpen] = useState(false);
   const [docView, setDocView] = useState<DealDocument | null>(null);
+  const { signOut } = useAdminAuth();
   const [siteOpen, setSiteOpen] = useState(false);
   const [reorderMode, setReorderMode] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -250,21 +253,24 @@ export function DealStudioScreen() {
   const deckIsPdf = !!deck && (deck.file_name || deck.file_url || '').toLowerCase().endsWith('.pdf');
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] flex items-center justify-center shadow"><Presentation className="w-5 h-5 text-white" /></div>
-          <div>
-            <h1 className="text-2xl font-bold text-[#191f1d]">DealStudio</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3 min-w-0">
+          <img src={dsMark} alt="" className="w-11 h-11 rounded-xl shrink-0" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold text-[#191f1d] leading-tight truncate">DealStudio</h1>
             <p className="text-sm text-[#7f8c85]">Master Admin</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {savedAt && <span className="hidden sm:inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full bg-[#F1EFFB] text-[#242473]">{saving ? 'Saving…' : `Saved ${savedAt}`}</span>}
+        <div className="flex items-center gap-2 flex-wrap sm:justify-end shrink-0">
+          {savedAt && <span className="hidden sm:inline-flex items-center h-9 text-xs font-medium px-2.5 rounded-xl bg-[#F1EFFB] text-[#242473]">{saving ? 'Saving…' : `Saved ${savedAt}`}</span>}
           <a href="/dealstudio" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm text-[#191f1d] hover:bg-[#f5f7f9]"><ExternalLink className="w-4 h-4" /> View</a>
           <button onClick={toggleActive} className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-sm font-medium ${room.is_active ? 'bg-[#F1EFFB] text-[#242473]' : 'bg-gradient-to-br from-[#242473] to-[#503DBB] text-white'}`}>
             <Power className="w-4 h-4" /> {room.is_active ? 'Active' : 'Activate'}
+          </button>
+          <button onClick={() => void signOut()} className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm text-[#7f8c85] hover:text-[#191f1d] hover:bg-[#f5f7f9]">
+            <LogOut className="w-4 h-4" /> Sign out
           </button>
         </div>
       </div>
