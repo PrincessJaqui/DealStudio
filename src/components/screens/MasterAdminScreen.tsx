@@ -11,8 +11,9 @@ import {
 } from 'lucide-react';
 import { EditOrgDialog } from '../dealstudio/EditOrgDialog';
 import { LandingEditor } from './LandingEditor';
+import { AddonsCard } from '../dealstudio/AddonsCard';
 import {
-  adminListOrgs, adminUpdateOrg, adminListTransactions, fetchPlans, savePlan,
+  adminListOrgs, adminUpdateOrg, adminListTransactions, adminListPlans, savePlan,
   isPlatformAdmin, money, type AdminOrg, type Txn, type Plan,
 } from '../../lib/billing';
 
@@ -75,7 +76,7 @@ export function MasterAdminScreen() {
       </div>
 
       {tab === 'users' ? <UsersTab />
-        : tab === 'plans' ? <PlansCard />
+        : tab === 'plans' ? <><PlansCard /><AddonsCard /></>
         : tab === 'landing' ? <LandingEditor />
         : <TransactionsTab />}
     </div>
@@ -95,7 +96,7 @@ function UsersTab() {
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'created_at', dir: -1 });
 
   const load = async () => setOrgs(await adminListOrgs());
-  useEffect(() => { void load(); void fetchPlans().then(setPlans); }, []);
+  useEffect(() => { void load(); void adminListPlans().then(setPlans as any); }, []);
 
   const act = async (id: string, patch: Parameters<typeof adminUpdateOrg>[1]) => {
     setBusy(id);
@@ -237,8 +238,9 @@ function PlansCard() {
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState('');
   const [newPrice, setNewPrice] = useState('20');
+  const [newHidden, setNewHidden] = useState(false);
 
-  const load = async () => setPlans(await fetchPlans());
+  const load = async () => setPlans(await adminListPlans() as any);
   useEffect(() => { void load(); }, []);
 
   const commit = async (p: Plan) => {
@@ -257,8 +259,10 @@ function PlansCard() {
   const add = async () => {
     const cents = Math.round(parseFloat(newPrice) * 100);
     if (!newName.trim() || !Number.isFinite(cents)) return;
-    await savePlan({ name: newName.trim(), price_cents: cents });
-    setNewName(''); setNewPrice('20'); setAdding(false);
+    // A hidden plan is never offered to customers; it only applies when you put
+    // an account on it deliberately.
+    await savePlan({ name: newName.trim(), price_cents: cents, is_public: !newHidden } as any);
+    setNewName(''); setNewPrice('20'); setNewHidden(false); setAdding(false);
     await load();
   };
 
@@ -278,20 +282,35 @@ function PlansCard() {
       </div>
 
       {adding && (
-        <div className="flex flex-col sm:flex-row gap-2 mb-4">
-          <input
-            value={newName} onChange={e => setNewName(e.target.value)}
-            placeholder="Plan name"
-            className="flex-1 bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
-          />
-          <input
-            value={newPrice} onChange={e => setNewPrice(e.target.value)}
-            inputMode="decimal" placeholder="20"
-            className="w-full sm:w-32 bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
-          />
-          <button onClick={() => void add()} className="h-10 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]">
-            Create
-          </button>
+        <div className="mb-4">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              value={newName} onChange={e => setNewName(e.target.value)}
+              placeholder="Plan name"
+              className="flex-1 bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+            />
+            <input
+              value={newPrice} onChange={e => setNewPrice(e.target.value)}
+              inputMode="decimal" placeholder="20"
+              className="w-full sm:w-32 bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+            />
+            <button onClick={() => void add()} className="h-10 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]">
+              Create
+            </button>
+          </div>
+
+          <label className="mt-2 flex items-center gap-2 text-sm text-[#191f1d] cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={newHidden}
+              onChange={e => setNewHidden(e.target.checked)}
+              className="h-4 w-4 rounded border-[var(--ds-brd)]"
+            />
+            Private plan
+            <span className="text-xs text-[#9ca3af]">
+              Never shown to customers. Only applies to accounts you put on it.
+            </span>
+          </label>
         </div>
       )}
 
@@ -307,7 +326,14 @@ function PlansCard() {
                   <DollarSign className="w-5 h-5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-[#7f8c85] truncate">{p.name}</p>
+                  <p className="text-xs text-[#7f8c85] truncate flex items-center gap-1.5">
+                    {p.name}
+                    {(p as any).is_public === false && (
+                      <span className="shrink-0 rounded-full bg-[#eef0f3] text-[#7f8c85] text-[10px] font-semibold px-1.5 py-0.5 uppercase tracking-wide">
+                        Private
+                      </span>
+                    )}
+                  </p>
                   <div className="flex items-center gap-1">
                     <span className="text-[#191f1d] font-semibold">$</span>
                     <input

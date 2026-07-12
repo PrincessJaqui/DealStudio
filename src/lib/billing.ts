@@ -127,3 +127,77 @@ export async function adminSetPassword(userId: string, password: string) {
   if (!res.ok) throw new Error(json?.error || 'Could not set password');
   return json;
 }
+
+/* ── Hidden plans and add-ons ──────────────────────────────────────────────── */
+
+export type Addon = {
+  id: string;
+  plan_id: string | null;
+  name: string;
+  description: string;
+  price_cents: number;
+  unit: string;
+  is_active: boolean;
+};
+
+export type OrgAddon = {
+  addon_id: string;
+  name: string;
+  price_cents: number;
+  unit: string;
+  quantity: number;
+};
+
+/** Every plan, hidden ones included. Platform admins only. */
+export async function adminListPlans() {
+  const { data, error } = await supabase.rpc('admin_list_plans');
+  if (error) throw error;
+  return (data as any[]) ?? [];
+}
+
+export async function adminListAddons(): Promise<Addon[]> {
+  const { data, error } = await supabase.rpc('admin_list_addons');
+  if (error) throw error;
+  return (data as Addon[]) ?? [];
+}
+
+export async function adminSaveAddon(a: {
+  id?: string | null; plan_id?: string | null; name: string;
+  description?: string; price_cents: number; unit?: string;
+}) {
+  const { error } = await supabase.rpc('admin_save_addon', {
+    p_id: a.id ?? null,
+    p_plan: a.plan_id ?? null,
+    p_name: a.name,
+    p_desc: a.description ?? '',
+    p_price: a.price_cents,
+    p_unit: a.unit ?? 'each',
+  });
+  if (error) throw error;
+}
+
+export async function adminDeleteAddon(id: string) {
+  const { error } = await supabase.rpc('admin_delete_addon', { p_id: id });
+  if (error) throw error;
+}
+
+/** Add-ons for one account, with the quantity each is set to (0 = off). */
+export async function adminOrgAddons(orgId: string): Promise<OrgAddon[]> {
+  const { data, error } = await supabase.rpc('admin_org_addons', { p_org: orgId });
+  if (error) throw error;
+  return (data as OrgAddon[]) ?? [];
+}
+
+export async function adminSetOrgAddon(orgId: string, addonId: string, qty: number) {
+  const { error } = await supabase.rpc('admin_set_org_addon', {
+    p_org: orgId, p_addon: addonId, p_qty: qty,
+  });
+  if (error) throw error;
+}
+
+/** Plan plus every add-on. The single source of truth for what an account costs. */
+export async function orgMonthlyTotal(orgId: string): Promise<number> {
+  const { data, error } = await supabase.rpc('org_monthly_total', { p_org: orgId });
+  if (error) throw error;
+  return (data as number) ?? 0;
+}

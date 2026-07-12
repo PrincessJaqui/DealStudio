@@ -9,7 +9,11 @@
 
 import { useState } from 'react';
 import { Loader2, X, Eye, EyeOff, Check } from 'lucide-react';
-import { adminUpdateOrg, adminSetPassword, type AdminOrg, type Plan } from '../../lib/billing';
+import {
+  adminUpdateOrg, adminSetPassword, adminOrgAddons, adminSetOrgAddon, orgMonthlyTotal,
+  type AdminOrg, type Plan, type OrgAddon,
+} from '../../lib/billing';
+import { useEffect } from 'react';
 
 export function EditOrgDialog({
   org, plans, onClose, onSaved,
@@ -22,6 +26,27 @@ export function EditOrgDialog({
   const [suspended, setSuspended] = useState(org.suspended);
   const [comped, setComped] = useState(org.comped);
   const [planId, setPlanId] = useState(org.plan_id ?? '');
+  const [addons, setAddons] = useState<OrgAddon[] | null>(null);
+  const [total, setTotal] = useState<number | null>(null);
+
+  // Add-ons for this account, plus what it actually costs. The total comes from
+  // the database rather than being added up here, so the console and the
+  // customer's bill cannot drift apart.
+  const loadAddons = async () => {
+    try {
+      const [a, t] = await Promise.all([adminOrgAddons(org.id), orgMonthlyTotal(org.id)]);
+      setAddons(a);
+      setTotal(t);
+    } catch {
+      setAddons([]);
+    }
+  };
+  useEffect(() => { void loadAddons(); }, [org.id, planId]);
+
+  const setQty = async (addonId: string, qty: number) => {
+    await adminSetOrgAddon(org.id, addonId, Math.max(0, qty));
+    await loadAddons();
+  };
   const [status, setStatus] = useState(org.subscription_status);
 
   const [pw, setPw] = useState('');
@@ -110,6 +135,54 @@ export function EditOrgDialog({
               ))}
             </select>
           </div>
+
+          {/* Add-ons for this account. Quantity 0 means off. */}
+          {addons && addons.length > 0 && (
+            <div>
+              <label className={label}>Add-ons</label>
+              <div className="mt-1 rounded-xl border border-[#edf0f3] divide-y divide-[#f2f4f6]">
+                {addons.map(a => (
+                  <div key={a.addon_id} className="flex items-center gap-3 px-3 py-2.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-[#191f1d] truncate">{a.name}</p>
+                      <p className="text-xs text-[#7f8c85]">
+                        ${(a.price_cents / 100).toFixed(2)} {a.unit}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => void setQty(a.addon_id, a.quantity - 1)}
+                        disabled={a.quantity === 0}
+                        className="w-8 h-8 rounded-lg border border-[#edf0f3] text-[#7f8c85] hover:bg-[#f5f6f8] disabled:opacity-30"
+                      >
+                        &minus;
+                      </button>
+                      <span className="w-8 text-center text-sm font-semibold text-[#191f1d]">
+                        {a.quantity}
+                      </span>
+                      <button
+                        onClick={() => void setQty(a.addon_id, a.quantity + 1)}
+                        className="w-8 h-8 rounded-lg border border-[#edf0f3] text-[#7f8c85] hover:bg-[#f5f6f8]"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {total !== null && (
+                <p className="mt-2 text-sm">
+                  <span className="text-[#7f8c85]">Monthly total </span>
+                  <span className="font-bold text-[var(--ds-accent-ink)]">
+                    ${(total / 100).toFixed(2)}
+                  </span>
+                  <span className="text-[#9ca3af]"> (plan plus add-ons)</span>
+                </p>
+              )}
+            </div>
+          )}
 
           <div>
             <label className={label}>Subscription status</label>
