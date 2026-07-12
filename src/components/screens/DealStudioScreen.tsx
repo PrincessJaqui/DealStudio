@@ -30,6 +30,8 @@ import { MarketEditor } from '../dealstudio/MarketEditor';
 import { ValuePropEditor } from '../dealstudio/ValuePropEditor';
 import { CompetitionEditor } from '../dealstudio/CompetitionEditor';
 import { DealThemeEditor } from '../dealstudio/DealThemeEditor';
+import { StatSlotField } from '../dealstudio/StatSlotField';
+import { DEFAULT_STAT_SLOTS, type StatSlot } from '../../lib/dealStudio';
 import { TeamEditor } from '../dealstudio/TeamEditor';
 import { BusinessModelEditor } from '../dealstudio/BusinessModelEditor';
 import {
@@ -301,6 +303,21 @@ export function DealStudioScreen() {
             </div>
 
             {/* MARKET */}
+            <TabsContent value="valueprop" className="space-y-4">
+              <ValuePropEditor
+                value={(room as any).value_prop ?? null}
+                onChange={(vp) => update({ value_prop: vp } as any)}
+              />
+            </TabsContent>
+
+            <TabsContent value="competition" className="space-y-4">
+              <CompetitionEditor
+                orgId={org?.id}
+                value={(room as any).competition ?? null}
+                onChange={(c) => update({ competition: c } as any)}
+              />
+            </TabsContent>
+
             <TabsContent value="market" className="space-y-4">
               <MarketEditor value={room.market} onChange={(mkt) => update({ market: mkt })} />
             </TabsContent>
@@ -352,8 +369,31 @@ export function DealStudioScreen() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <EditableLabelField value={(room.field_labels as any)?.round ?? ''} fallback="Round" onChange={v => update({ field_labels: { ...((room.field_labels as any) || {}), round: v } } as any)}><input value={room.round} onChange={e => update({ round: e.target.value })} className={inputCls} placeholder="Seed" /></EditableLabelField>
                   <EditableLabelField value={(room.field_labels as any)?.raise_amount ?? ''} fallback="Raise Amount" onChange={v => update({ field_labels: { ...((room.field_labels as any) || {}), raise_amount: v } } as any)}><input value={room.raise_amount} onChange={e => update({ raise_amount: e.target.value })} className={inputCls} placeholder="$750K" /></EditableLabelField>
-                  <EditableLabelField value={(room.field_labels as any)?.team_size ?? ''} fallback="Team Size" onChange={v => update({ field_labels: { ...((room.field_labels as any) || {}), team_size: v } } as any)}><input type="number" value={room.team_size || ''} onChange={e => update({ team_size: parseInt(e.target.value) || 0 })} className={inputCls} placeholder="4" /></EditableLabelField>
-                  <EditableLabelField value={(room.field_labels as any)?.headquarters ?? ''} fallback="Headquarters" onChange={v => update({ field_labels: { ...((room.field_labels as any) || {}), headquarters: v } } as any)}><input value={room.headquarters} onChange={e => update({ headquarters: e.target.value })} className={inputCls} placeholder="Kansas City, MO" /></EditableLabelField>
+                  {(() => {
+                    const slots: StatSlot[] = Array.isArray((room as any).stat_slots) && (room as any).stat_slots.length === 2
+                      ? (room as any).stat_slots
+                      : DEFAULT_STAT_SLOTS;
+                    const setSlot = (i: number, next: StatSlot) => {
+                      const copy = [...slots];
+                      copy[i] = next;
+                      update({ stat_slots: copy } as any);
+                    };
+                    return (
+                      <>
+                        {[0, 1].map(i => (
+                          <StatSlotField
+                            key={i}
+                            slot={slots[i]}
+                            teamSize={room.team_size || 0}
+                            headquarters={room.headquarters || ''}
+                            onSlot={(next) => setSlot(i, next)}
+                            onTeamSize={(n) => update({ team_size: n })}
+                            onHeadquarters={(v) => update({ headquarters: v })}
+                          />
+                        ))}
+                      </>
+                    );
+                  })()}
                 </div>
                 <EditableLabelField value={(room.field_labels as any)?.one_liner ?? ''} fallback="Company One-Liner" onChange={v => update({ field_labels: { ...((room.field_labels as any) || {}), one_liner: v } } as any)}><input value={room.one_liner} onChange={e => update({ one_liner: e.target.value })} className={inputCls} placeholder="The marketplace for court sports" /></EditableLabelField>
                 <Field label="Tags (comma separated)"><input value={room.tags?.join(', ') || ''} onChange={e => update({ tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} className={inputCls} placeholder="Marketplace, Sports, B2B2C" /></Field>

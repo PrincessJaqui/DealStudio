@@ -278,6 +278,33 @@ export async function fetchLinkPreview(url: string): Promise<LinkPreview | null>
 }
 
 
+
+/* ── Deal Information stat slots ───────────────────────────────────────────── */
+
+export type StatKind =
+  | 'total_raised' | 'team_size' | 'instrument' | 'headquarters' | 'other';
+
+export interface StatSlot {
+  kind: StatKind;
+  /** Only used when kind is 'other'. */
+  label?: string;
+  /** Used by every kind except team_size and headquarters, which read columns. */
+  value?: string;
+}
+
+export const STAT_KIND_LABELS: Record<StatKind, string> = {
+  total_raised: 'Total Raised',
+  team_size: 'Team Size',
+  instrument: 'Instrument',
+  headquarters: 'Headquarters',
+  other: 'Other',
+};
+
+export const DEFAULT_STAT_SLOTS: StatSlot[] = [
+  { kind: 'team_size' },
+  { kind: 'headquarters' },
+];
+
 /* ── Value Proposition ─────────────────────────────────────────────────────── */
 
 export interface DealValuePillar { title: string; description: string; }
@@ -293,23 +320,43 @@ export const EMPTY_VALUE_PROP: DealValueProp = {
   headline: '', problem: '', solution: '', pillars: [],
 };
 
-/* ── Competition ───────────────────────────────────────────────────────────── */
+
+/* ── Competition matrix ────────────────────────────────────────────────────── */
+
+/** A row in the comparison grid: the thing being compared on. */
+export interface CompFeature {
+  id: string;
+  label: string;
+}
 
 export interface DealCompetitor {
+  id: string;
   name: string;
-  segment: string;    // who they serve today
-  weakness: string;   // the gap you work in
+  segment: string;
+  weakness: string;
+  logo?: string;
+  url?: string;
+  /** This column is the founder's own company, and is highlighted. */
+  is_you?: boolean;
+  /** featureId -> has it. Missing means no. */
+  marks: Record<string, boolean>;
 }
 
 export interface DealCompetition {
   overview: string;
+  edge: string;
+  features: CompFeature[];
   competitors: DealCompetitor[];
-  edge: string;       // why you win, stated plainly
 }
 
 export const EMPTY_COMPETITION: DealCompetition = {
-  overview: '', competitors: [], edge: '',
+  overview: '', edge: '', features: [], competitors: [],
 };
+
+export function newId(prefix = 'x'): string {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+}
+
 
 /** Public deal studio payload (active room only, safe columns + active documents). */
 export async function fetchDealStudioPublic(slug = 'investors'): Promise<DealStudioPublic | null> {

@@ -8,6 +8,8 @@
 import { useParams } from 'react-router-dom';
 import { PublicHeader } from '../dealstudio/PublicHeader';
 import { applyDealTheme } from '../../lib/org';
+import { statSlotValue } from '../dealstudio/StatSlotField';
+import { DEFAULT_STAT_SLOTS, type StatSlot } from '../../lib/dealStudio';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 import { MapPin, Calendar as CalIcon, Share2, Check, LogOut } from 'lucide-react';
@@ -265,11 +267,16 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
 
   const deck = room.documents.find(d => d.is_deck) || null;
   const lbl = (key: string, fallback: string) => (fieldLabels[key]?.trim() || fallback);
+  // Round and Amount are fixed. The other two are whatever the founder chose.
+  const slots: StatSlot[] =
+    Array.isArray((room as any).stat_slots) && (room as any).stat_slots.length === 2
+      ? (room as any).stat_slots
+      : DEFAULT_STAT_SLOTS;
+
   const tiles = [
-    { label: lbl('round', 'Series'), value: room.round || '—' },
-    { label: lbl('raise_amount', 'Amount'), value: room.raise_amount || '—' },
-    { label: lbl('team_size', 'Team Size'), value: room.team_size ? String(room.team_size) : '—' },
-    { label: lbl('headquarters', 'Headquarter'), value: room.headquarters || '—' },
+    { label: lbl('round', 'Series'), value: room.round || '\u2014' },
+    { label: lbl('raise_amount', 'Amount'), value: room.raise_amount || '\u2014' },
+    ...slots.map(sl => statSlotValue(sl, room)),
   ];
   const mapSrc = room.hq_lat && room.hq_lng
     ? `https://maps.google.com/maps?q=${room.hq_lat},${room.hq_lng}&z=12&output=embed`
