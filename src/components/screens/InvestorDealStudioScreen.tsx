@@ -5,6 +5,7 @@
  * (DocSend-style) and rolls it up into dealstudio_visits on unload.
  */
 
+import { useParams } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 import { MapPin, Calendar as CalIcon, Share2, Check, LogOut } from 'lucide-react';
@@ -26,25 +27,26 @@ import {
 import { toast } from 'sonner@2.0.3';
 
 // DB slug for the room (independent of the public URL path, which is /dealstudio).
-const SLUG = 'investors';
+const DEFAULT_SLUG = 'investors';
 
 // Remember a granted session on this device so a refresh doesn't re-prompt the
 // gate. The gate is a soft wall (the public RPC already returns the room), so
 // persisting a flag here is purely for the investor's convenience.
-const ACCESS_KEY = `dealstudio_access_${SLUG}`;
+
 const ACCESS_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
-function readPersistedAccess(): boolean {
+const accessKey = (slug: string) => `dealstudio_access_${slug}`;
+function readPersistedAccess(slug: string): boolean {
   try {
-    const raw = localStorage.getItem(ACCESS_KEY);
+    const raw = localStorage.getItem(accessKey(slug));
     if (!raw) return false;
     const at = JSON.parse(raw)?.at;
     if (typeof at !== 'number') return false;
-    if (Date.now() - at > ACCESS_TTL_MS) { localStorage.removeItem(ACCESS_KEY); return false; }
+    if (Date.now() - at > ACCESS_TTL_MS) { localStorage.removeItem(accessKey(slug)); return false; }
     return true;
   } catch { return false; }
 }
-function writePersistedAccess() {
-  try { localStorage.setItem(ACCESS_KEY, JSON.stringify({ at: Date.now() })); } catch { /* noop */ }
+function writePersistedAccess(slug: string) {
+  try { localStorage.setItem(accessKey(slug), JSON.stringify({ at: Date.now() })); } catch { /* noop */ }
 }
 
 /** Split rich-text HTML after the Nth <p>, returning a preview + whether more exists. */
@@ -73,6 +75,8 @@ function splitHtmlParagraphs(html: string, maxParas: number): { preview: string;
 }
 
 export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAdmin?: boolean }) {
+  const { slug: routeSlug } = useParams<{ slug?: string }>();
+  const SLUG = routeSlug || DEFAULT_SLUG;
   const docsView = useInViewOnce<HTMLDivElement>();
   const [room, setRoom] = useState<DealStudioPublic | null>(null);
   const [fieldLabels, setFieldLabels] = useState<Record<string, string>>({});
@@ -80,7 +84,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   const [team, setTeam] = useState<DealTeamMember[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(() => { try { return localStorage.getItem('dealstudio_email'); } catch { return null; } });
-  const [granted, setGranted] = useState(() => readPersistedAccess());
+  const [granted, setGranted] = useState(() => readPersistedAccess(SLUG));
   const [activeDoc, setActiveDoc] = useState<DealDocument | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [aboutExpanded, setAboutExpanded] = useState(false);
@@ -234,7 +238,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
     );
   }
   if (gateRequired) {
-    return <InvestorGate slug={SLUG} companyName={room.company_name} requirePassword={requirePassword} requireEmail={gateRequireEmail} skipVerify={shareMode} heroImageUrl={room.hero_image_url} onGranted={(e) => { setEmail(e); setGranted(true); writePersistedAccess(); }} />;
+    return <InvestorGate slug={SLUG} companyName={room.company_name} requirePassword={requirePassword} requireEmail={gateRequireEmail} skipVerify={shareMode} heroImageUrl={room.hero_image_url} onGranted={(e) => { setEmail(e); setGranted(true); writePersistedAccess(SLUG); }} />;
   }
 
   const deck = room.documents.find(d => d.is_deck) || null;
@@ -388,7 +392,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             {granted && !isMasterAdmin && (
               <button
                 onClick={() => {
-                  try { localStorage.removeItem(ACCESS_KEY); localStorage.removeItem('dealstudio_email'); } catch { /* noop */ }
+                  try { localStorage.removeItem(accessKey(SLUG)); localStorage.removeItem('dealstudio_email'); } catch { /* noop */ }
                   setEmail(null);
                   setGranted(false);
                 }}

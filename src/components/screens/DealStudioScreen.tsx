@@ -20,7 +20,7 @@ import { DealDocumentCard } from '../dealstudio/DealDocumentCard';
 import { DealDocumentModal } from '../dealstudio/DealDocumentModal';
 import { AvailabilityModal } from '../dealstudio/AvailabilityModal';
 import { PdfDeckViewer } from '../dealstudio/PdfDeckViewer';
-import { useAdminAuth } from '../dealstudio/AdminGate';
+import { useParams } from 'react-router-dom';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { DealDocViewer } from '../dealstudio/DealDocViewer';
 import { DealFlow } from '../dealstudio/DealFlow';
@@ -48,6 +48,7 @@ function StatTile({ label, value }: { label: string; value: string }) {
 }
 
 export function DealStudioScreen() {
+  const { slug } = useParams<{ slug?: string }>();
   const [room, setRoom] = useState<DealStudio | null>(null);
   const [docs, setDocs] = useState<DealDocument[]>([]);
   const [access, setAccess] = useState<DealAccessRow[]>([]);
@@ -70,7 +71,6 @@ export function DealStudioScreen() {
   const [docStats, setDocStats] = useState<Record<string, DocStat>>({});
   const [availOpen, setAvailOpen] = useState(false);
   const [docView, setDocView] = useState<DealDocument | null>(null);
-  const { signOut } = useAdminAuth();
   const [siteOpen, setSiteOpen] = useState(false);
   const [reorderMode, setReorderMode] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -140,11 +140,12 @@ export function DealStudioScreen() {
 
   useEffect(() => {
     (async () => {
-      const r = await adminFetchDealStudio();
+      setRoom(null);
+      const r = await adminFetchDealStudio(slug);
       setRoom(r);
       if (r) { await reloadDocs(r.id); await reloadVisitors(r.id); }
     })();
-  }, []);
+  }, [slug]);
 
   // Debounced auto-save for the detail form (no explicit Save buttons).
   const update = (patch: Partial<DealStudio>) => {
@@ -265,12 +266,9 @@ export function DealStudioScreen() {
         </div>
         <div className="flex items-center gap-2 flex-wrap sm:justify-end shrink-0">
           {savedAt && <span className="hidden sm:inline-flex items-center h-9 text-xs font-medium px-2.5 rounded-xl bg-[var(--ds-tint)] text-[var(--ds-brand)]">{saving ? 'Saving…' : `Saved ${savedAt}`}</span>}
-          <a href="/dealstudio" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm text-[#191f1d] hover:bg-[#f5f7f9]"><ExternalLink className="w-4 h-4" /> View</a>
+          <a href={`/d/${room.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm text-[#191f1d] hover:bg-[#f5f7f9]"><ExternalLink className="w-4 h-4" /> View</a>
           <button onClick={toggleActive} className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-sm font-medium ${room.is_active ? 'bg-[var(--ds-tint)] text-[var(--ds-brand)]' : 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'}`}>
             <Power className="w-4 h-4" /> {room.is_active ? 'Active' : 'Activate'}
-          </button>
-          <button onClick={() => void signOut()} className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm text-[#7f8c85] hover:text-[#191f1d] hover:bg-[#f5f7f9]">
-            <LogOut className="w-4 h-4" /> Sign out
           </button>
         </div>
       </div>
