@@ -374,8 +374,17 @@ export async function requestMeeting(slug: string, email: string, name: string, 
 
 // ── Admin (authenticated) reads + CRUD ───────────────────────────────────────
 
-export async function adminFetchDealStudio(slug = 'investors'): Promise<DealStudio | null> {
-  const { data, error } = await supabase.from('dealstudios').select('*').eq('slug', slug).maybeSingle();
+/**
+ * Loads a deal for the admin editor. RLS scopes every read to the caller's
+ * organization, so omitting the slug simply returns that org's newest deal.
+ */
+export async function adminFetchDealStudio(slug?: string): Promise<DealStudio | null> {
+  let q = supabase.from('dealstudios').select('*');
+  if (slug) q = q.eq('slug', slug);
+  const { data, error } = await q
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
   if (error) { console.warn('[dealStudio] admin fetch', error); return null; }
   if (data) (data as any).availability = normalizeSchedule((data as any).availability);
   return data as DealStudio | null;

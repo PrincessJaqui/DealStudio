@@ -11,27 +11,27 @@ import { Loader2, LogOut, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { refreshUserContext } from '../../lib/analytics';
+import { fetchMyOrg, applyOrgTheme, type Organization } from '../../lib/org';
 
 type Status = 'loading' | 'signedout' | 'notadmin' | 'admin';
 
 /** Lets the admin screen render Sign out inside its own header. */
-const AdminAuthContext = createContext<{ signOut: () => Promise<void> }>({ signOut: async () => {} });
+const AdminAuthContext = createContext<{ signOut: () => Promise<void>; org: Organization | null }>({ signOut: async () => {}, org: null });
 export const useAdminAuth = () => useContext(AdminAuthContext);
 
-async function resolveStatus(): Promise<Status> {
+async function resolve(): Promise<{ status: Status; org: Organization | null }> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return 'signedout';
+  if (!user) return { status: 'signedout', org: null };
   await refreshUserContext();
-  const { data: roleRow } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('auth_user_id', user.id)
-    .maybeSingle();
-  return roleRow?.role === 'admin' ? 'admin' : 'notadmin';
+  // Membership in an organization is what grants access. RLS enforces the same
+  // rule server-side, so a user with no org simply sees nothing.
+  const org = await fetchMyOrg();
+  return { status: org ? 'admin' : 'notadmin', org };
 }
 
 export function AdminGate({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>('loading');
+  const [org, setOrg] = useState<Organization | null>(null);
   const [email, setEmail] = useState('hello@dealstudio.io');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -40,10 +40,14 @@ export function AdminGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let alive = true;
-    resolveStatus().then((s) => { if (alive) setStatus(s); });
-    const { data: sub } = supabase.auth.onAuthStateChange(() => {
-      resolveStatus().then((s) => { if (alive) setStatus(s); });
+    const load = () => resolve().then((r) => {
+      if (!alive) return;
+      setStatus(r.status);
+      setOrg(r.org);
+      applyOrgTheme(r.org);   // repaint the design tokens in the company's brand
     });
+    void load();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => { void load(); });
     return () => { alive = false; sub.subscription.unsubscribe(); };
   }, []);
 
@@ -75,7 +79,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
 
   if (status === 'admin') {
     return (
-      <AdminAuthContext.Provider value={{ signOut }}>
+      <AdminAuthContext.Provider value={{ signOut, org }}>
         {children}
       </AdminAuthContext.Provider>
     );
@@ -89,7 +93,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
 
         {status === 'notadmin' ? (
           <>
-            <p className="text-sm text-[#7f8c85] mt-2">This account is signed in but is not an admin. Ask for admin access, or sign in with a different account.</p>
+            <p className="text-sm text-[#7f8c85] mt-2">This account is not part of a company workspace yet. Ask an owner to invite you, or sign in with a different account.</p>
             <button
               onClick={signOut}
               className="mt-5 w-full rounded-xl border border-[#edf0f3] py-2.5 text-sm font-semibold text-[#7f8c85] hover:text-[#191f1d]"

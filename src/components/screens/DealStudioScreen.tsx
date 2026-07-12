@@ -140,7 +140,7 @@ export function DealStudioScreen() {
 
   useEffect(() => {
     (async () => {
-      const r = await adminFetchDealStudio('investors');
+      const r = await adminFetchDealStudio();
       setRoom(r);
       if (r) { await reloadDocs(r.id); await reloadVisitors(r.id); }
     })();
