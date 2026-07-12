@@ -97,9 +97,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <div className="md:flex md:items-start">
+      <div className="md:flex md:min-h-[calc(100vh-68px)]">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-56 shrink-0 flex-col sticky top-[68px] h-[calc(100vh-68px)] border-r border-[#edf0f3] bg-white">
+      <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-[#edf0f3] bg-white">
+        <div className="sticky top-[68px] flex flex-col h-[calc(100vh-68px)]">
         <nav className="flex-1 p-3 space-y-1 pt-4">
           {NAV.map(({ to, label, Icon, end }) => (
             <NavLink key={to} to={to} end={end} className={linkCls}>
@@ -117,6 +118,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <LogOut className="w-4 h-4" />
             Sign out
           </button>
+        </div>
         </div>
       </aside>
 

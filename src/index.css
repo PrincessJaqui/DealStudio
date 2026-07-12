@@ -78,3 +78,14 @@ body {
   .ds-bar { transform: scaleX(1); }
   .ds-animate .ds-pulse, .ds-animate .ds-pulse-pie, .ds-animate .ds-bar { animation: none; }
 }
+
+
+/* The app canvas is grey. Without this, white shows through beneath short
+   pages and during overscroll, which reads as a stray white band. */
+html, body, #root {
+  background-color: #f5f6f8;
+  min-height: 100%;
+}
+html.dark, html.dark body, html.dark #root {
+  background-color: #0b0e1a;
+}

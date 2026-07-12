@@ -104,7 +104,7 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[13px] font-bold text-[#191f1d] truncate">{r.name || `Revenue ${i + 1}`}</span>
-                      {Math.round(totals.revenues[i]?.pctOfTotal || 0) > 0 && <span className="text-[12px] font-bold text-[var(--ds-brand)] shrink-0">{Math.round(totals.revenues[i]?.pctOfTotal || 0)}%</span>}
+                      {Math.round(totals.revenues[i]?.pctOfTotal || 0) > 0 && <span className="text-[12px] font-bold text-[var(--ds-accent-ink)] shrink-0">{Math.round(totals.revenues[i]?.pctOfTotal || 0)}%</span>}
                     </div>
                     {r.details && <p className="mt-1 text-[13px] leading-[1.25] text-[#4a5565]">{r.details}</p>}
                   </div>
