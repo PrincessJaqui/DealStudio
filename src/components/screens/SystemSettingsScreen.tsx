@@ -6,10 +6,10 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Loader2, Check, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Check, Upload, Trash2, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAdminAuth } from '../dealstudio/AdminGate';
-import { saveOrgBranding } from '../../lib/org';
+import { saveOrgBranding, uploadOrgLogo } from '../../lib/org';
 
 const card = 'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
 const field = 'w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
@@ -23,6 +23,42 @@ export function SystemSettingsScreen() {
 
   const [name, setName] = useState('');
   const [savingName, setSavingName] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(org?.logo_url ?? null);
+  const [logoBusy, setLogoBusy] = useState(false);
+  const [logoNote, setLogoNote] = useState('');
+
+  /** Upload replaces the stored logo; the header and deal rooms pick it up. */
+  const onLogoPick = async (file?: File) => {
+    if (!file || !org) return;
+    if (!/^image\//.test(file.type)) { setLogoNote('Choose an image file'); return; }
+    if (file.size > 2 * 1024 * 1024) { setLogoNote('Keep it under 2MB'); return; }
+    setLogoBusy(true); setLogoNote('');
+    try {
+      const url = await uploadOrgLogo(org.id, file);
+      await saveOrgBranding(org.id, { logo_url: url });
+      setLogoUrl(url);
+      setLogoNote('Logo updated');
+    } catch (e: any) {
+      setLogoNote(e?.message || 'Upload failed');
+    } finally {
+      setLogoBusy(false);
+    }
+  };
+
+  const removeLogo = async () => {
+    if (!org) return;
+    setLogoBusy(true); setLogoNote('');
+    try {
+      await saveOrgBranding(org.id, { logo_url: null });
+      setLogoUrl(null);
+      setLogoNote('Logo removed');
+    } catch (e: any) {
+      setLogoNote(e?.message || 'Could not remove');
+    } finally {
+      setLogoBusy(false);
+    }
+  };
+
   const [nameNote, setNameNote] = useState<Note>(null);
 
   const [email, setEmail] = useState('');
@@ -85,8 +121,48 @@ export function SystemSettingsScreen() {
       <div className="space-y-5">
         <div className={card}>
           <h2 className="font-bold text-[#191f1d] mb-4">Company</h2>
+
+          <label className={label}>Logo</label>
+          <div className="flex items-center gap-4 mt-1.5 mb-5">
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-[#edf0f3] bg-white flex items-center justify-center">
+              {logoUrl
+                ? <img src={logoUrl} alt="" className="h-full w-full object-contain p-1" />
+                : <ImageIcon className="w-5 h-5 text-[#c7cdd4]" />}
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <label className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm font-medium text-[#191f1d] ${logoBusy ? 'opacity-60' : 'hover:bg-[#f5f6f8] cursor-pointer'}`}>
+                  {logoBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  {logoUrl ? 'Replace' : 'Upload'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={logoBusy}
+                    onChange={(e) => { void onLogoPick(e.target.files?.[0]); e.currentTarget.value = ''; }}
+                  />
+                </label>
+
+                {logoUrl && (
+                  <button
+                    onClick={() => void removeLogo()}
+                    disabled={logoBusy}
+                    className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm font-medium text-[#7f8c85] hover:text-red-600 hover:border-red-200 hover:bg-red-50 disabled:opacity-50"
+                  >
+                    <Trash2 className="w-4 h-4" /> Remove
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-[#9ca3af] mt-1.5">
+                PNG or SVG, square works best. Shown in your header and to investors. Max 2MB.
+              </p>
+            </div>
+          </div>
+          {noteEl(logoNote)}
+
           <label className={label}>Company name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} className={field} placeholder="Acme Robotics" />
+          <input value={name} onChange={(e) => setName(e.target.value)} className={field} placeholder="Your company name" />
           <div className="mt-4">
             <button onClick={() => void saveName()} disabled={savingName || !name.trim()} className={primary}>
               {savingName ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Save
