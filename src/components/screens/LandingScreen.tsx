@@ -115,10 +115,10 @@ export function LandingScreen() {
             Build your deal, upload your deck, and manage investor access from a single command center.
           </p>
           <div className="mt-7 flex flex-wrap gap-3.5">
-            <button onClick={() => nav('/admin')} className={`rounded-xl ${GRAD} text-white px-[18px] py-3 font-semibold shadow-[0_10px_24px_-10px_rgba(80,61,187,0.6)] hover:brightness-110 hover:-translate-y-0.5 transition inline-flex items-center gap-2`}>
-              Start your deal room <ArrowRight className="w-4 h-4" />
+            <button onClick={() => nav('/signup')} className={`rounded-xl ${GRAD} text-white px-[18px] py-3 font-semibold shadow-[0_10px_24px_-10px_rgba(80,61,187,0.6)] hover:brightness-110 hover:-translate-y-0.5 transition inline-flex items-center gap-2`}>
+              Start free for 30 days <ArrowRight className="w-4 h-4" />
             </button>
-            <button onClick={() => nav('/dealstudio')} className="rounded-xl border border-[#e6e8ee] dark:border-[#242c47] bg-white dark:bg-[#141a2e] px-[18px] py-3 font-semibold hover:-translate-y-0.5 transition">
+            <button onClick={() => nav('/d/investors')} className="rounded-xl border border-[#e6e8ee] dark:border-[#242c47] bg-white dark:bg-[#141a2e] px-[18px] py-3 font-semibold hover:-translate-y-0.5 transition">
               See a live demo
             </button>
           </div>
@@ -205,8 +205,8 @@ export function LandingScreen() {
           <span className="absolute -right-10 -top-16 w-72 h-72 rounded-full bg-[var(--ds-accent)] opacity-30 blur-3xl" />
           <h2 className="relative text-[clamp(28px,3.4vw,38px)] font-bold tracking-tight">Ready to open your deal room?</h2>
           <p className="relative mt-3 text-[17px] text-white/80">Publish a private, always-current investor page in minutes.</p>
-          <button onClick={() => nav('/admin')} className="relative mt-6 rounded-xl bg-white text-[var(--ds-brand)] px-[18px] py-3 font-semibold hover:-translate-y-0.5 transition">
-            Start your deal room
+          <button onClick={() => nav('/signup')} className="relative mt-6 rounded-xl bg-white text-[var(--ds-brand)] px-[18px] py-3 font-semibold hover:-translate-y-0.5 transition">
+            Start free for 30 days
           </button>
         </div>
       </section>

@@ -7,7 +7,9 @@
 import { useEffect, useState } from 'react';
 import {
   Loader2, DollarSign, Plus, Download, RefreshCw, Search, Check, X, Shield,
+  ChevronUp, ChevronDown, Pencil,
 } from 'lucide-react';
+import { EditOrgDialog } from '../dealstudio/EditOrgDialog';
 import {
   adminListOrgs, adminUpdateOrg, adminListTransactions, fetchPlans, savePlan,
   isPlatformAdmin, money, type AdminOrg, type Txn, type Plan,
@@ -31,7 +33,7 @@ function StatusPill({ s }: { s: string }) {
 
 export function MasterAdminScreen() {
   const [allowed, setAllowed] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<'users' | 'transactions'>('users');
+  const [tab, setTab] = useState<'users' | 'plans' | 'transactions'>('users');
 
   useEffect(() => { void isPlatformAdmin().then(setAllowed); }, []);
 
@@ -56,7 +58,7 @@ export function MasterAdminScreen() {
       </div>
 
       <div className={`${card} p-1.5 inline-flex gap-1 mb-5`}>
-        {(['users', 'transactions'] as const).map(t => (
+        {(['users', 'plans', 'transactions'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -71,20 +73,25 @@ export function MasterAdminScreen() {
         ))}
       </div>
 
-      {tab === 'users' ? <UsersTab /> : <TransactionsTab />}
+      {tab === 'users' ? <UsersTab /> : tab === 'plans' ? <PlansCard /> : <TransactionsTab />}
     </div>
   );
 }
 
 /* ── Users ─────────────────────────────────────────────────────────────────── */
 
+type SortKey = 'name' | 'owner_email' | 'subscription_status' | 'deal_count' | 'created_at';
+
 function UsersTab() {
   const [orgs, setOrgs] = useState<AdminOrg[] | null>(null);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
+  const [editing, setEditing] = useState<AdminOrg | null>(null);
+  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'created_at', dir: -1 });
 
   const load = async () => setOrgs(await adminListOrgs());
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { void load(); void fetchPlans().then(setPlans); }, []);
 
   const act = async (id: string, patch: Parameters<typeof adminUpdateOrg>[1]) => {
     setBusy(id);
@@ -92,14 +99,35 @@ function UsersTab() {
     finally { setBusy(null); }
   };
 
-  const rows = (orgs ?? []).filter(o =>
-    !q || `${o.name} ${o.owner_email ?? ''}`.toLowerCase().includes(q.toLowerCase()));
+  const toggleSort = (key: SortKey) =>
+    setSort(s => (s.key === key ? { key, dir: (s.dir === 1 ? -1 : 1) } : { key, dir: 1 }));
+
+  const rows = (orgs ?? [])
+    .filter(o => !q || `${o.name} ${o.owner_email ?? ''}`.toLowerCase().includes(q.toLowerCase()))
+    .sort((a, b) => {
+      const k = sort.key;
+      const av = k === 'deal_count' ? a.deal_count : String(a[k] ?? '').toLowerCase();
+      const bv = k === 'deal_count' ? b.deal_count : String(b[k] ?? '').toLowerCase();
+      if (av < bv) return -1 * sort.dir;
+      if (av > bv) return 1 * sort.dir;
+      return 0;
+    });
+
+  const SortTh = ({ label, k }: { label: string; k: SortKey }) => (
+    <th className="font-semibold px-5 py-3 whitespace-nowrap">
+      <button onClick={() => toggleSort(k)} className="inline-flex items-center gap-1 hover:text-[#191f1d]">
+        {label}
+        <span className="flex flex-col -space-y-1.5">
+          <ChevronUp className={`w-3 h-3 ${sort.key === k && sort.dir === 1 ? 'text-[var(--ds-brand)]' : 'text-[#c7cdd4]'}`} />
+          <ChevronDown className={`w-3 h-3 ${sort.key === k && sort.dir === -1 ? 'text-[var(--ds-brand)]' : 'text-[#c7cdd4]'}`} />
+        </span>
+      </button>
+    </th>
+  );
 
   return (
     <>
-      <PlansCard />
-
-      <div className={`${card} mt-5`}>
+      <div className={card}>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-5 border-b border-[#edf0f3]">
           <div>
             <h2 className="font-bold text-[#191f1d]">Companies</h2>
@@ -127,9 +155,12 @@ function UsersTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[#7f8c85] border-b border-[#edf0f3]">
-                  {['Company', 'Owner', 'Status', 'Deals', 'Joined', 'Actions'].map(h => (
-                    <th key={h} className="font-semibold px-5 py-3 whitespace-nowrap">{h}</th>
-                  ))}
+                  <SortTh label="Company" k="name" />
+                  <SortTh label="Owner" k="owner_email" />
+                  <SortTh label="Status" k="subscription_status" />
+                  <SortTh label="Deals" k="deal_count" />
+                  <SortTh label="Joined" k="created_at" />
+                  <th className="font-semibold px-5 py-3 whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -153,11 +184,10 @@ function UsersTab() {
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-1.5">
                           <button
-                            disabled={busy === o.id}
-                            onClick={() => void act(o.id, { comped: !o.comped })}
-                            className="h-8 px-2.5 rounded-lg border border-[#edf0f3] text-xs font-medium text-[#7f8c85] hover:text-[#191f1d] whitespace-nowrap"
+                            onClick={() => setEditing(o)}
+                            className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-[#edf0f3] text-xs font-medium text-[#191f1d] hover:bg-[#f5f6f8] whitespace-nowrap"
                           >
-                            {o.comped ? 'Un-comp' : 'Comp'}
+                            <Pencil className="w-3.5 h-3.5" /> Edit
                           </button>
                           <button
                             disabled={busy === o.id}
@@ -181,6 +211,15 @@ function UsersTab() {
           </div>
         )}
       </div>
+
+      {editing && (
+        <EditOrgDialog
+          org={editing}
+          plans={plans}
+          onClose={() => setEditing(null)}
+          onSaved={() => { setEditing(null); void load(); }}
+        />
+      )}
     </>
   );
 }

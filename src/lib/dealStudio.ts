@@ -210,6 +210,8 @@ export interface DealStudio {
   require_email: boolean;
   require_password: boolean;
   invite_only: boolean;
+  demo_mode: boolean;
+  demo_notice: string;
   anyone_with_link: boolean;
   allow_share: boolean;
   shared_password_hash?: string | null;

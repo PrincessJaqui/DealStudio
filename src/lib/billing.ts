@@ -17,10 +17,10 @@ export type Txn = {
 };
 
 export type AdminOrg = {
-  id: string; name: string; owner_email: string | null; plan: string;
-  plan_name: string | null; subscription_status: string;
-  suspended: boolean; comped: boolean; trial_ends_at: string;
-  deal_count: number; created_at: string;
+  id: string; name: string; owner_email: string | null; owner_id: string | null;
+  plan: string; plan_id: string | null; plan_name: string | null;
+  subscription_status: string; suspended: boolean; comped: boolean;
+  trial_ends_at: string; deal_count: number; created_at: string;
 };
 
 async function authHeader() {
@@ -115,3 +115,15 @@ export async function fetchMyTransactions(): Promise<Txn[]> {
 export const money = (cents: number, currency = 'usd') =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase() })
     .format((cents ?? 0) / 100);
+
+/** Master Admin: set a user's password. Server-side, platform-admin only. */
+export async function adminSetPassword(userId: string, password: string) {
+  const res = await fetch('/api/admin/set-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
+    body: JSON.stringify({ user_id: userId, password }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json?.error || 'Could not set password');
+  return json;
+}

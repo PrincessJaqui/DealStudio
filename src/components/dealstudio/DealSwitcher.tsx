@@ -36,13 +36,15 @@ export function DealSwitcher() {
   if (!deals || deals.length === 0) return null;
 
   return (
-    <div className="relative" ref={box}>
+    <div className="relative min-w-0" ref={box}>
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-2 h-9 px-3 rounded-xl border border-[#edf0f3] bg-white text-sm font-medium text-[#191f1d] hover:bg-[#f5f6f8] max-w-[220px]"
+        className="group flex items-center gap-1.5 text-left rounded-lg -ml-1 px-1 hover:bg-[#f5f6f8]"
       >
-        <span className="truncate">{current?.company_name || current?.slug || 'Select a deal'}</span>
-        <ChevronDown className="w-4 h-4 shrink-0 text-[#7f8c85]" />
+        <span className="text-2xl font-bold text-[#191f1d] leading-tight truncate">
+          {current?.company_name || current?.slug || 'Select a deal'}
+        </span>
+        <ChevronDown className="w-5 h-5 shrink-0 text-[#7f8c85] group-hover:text-[#191f1d]" />
       </button>
 
       {open && (

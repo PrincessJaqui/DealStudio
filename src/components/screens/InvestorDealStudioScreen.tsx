@@ -238,7 +238,19 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
     );
   }
   if (gateRequired) {
-    return <InvestorGate slug={SLUG} companyName={room.company_name} requirePassword={requirePassword} requireEmail={gateRequireEmail} skipVerify={shareMode} heroImageUrl={room.hero_image_url} onGranted={(e) => { setEmail(e); setGranted(true); writePersistedAccess(SLUG); }} />;
+    // Demo mode: open to anyone, email only, with the mailing-list consent stated
+    // plainly on the gate rather than buried in fine print.
+    const isDemo = Boolean(room.demo_mode);
+    return <InvestorGate
+      slug={SLUG}
+      companyName={room.company_name}
+      requirePassword={isDemo ? false : requirePassword}
+      requireEmail={isDemo ? true : gateRequireEmail}
+      skipVerify={isDemo ? true : shareMode}
+      demoNotice={isDemo ? room.demo_notice : undefined}
+      heroImageUrl={room.hero_image_url}
+      onGranted={(e) => { setEmail(e); setGranted(true); writePersistedAccess(SLUG); }}
+    />;
   }
 
   const deck = room.documents.find(d => d.is_deck) || null;

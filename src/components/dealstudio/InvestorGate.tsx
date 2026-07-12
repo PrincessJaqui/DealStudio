@@ -14,13 +14,15 @@ interface Props {
   companyName: string;
   requirePassword: boolean;
   requireEmail?: boolean;
+  /** When set, this is the public demo: shown instead of the access copy. */
+  demoNotice?: string;
   /** Share-link mode: grant on email alone, without server verification. */
   skipVerify?: boolean;
   heroImageUrl?: string | null;
   onGranted: (email: string) => void;
 }
 
-export function InvestorGate({ slug, companyName, requirePassword, requireEmail = true, skipVerify = false, heroImageUrl, onGranted }: Props) {
+export function InvestorGate({ slug, companyName, requirePassword, requireEmail = true, skipVerify = false, heroImageUrl, demoNotice, onGranted }: Props) {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -83,9 +85,15 @@ export function InvestorGate({ slug, companyName, requirePassword, requireEmail 
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] flex items-center justify-center mb-4 shadow">
                 <Lock className="w-6 h-6 text-white" />
               </div>
-              <h2 className="text-xl font-bold text-[#191f1d]">{mode === 'request' ? 'Request access' : 'Investor access'}</h2>
+              <h2 className="text-xl font-bold text-[#191f1d]">
+                {demoNotice ? 'View the live demo' : mode === 'request' ? 'Request access' : 'Investor access'}
+              </h2>
               <p className="text-sm text-[#7f8c85] mt-1 mb-5">
-                {mode === 'request' ? 'No password yet? Request one and we\u2019ll approve you shortly.' : 'Enter your email and password to view the deal studio.'}
+                {demoNotice
+                  ? 'Enter your email to explore a real deal studio.'
+                  : mode === 'request'
+                    ? 'No password yet? Request one and we\u2019ll approve you shortly.'
+                    : 'Enter your email and password to view the deal studio.'}
               </p>
 
               <div className="space-y-3">
@@ -103,10 +111,16 @@ export function InvestorGate({ slug, companyName, requirePassword, requireEmail 
                 )}
               </div>
 
+              {demoNotice && (
+                <p className="text-xs text-[#7f8c85] mt-3 rounded-xl bg-[#f5f6f8] border border-[#edf0f3] p-3 text-left">
+                  {demoNotice}
+                </p>
+              )}
+
               {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
 
               <Button onClick={submit} disabled={busy} className="w-full h-11 mt-4 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)] font-semibold disabled:opacity-50">
-                {busy && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}{mode === 'request' ? 'Submit request' : 'Enter DealStudio'}
+                {busy && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}{demoNotice ? 'View demo' : mode === 'request' ? 'Submit request' : 'Enter DealStudio'}
               </Button>
 
               {requirePassword && (

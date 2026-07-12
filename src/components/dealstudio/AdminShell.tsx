@@ -10,17 +10,16 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, CreditCard, Shield } from 'lucide-react';
 import { useAdminAuth } from './AdminGate';
 import { isPlatformAdmin } from '../../lib/billing';
-import { DealSwitcher } from './DealSwitcher';
 import dsMark from '../../assets/dealstudio-mark.png';
 
-const BASE_NAV = [
+const DEAL_NAV = [
   { to: '/admin', label: 'Deal Studio', Icon: Presentation, end: true },
   { to: '/admin/deals', label: 'Deal Manager', Icon: LayoutGrid, end: false },
   { to: '/admin/interface', label: 'Interface Studio', Icon: Palette, end: false },
-  { to: '/admin/billing', label: 'Billing', Icon: CreditCard, end: false },
-  { to: '/admin/settings', label: 'System Settings', Icon: Settings, end: false },
 ];
-const MASTER_NAV = { to: '/admin/master', label: 'User Management', Icon: Shield, end: false };
+const BILLING_NAV  = { to: '/admin/billing', label: 'Billing', Icon: CreditCard, end: false };
+const MASTER_NAV   = { to: '/admin/master', label: 'User Management', Icon: Shield, end: false };
+const SETTINGS_NAV = { to: '/admin/settings', label: 'System Settings', Icon: Settings, end: false };
 
 const linkCls = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition ${
@@ -39,7 +38,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const [isMaster, setIsMaster] = useState(false);
 
   useEffect(() => { void isPlatformAdmin().then(setIsMaster); }, []);
-  const NAV = isMaster ? [...BASE_NAV, MASTER_NAV] : BASE_NAV;
+  const NAV = isMaster
+    ? [...DEAL_NAV, MASTER_NAV, SETTINGS_NAV]
+    : [...DEAL_NAV, BILLING_NAV, SETTINGS_NAV];
 
   // Navigating closes any open overlay, so the drawer never lingers.
   useEffect(() => { setDrawer(false); setUserMenu(false); }, [loc.pathname]);
@@ -61,7 +62,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <span className="font-bold text-[19px] text-[#191f1d]">DealStudio</span>
         </button>
 
-        <div className="ml-6"><DealSwitcher /></div>
 
         <div className="ml-auto relative">
           <button

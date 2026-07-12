@@ -22,6 +22,7 @@ import { AvailabilityModal } from '../dealstudio/AvailabilityModal';
 import { PdfDeckViewer } from '../dealstudio/PdfDeckViewer';
 import { useParams } from 'react-router-dom';
 import { useAdminAuth } from '../dealstudio/AdminGate';
+import { DealSwitcher } from '../dealstudio/DealSwitcher';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { DealDocViewer } from '../dealstudio/DealDocViewer';
 import { DealFlow } from '../dealstudio/DealFlow';
@@ -266,8 +267,8 @@ export function DealStudioScreen() {
               : <img src={dsMark} alt="" className="w-full h-full" />}
           </span>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-[#191f1d] leading-tight truncate">{room.company_name || org?.name || 'Untitled deal'}</h1>
-            <p className="text-sm text-[#7f8c85]">Admin</p>
+            <DealSwitcher />
+            <p className="text-sm text-[#7f8c85] px-1">Admin</p>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap sm:justify-end shrink-0">
