@@ -16,7 +16,7 @@ async function resolveStatus(): Promise<Status> {
 
 export function AdminGate({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>('loading');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('hello@dealstudio.io');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
