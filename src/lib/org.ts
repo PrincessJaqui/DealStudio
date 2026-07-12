@@ -13,6 +13,7 @@ export type Organization = {
   brand_from: string;
   brand_to: string;
   brand_accent: string;
+  accent_to: string;
   plan: string;
   subscription_status: string;
   trial_ends_at: string;
@@ -77,7 +78,7 @@ export async function createDeal(orgId: string, name: string, slug?: string) {
 /** Saves the org's branding (Interface Studio). */
 export async function saveOrgBranding(
   orgId: string,
-  patch: Partial<Pick<Organization, 'name' | 'logo_url' | 'brand_from' | 'brand_to' | 'brand_accent'>>,
+  patch: Partial<Pick<Organization, 'name' | 'logo_url' | 'brand_from' | 'brand_to' | 'brand_accent' | 'accent_to'>>,
 ) {
   const { error } = await supabase
     .from('organizations')
@@ -90,17 +91,37 @@ export async function saveOrgBranding(
  * Paints the org's brand onto the Phase 1 design tokens. Every brand colour in
  * the app resolves through these three variables, so this reskins the whole UI.
  */
-export function applyOrgTheme(org: Pick<Organization, 'brand_from' | 'brand_to' | 'brand_accent'> | null) {
+export type OrgTheme = Pick<Organization, 'brand_from' | 'brand_to' | 'brand_accent' | 'accent_to'>;
+
+export function applyOrgTheme(theme: OrgTheme | null) {
   const root = document.documentElement;
-  if (!org) {
-    root.style.removeProperty('--ds-grad-from');
-    root.style.removeProperty('--ds-grad-to');
-    root.style.removeProperty('--ds-brand');
-    root.style.removeProperty('--ds-accent');
+  const vars = ['--ds-grad-from', '--ds-grad-to', '--ds-brand', '--ds-accent', '--ds-accent-to'];
+  if (!theme) {
+    vars.forEach(v => root.style.removeProperty(v));
     return;
   }
-  root.style.setProperty('--ds-grad-from', org.brand_from);
-  root.style.setProperty('--ds-grad-to', org.brand_to);
-  root.style.setProperty('--ds-brand', org.brand_to);
-  root.style.setProperty('--ds-accent', org.brand_accent);
+  root.style.setProperty('--ds-grad-from', theme.brand_from);
+  root.style.setProperty('--ds-grad-to', theme.brand_to);
+  root.style.setProperty('--ds-brand', theme.brand_to);
+  root.style.setProperty('--ds-accent', theme.brand_accent);
+  root.style.setProperty('--ds-accent-to', theme.accent_to);
+}
+
+export const DEFAULT_THEME: OrgTheme = {
+  brand_from: '#627FD9',
+  brand_to: '#0030CD',
+  brand_accent: '#00c2c8',
+  accent_to: '#00d6af',
+};
+
+/** Uploads a company logo and returns its public URL. */
+export async function uploadOrgLogo(orgId: string, file: File): Promise<string> {
+  const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+  const path = `${orgId}/logo-${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('org-logos')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw error;
+  const { data } = supabase.storage.from('org-logos').getPublicUrl(path);
+  return data.publicUrl;
 }

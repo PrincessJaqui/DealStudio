@@ -285,7 +285,7 @@ export function DealStudioScreen() {
             <div className="mb-4 max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <TabsList className="bg-[#f5f7f9] border border-[#edf0f3] rounded-2xl p-1 gap-1 inline-flex">
                 {([['details', 'Details'], ['documents', 'Documents'], ['market', 'Market'], ['businessmodel', 'Business Model'], ['team', 'Team'], ['dealflow', 'Deal Flow'], ['settings', 'Settings']] as const).map(([t, label]) => (
-                  <TabsTrigger key={t} value={t} className="shrink-0 whitespace-nowrap rounded-xl px-4 py-1.5 text-sm font-medium data-[state=active]:bg-[var(--ds-brand)] data-[state=active]:text-white text-[#7f8c85]">{label}</TabsTrigger>
+                  <TabsTrigger key={t} value={t} className="shrink-0 whitespace-nowrap rounded-xl px-4 py-1.5 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--ds-accent)] data-[state=active]:to-[var(--ds-accent-to)] data-[state=active]:text-[var(--ds-on-accent)] text-[#7f8c85]">{label}</TabsTrigger>
                 ))}
               </TabsList>
             </div>

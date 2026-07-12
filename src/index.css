@@ -18,9 +18,13 @@
   --ds-brand-hover: #0027A6;
   --ds-brand-dark:  #001F86;
 
-  /* Accent: bright teal for fills/dots/bars; -ink is the readable text tone */
-  --ds-accent:     #04B6C0;
-  --ds-accent-ink: #07818B;
+  /* Accent teal. The gradient drives tabs + toggles; -ink is the readable text
+     tone on white (the bright stops fail contrast under white text, so anything
+     sitting ON the accent uses --ds-on-accent instead). */
+  --ds-accent:      #00c2c8;
+  --ds-accent-to:   #00d6af;
+  --ds-accent-ink:  #07818B;
+  --ds-on-accent:   #04333A;
 
   /* Brand tints (light fills / selected states) */
   --ds-tint:   #EDF1FC;

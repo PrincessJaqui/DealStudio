@@ -6,13 +6,15 @@
 
 import type { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutGrid, Presentation, LogOut } from 'lucide-react';
+import { LayoutGrid, Presentation, Palette, Settings, LogOut } from 'lucide-react';
 import { useAdminAuth } from './AdminGate';
 import dsMark from '../../assets/dealstudio-mark.png';
 
 const NAV = [
   { to: '/admin', label: 'Deal Studio', Icon: Presentation, end: true },
   { to: '/admin/deals', label: 'Deal Manager', Icon: LayoutGrid, end: false },
+  { to: '/admin/interface', label: 'Interface Studio', Icon: Palette, end: false },
+  { to: '/admin/settings', label: 'System Settings', Icon: Settings, end: false },
 ];
 
 export function AdminShell({ children }: { children: ReactNode }) {
@@ -71,20 +73,22 @@ export function AdminShell({ children }: { children: ReactNode }) {
       {/* Mobile top nav */}
       <div className="md:hidden fixed top-0 inset-x-0 z-40 bg-white border-b border-[#edf0f3] flex items-center gap-2 px-4 h-14">
         <img src={dsMark} alt="" className="w-7 h-7 rounded-lg" />
-        {NAV.map(({ to, label, end }) => (
+        {NAV.map(({ to, label, Icon, end }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
+            title={label}
+            aria-label={label}
             className={({ isActive }) =>
-              `px-3 py-1.5 rounded-lg text-sm font-medium ${
+              `inline-flex items-center justify-center h-9 w-9 rounded-lg ${
                 isActive
                   ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'
                   : 'text-[#7f8c85]'
               }`
             }
           >
-            {label}
+            <Icon className="w-4 h-4" />
           </NavLink>
         ))}
         <button onClick={() => void signOut()} className="ml-auto text-[#7f8c85]">
