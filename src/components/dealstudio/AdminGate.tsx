@@ -128,7 +128,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
               />
               <button type="button" onClick={() => setShowPw((v) => !v)} aria-label="Show password"
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#7f8c85] hover:text-[#191f1d]">
-                {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPw ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               </button>
             </div>
 
