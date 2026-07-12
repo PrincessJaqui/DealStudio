@@ -37,6 +37,12 @@ function ClampText({ text, className }: { text: string; className?: string }) {
   );
 }
 
+/** Fall back to the link's domain rather than showing a bare "Untitled". */
+function hostOf(url?: string): string {
+  if (!url) return '';
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
+}
+
 // Investor article card: image banner when available, clickable to the source,
 // with an expandable summary. Styled to match the deal-document cards.
 function ArticleCard({ a, textOnly }: { a: DealArticle; textOnly?: boolean }) {
@@ -58,7 +64,7 @@ function ArticleCard({ a, textOnly }: { a: DealArticle; textOnly?: boolean }) {
               <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--ds-tint)] text-[var(--ds-brand)]"><FileText className="w-4 h-4" /></span>
             )}
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-[#191f1d] line-clamp-2 group-hover:text-[var(--ds-brand)]">{a.title || 'Untitled'}</span>
+              <span className="block text-sm font-semibold text-[#191f1d] line-clamp-2 group-hover:text-[var(--ds-brand)]">{a.title || a.source || hostOf(a.url) || 'Untitled'}</span>
               <span className="mt-0.5 block truncate text-xs text-[#99a1af]">{[a.source, a.date].filter(Boolean).join(' · ')}</span>
             </span>
             <ArrowUpRight className="w-4 h-4 shrink-0 text-[#cbd5cf] group-hover:text-[var(--ds-brand)]" />

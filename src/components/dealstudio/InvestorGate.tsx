@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { PublicHeader } from './PublicHeader';
 import { Loader2, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../ui/button';
-import { verifyDealAccess, requestDealAccess } from '../../lib/dealStudio';
+import { verifyDealAccess, requestDealAccess, captureDemoLead } from '../../lib/dealStudio';
 
 interface Props {
   slug: string;
@@ -46,8 +46,12 @@ export function InvestorGate({ slug, companyName, requirePassword, requireEmail 
       }
       if (skipVerify) {
         // Share link: the link itself is the credential; just capture the email.
-        try { localStorage.setItem('dealstudio_email', email.trim().toLowerCase()); } catch { /* ignore */ }
-        onGranted(email.trim().toLowerCase());
+        const addr = email.trim().toLowerCase();
+        try { localStorage.setItem('dealstudio_email', addr); } catch { /* ignore */ }
+        // On the public demo the email IS the price of entry, so persist it as a
+        // lead rather than leaving it in localStorage. Failure must not block entry.
+        if (demoNotice) await captureDemoLead(slug, addr, name || undefined);
+        onGranted(addr);
         return;
       }
       const res = await verifyDealAccess(slug, email, requirePassword ? password : '');

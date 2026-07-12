@@ -5,7 +5,7 @@
  * and a list of industry/market articles.
  */
 import { useState } from 'react';
-import { Plus, Trash2, RefreshCw, Loader2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, RefreshCw, Loader2, ChevronUp, ChevronDown, Image as ImageIcon } from 'lucide-react';
 import { EMPTY_MARKET, fetchLinkPreview } from '../../lib/dealStudio';
 import type { DealMarket, DealMetric, DealArticle, DealSource } from '../../lib/dealStudio';
 
@@ -145,16 +145,28 @@ export function MarketEditor({ value, onChange }: { value: DealMarket | null | u
                   </button>
                 </div>
                 <div className="mt-2 flex gap-3">
-                  {a.image ? (
-                    <img src={a.image} alt="" className="h-16 w-24 shrink-0 rounded-lg border border-[#edf0f3] object-cover"
-                      onError={e => { e.currentTarget.style.display = 'none'; }} />
-                  ) : null}
+                  <div className="h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-[#edf0f3] bg-[#f5f6f8] flex items-center justify-center">
+                    {a.image ? (
+                      <img src={a.image} alt="" className="h-full w-full object-cover"
+                        onError={e => { e.currentTarget.style.display = 'none'; }} />
+                    ) : (
+                      <ImageIcon className="w-4 h-4 text-[#c7cdd4]" />
+                    )}
+                  </div>
                   <div className="min-w-0 flex-1 space-y-2">
-                    <input className={input} placeholder="Title (auto-filled)" value={a.title} onChange={e => setArticle(i, { title: e.target.value })} />
+                    <input className={input} placeholder="Title" value={a.title} onChange={e => setArticle(i, { title: e.target.value })} />
                     <div className="grid grid-cols-2 gap-2">
                       <input className={input} placeholder="Source" value={a.source} onChange={e => setArticle(i, { source: e.target.value })} />
                       <input className={input} placeholder="Date (e.g. Mar 2025)" value={a.date} onChange={e => setArticle(i, { date: e.target.value })} />
                     </div>
+                    {/* Auto-fill needs the link-preview function. This field means an
+                        article can still carry an image without it. */}
+                    <input
+                      className={input}
+                      placeholder="Image URL (https://... , optional)"
+                      value={a.image ?? ''}
+                      onChange={e => setArticle(i, { image: e.target.value.trim() })}
+                    />
                   </div>
                 </div>
                 {!!a.image && (

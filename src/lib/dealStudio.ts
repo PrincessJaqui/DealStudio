@@ -730,3 +730,20 @@ export async function adminFetchDeckPageStats(roomId: string, deckId: string, em
     return [];
   }
 }
+
+/**
+ * Captures a demo visitor's email as a lead on the demo deal. Server-side this
+ * only writes to a deal flagged demo_mode, so it cannot touch a real customer's
+ * investor list. Never throws: a failed capture must not block the visitor.
+ */
+export async function captureDemoLead(slug: string, email: string, name?: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.rpc('capture_demo_lead', {
+      p_slug: slug, p_email: email, p_name: name ?? null,
+    });
+    if (error) { console.warn('[demo] lead capture failed', error.message); return false; }
+    return true;
+  } catch {
+    return false;
+  }
+}
