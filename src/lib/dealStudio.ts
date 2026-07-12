@@ -240,14 +240,24 @@ async function rpcAnon(fn: string, args: Record<string, any>) {
 }
 
 /** Public market/team extras for the active room (anon-safe via RPC). */
-export async function fetchDealExtras(slug = 'investors'): Promise<{ market: DealMarket | null; team: DealTeamMember[] | null }> {
+export async function fetchDealExtras(slug = 'investors'): Promise<{
+  market: DealMarket | null;
+  team: DealTeamMember[] | null;
+  valueProp: DealValueProp | null;
+  competition: DealCompetition | null;
+}> {
   try {
     const data = await rpcAnon('get_dealstudio_extras', { p_slug: slug });
     const row = (Array.isArray(data) ? data[0] : data) || {};
-    return { market: (row.market as DealMarket) ?? null, team: (row.team as DealTeamMember[]) ?? null };
+    return {
+      market: (row.market as DealMarket) ?? null,
+      team: (row.team as DealTeamMember[]) ?? null,
+      valueProp: (row.value_prop as DealValueProp) ?? null,
+      competition: (row.competition as DealCompetition) ?? null,
+    };
   } catch (e) {
     console.warn('[dealStudio] extras fetch failed', e);
-    return { market: null, team: null };
+    return { market: null, team: null, valueProp: null, competition: null };
   }
 }
 
@@ -266,6 +276,40 @@ export async function fetchLinkPreview(url: string): Promise<LinkPreview | null>
     return null;
   }
 }
+
+
+/* ── Value Proposition ─────────────────────────────────────────────────────── */
+
+export interface DealValuePillar { title: string; description: string; }
+
+export interface DealValueProp {
+  headline: string;      // the one line an investor should remember
+  problem: string;
+  solution: string;
+  pillars: DealValuePillar[];
+}
+
+export const EMPTY_VALUE_PROP: DealValueProp = {
+  headline: '', problem: '', solution: '', pillars: [],
+};
+
+/* ── Competition ───────────────────────────────────────────────────────────── */
+
+export interface DealCompetitor {
+  name: string;
+  segment: string;    // who they serve today
+  weakness: string;   // the gap you work in
+}
+
+export interface DealCompetition {
+  overview: string;
+  competitors: DealCompetitor[];
+  edge: string;       // why you win, stated plainly
+}
+
+export const EMPTY_COMPETITION: DealCompetition = {
+  overview: '', competitors: [], edge: '',
+};
 
 /** Public deal studio payload (active room only, safe columns + active documents). */
 export async function fetchDealStudioPublic(slug = 'investors'): Promise<DealStudioPublic | null> {

@@ -19,10 +19,11 @@ import { DealDocViewer } from '../dealstudio/DealDocViewer';
 import { RequestMeetingModal } from '../dealstudio/RequestMeetingModal';
 import { RichTextRenderer } from '../RichTextEditor';
 import { MarketSection, IndustryReadingSection } from '../dealstudio/MarketSection';
+import { ValuePropSection, CompetitionSection } from '../dealstudio/ValuePropSection';
 import { TeamSection } from '../dealstudio/TeamSection';
 import { BusinessModelSection } from '../dealstudio/BusinessModelSection';
 import {
-  DealStudioPublic, DealDocument, DealSchedule, DealMarket, DealTeamMember, fetchDealStudioPublic, fetchDealExtras, trackDealView, recordDealVisit, fetchDealFieldLabels,
+  DealStudioPublic, DealDocument, DealSchedule, DealMarket, DealTeamMember, DealValueProp, DealCompetition, fetchDealStudioPublic, fetchDealExtras, trackDealView, recordDealVisit, fetchDealFieldLabels,
   adminFetchDealStudio, adminFetchDocuments, scheduleDates,
 } from '../../lib/dealStudio';
 import { toast } from 'sonner@2.0.3';
@@ -83,6 +84,8 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   const [fieldLabels, setFieldLabels] = useState<Record<string, string>>({});
   const [market, setMarket] = useState<DealMarket | null>(null);
   const [team, setTeam] = useState<DealTeamMember[] | null>(null);
+  const [valueProp, setValueProp] = useState<DealValueProp | null>(null);
+  const [competition, setCompetition] = useState<DealCompetition | null>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(() => { try { return localStorage.getItem('dealstudio_email'); } catch { return null; } });
   const [granted, setGranted] = useState(() => readPersistedAccess(SLUG));
@@ -117,7 +120,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
         // Authenticated path — returns the room even when inactive, for preview.
         const r = await adminFetchDealStudio(SLUG);
         if (!alive) return;
-        if (r) { const d = await adminFetchDocuments(r.id); setRoom({ ...r, documents: d } as DealStudioPublic); setMarket((r as any).market ?? null); setTeam((r as any).team ?? null); setFieldLabels(((r as any).field_labels as Record<string, string>) || {}); }
+        if (r) { const d = await adminFetchDocuments(r.id); setRoom({ ...r, documents: d } as DealStudioPublic); setMarket((r as any).market ?? null); setTeam((r as any).team ?? null); setValueProp((r as any).value_prop ?? null); setCompetition((r as any).competition ?? null); setFieldLabels(((r as any).field_labels as Record<string, string>) || {}); }
         else setRoom(null);
       } else {
         const r = await fetchDealStudioPublic(SLUG);
@@ -127,6 +130,8 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
         const ex = await fetchDealExtras(SLUG);
         if (!alive) return;
         setMarket(ex.market);
+        setValueProp(ex.valueProp);
+        setCompetition(ex.competition);
         setTeam(ex.team);
       }
       setLoading(false);
@@ -352,7 +357,11 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
 
           {team && <div className="order-6 lg:order-none"><TeamSection team={team} /></div>}
 
+          {valueProp && <div className="order-6 lg:order-none"><ValuePropSection value={valueProp} /></div>}
+
           {market && <div className="order-7 lg:order-none"><MarketSection market={market} /></div>}
+
+          {competition && <div className="order-7 lg:order-none"><CompetitionSection value={competition} /></div>}
 
           {market?.businessModel && <div className="order-8 lg:order-none"><BusinessModelSection model={market.businessModel} /></div>}
 
