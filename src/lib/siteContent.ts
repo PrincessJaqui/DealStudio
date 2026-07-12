@@ -1,0 +1,82 @@
+/**
+ * Editable landing page.
+ *
+ * The page is a list of ordered blocks. If nothing has been saved, the app
+ * falls back to the built-in page, so an empty table can never leave the
+ * marketing site blank.
+ */
+import { supabase } from './supabase';
+
+export type BlockType = 'hero' | 'features' | 'text' | 'image' | 'cta' | 'stats';
+
+export interface LandingItem {
+  title: string;
+  body: string;
+  image?: string;
+}
+
+export interface LandingBlock {
+  id: string;
+  type: BlockType;
+  eyebrow?: string;
+  title?: string;
+  body?: string;
+  image?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+  items?: LandingItem[];
+  /** Dark blocks invert: used for the closing call to action. */
+  dark?: boolean;
+}
+
+export const BLOCK_LABELS: Record<BlockType, string> = {
+  hero: 'Hero',
+  features: 'Feature grid',
+  text: 'Text section',
+  image: 'Image',
+  stats: 'Stat row',
+  cta: 'Call to action',
+};
+
+export function blankBlock(type: BlockType): LandingBlock {
+  const id = `b_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+  switch (type) {
+    case 'hero':
+      return { id, type, eyebrow: '', title: '', body: '', ctaLabel: 'Get started', ctaHref: '/signup' };
+    case 'features':
+      return { id, type, title: '', body: '', items: [{ title: '', body: '' }] };
+    case 'stats':
+      return { id, type, items: [{ title: '', body: '' }] };
+    case 'image':
+      return { id, type, image: '', title: '' };
+    case 'cta':
+      return { id, type, title: '', body: '', ctaLabel: 'Start free', ctaHref: '/signup', dark: true };
+    default:
+      return { id, type, title: '', body: '' };
+  }
+}
+
+export async function fetchLanding(): Promise<LandingBlock[]> {
+  const { data, error } = await supabase.rpc('get_site_content', { p_key: 'landing' });
+  if (error) { console.warn('[landing]', error.message); return []; }
+  const blocks = (data as LandingBlock[]) ?? [];
+  return Array.isArray(blocks) ? blocks : [];
+}
+
+export async function saveLanding(blocks: LandingBlock[]) {
+  const { error } = await supabase.rpc('save_site_content', {
+    p_key: 'landing', p_value: blocks,
+  });
+  if (error) throw error;
+}
+
+/** Uploads an image for the marketing page. Platform admins only (enforced server-side). */
+export async function uploadSiteImage(file: File): Promise<string> {
+  const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+  const path = `landing/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+  const { error } = await supabase.storage
+    .from('site-assets')
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw error;
+  return supabase.storage.from('site-assets').getPublicUrl(path).data.publicUrl;
+}

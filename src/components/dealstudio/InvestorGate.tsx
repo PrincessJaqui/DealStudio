@@ -131,8 +131,12 @@ export function InvestorGate({ slug, companyName, requirePassword, requireEmail 
               </Button>
 
               {requirePassword && (
-                <button type="button" onClick={() => { setMode(mode === 'enter' ? 'request' : 'enter'); setError(''); }} className="w-full text-center text-xs text-[var(--ds-brand)] hover:underline mt-3">
-                  {mode === 'enter' ? 'No password? Request access' : 'Have a password? Sign in'}
+                <button
+                  type="button"
+                  onClick={() => { setMode(mode === 'enter' ? 'request' : 'enter'); setError(''); }}
+                  className="w-full text-center text-xs font-semibold text-[var(--ds-accent-ink)] hover:underline mt-3"
+                >
+                  {mode === 'enter' ? 'Request live demo access' : 'Have a password? Sign in'}
                 </button>
               )}
             </>

@@ -7,6 +7,9 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchLanding, type LandingBlock } from '../../lib/siteContent';
+import { CustomLanding } from './CustomLanding';
+import { PublicHeader } from '../dealstudio/PublicHeader';
 import { Lock, BarChart3, Eye, Moon, Sun, ArrowRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import dsMark from '../../assets/dealstudio-mark.png';
@@ -34,6 +37,12 @@ function useTheme() {
 }
 
 export function LandingScreen() {
+  const [custom, setCustom] = useState<LandingBlock[] | null>(null);
+
+  // Published blocks replace the built-in page. Until they load we render the
+  // built-in one, so the page never flashes empty.
+  useEffect(() => { void fetchLanding().then(setCustom); }, []);
+
   const nav = useNavigate();
   const { dark, toggle } = useTheme();
   const [email, setEmail] = useState<string | null>(null);
@@ -53,6 +62,22 @@ export function LandingScreen() {
   const initials = (email || '?').slice(0, 2).toUpperCase();
 
   const { ref: featuresRef, inView } = useInViewOnce<HTMLElement>();
+
+  // A published custom page replaces the built-in one entirely. The header and
+  // footer stay, so branding and the copyright line remain consistent.
+  if (custom && custom.length > 0) {
+    return (
+      <div className="min-h-screen bg-[#f5f6f8] dark:bg-[#0b0e1a] text-[#0c1022] dark:text-[#eef1fa]">
+        <PublicHeader />
+        <CustomLanding blocks={custom} />
+        <footer className="border-t border-[#e6e8ee] dark:border-[#242c47] py-9">
+          <div className="mx-auto max-w-6xl px-6 text-center text-[14px] text-[#5b6478] dark:text-[#9aa4be]">
+            &copy; {new Date().getFullYear()} DealStudio
+          </div>
+        </footer>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f6f8] dark:bg-[#0b0e1a] text-[#0c1022] dark:text-[#eef1fa]">
@@ -212,12 +237,8 @@ export function LandingScreen() {
       </section>
 
       <footer className="border-t border-[#e6e8ee] dark:border-[#242c47] py-9">
-        <div className="mx-auto max-w-6xl px-6 flex flex-wrap items-center gap-4 text-[14px] text-[#5b6478] dark:text-[#9aa4be]">
-          <span className="flex items-center gap-2 font-bold text-[18px] text-[#0c1022] dark:text-[#eef1fa]">
-            <img src={dsMark} alt="" className="w-[22px] h-[22px] rounded-md" />
-            DealStudio
-          </span>
-          <span>&copy; {new Date().getFullYear()} DealStudio</span>
+        <div className="mx-auto max-w-6xl px-6 text-center text-[14px] text-[#5b6478] dark:text-[#9aa4be]">
+          &copy; {new Date().getFullYear()} DealStudio
         </div>
       </footer>
     </div>
