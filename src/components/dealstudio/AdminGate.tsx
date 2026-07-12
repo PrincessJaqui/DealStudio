@@ -13,6 +13,8 @@ import dsMark from '../../assets/dealstudio-mark.png';
 import { PublicHeader } from './PublicHeader';
 import { refreshUserContext } from '../../lib/analytics';
 import { fetchMyOrg, applyOrgTheme, type Organization } from '../../lib/org';
+import { AccountLock, isEntitled } from './AccountLock';
+import { isPlatformAdmin } from '../../lib/billing';
 
 type Status = 'loading' | 'signedout' | 'notadmin' | 'admin';
 
@@ -33,6 +35,7 @@ async function resolve(): Promise<{ status: Status; org: Organization | null }> 
 export function AdminGate({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>('loading');
   const [org, setOrg] = useState<Organization | null>(null);
+  const [isMaster, setIsMaster] = useState<boolean | null>(null);
   const [email, setEmail] = useState('hello@dealstudio.io');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -45,6 +48,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
       if (!alive) return;
       setStatus(r.status);
       setOrg(r.org);
+      if (r.org) { void isPlatformAdmin().then(v => { if (alive) setIsMaster(v); }); } else { setIsMaster(false); }
       applyOrgTheme(r.org);   // repaint the design tokens in the company's brand
     });
     void load();
@@ -79,6 +83,21 @@ export function AdminGate({ children }: { children: ReactNode }) {
   }
 
   if (status === 'admin') {
+    // Wait for the platform-admin answer before deciding, or an operator could
+    // see their own console flash a lock screen.
+    if (isMaster === null) {
+      return (
+        <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center">
+          <Loader2 className="w-5 h-5 animate-spin text-[var(--ds-brand)]" />
+        </div>
+      );
+    }
+
+    // Platform admins run the platform; they are never locked out of it.
+    if (!isMaster && org && !isEntitled(org)) {
+      return <AccountLock org={org} />;
+    }
+
     return (
       <AdminAuthContext.Provider value={{ signOut, org }}>
         {children}
