@@ -220,3 +220,15 @@ export function applyDealTheme(theme: DealTheme | null | undefined) {
   set('--ds-accent', theme.brand_accent);
   set('--ds-accent-to', theme.accent_to);
 }
+
+
+/**
+ * Renames the company and carries the new name into every deal that was
+ * following it. A deal with a name of its own (a round name, say) keeps it.
+ * Returns how many deals were updated.
+ */
+export async function renameOrg(name: string): Promise<{ deals_updated: number }> {
+  const { data, error } = await supabase.rpc('rename_org', { p_name: name });
+  if (error) throw error;
+  return (data as { deals_updated: number }) ?? { deals_updated: 0 };
+}

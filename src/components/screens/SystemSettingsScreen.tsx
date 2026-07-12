@@ -11,7 +11,7 @@ import { supabase } from '../../lib/supabase';
 import { useAdminAuth } from '../dealstudio/AdminGate';
 import { TeamMembers } from '../dealstudio/TeamMembers';
 import { LogoCropper } from '../dealstudio/LogoCropper';
-import { saveOrgBranding, uploadOrgLogo } from '../../lib/org';
+import { saveOrgBranding, uploadOrgLogo, renameOrg } from '../../lib/org';
 
 const card = 'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
 const field = 'w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
@@ -111,10 +111,17 @@ export function SystemSettingsScreen() {
     if (!org || !name.trim()) return;
     setSavingName(true); setNameNote(null);
     try {
-      await saveOrgBranding(org.id, { name: name.trim() });
-      await refreshOrg();          // top-right company name updates immediately
+      // rename_org also carries the new name into every deal that was following
+      // it, so the header, the deal switcher and the investor room all agree.
+      const r = await renameOrg(name.trim());
+      await refreshOrg();
       stamp('company');
-      setNameNote({ kind: 'ok', text: 'Company name saved' });
+      setNameNote({
+        kind: 'ok',
+        text: r.deals_updated > 0
+          ? `Company name saved. ${r.deals_updated} deal${r.deals_updated === 1 ? '' : 's'} updated.`
+          : 'Company name saved',
+      });
     } catch (e: any) {
       setNameNote({ kind: 'err', text: e?.message || 'Could not save' });
     } finally { setSavingName(false); }
