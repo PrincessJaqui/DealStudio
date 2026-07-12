@@ -172,10 +172,10 @@ export function LandingScreen() {
 
       {/* Features */}
       <section ref={featuresRef} className={`mx-auto max-w-6xl px-6 py-20 ${inView ? 'ds-animate' : ''}`}>
-        <div className="max-w-[620px] mx-auto text-center mb-12">
-          <h2 className="text-[clamp(28px,3.4vw,38px)] font-bold tracking-tight">A deal room that sells for you.</h2>
+        <div className="max-w-[760px] mx-auto text-center mb-12">
+          <h2 className="text-[clamp(28px,3.4vw,38px)] font-bold tracking-tight">The Professional Command Center for Your Raise</h2>
           <p className="mt-3.5 text-[17px] text-[#5b6478] dark:text-[#9aa4be]">
-            Everything an investor needs to say yes, presented the way you would present it in the room.
+            Your Studio provides a private, centralized space to manage your deck, business model, and deal terms. Deliver a polished experience that keeps investors informed with live updates and granular access control, ensuring your materials are always current and secure.
           </p>
         </div>
 
