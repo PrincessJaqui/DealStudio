@@ -10,7 +10,6 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, CreditCard, Shield } from 'lucide-react';
 import { useAdminAuth } from './AdminGate';
 import { isPlatformAdmin } from '../../lib/billing';
-import dsMark from '../../assets/dealstudio-mark.png';
 
 const DEAL_NAV = [
   { to: '/admin', label: 'Deal Studio', Icon: Presentation, end: true },
@@ -58,7 +57,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
       {/* Full-width top header: wordmark left, company right */}
       <header className="hidden md:flex sticky top-0 z-30 h-[68px] items-center bg-white border-b border-[#edf0f3] px-6">
         <button onClick={() => nav('/admin')} className="flex items-center gap-2.5">
-          <img src={dsMark} alt="" className="w-7 h-7 rounded-lg" />
           <span className="font-bold text-[19px] text-[#191f1d]">DealStudio</span>
         </button>
 
@@ -70,7 +68,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           >
             <span className="w-9 h-9 rounded-full overflow-hidden border border-[#edf0f3] bg-white flex items-center justify-center shrink-0">
               {org?.logo_url
-                ? <img src={org.logo_url} alt="" className="w-full h-full object-contain p-0.5" />
+                ? <img src={org.logo_url} alt="" className="w-full h-full object-cover" />
                 : <span className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white text-[13px] font-semibold">{initial}</span>}
             </span>
             <span className="text-left leading-tight">
@@ -179,7 +177,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <div className="absolute inset-0 bg-black/40" onClick={() => setDrawer(false)} />
           <aside className="absolute left-0 top-0 bottom-0 w-72 max-w-[85%] bg-white flex flex-col shadow-2xl">
             <div className="flex items-center gap-2.5 px-4 h-14 border-b border-[#edf0f3]">
-              <img src={dsMark} alt="" className="w-7 h-7 rounded-lg" />
               <span className="font-bold text-[17px] text-[#191f1d]">DealStudio</span>
               <button
                 onClick={() => setDrawer(false)}

@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, UploadCloud, RotateCcw, Check } from 'lucide-react';
 import { useAdminAuth } from '../dealstudio/AdminGate';
+import { LogoCropper } from '../dealstudio/LogoCropper';
 import {
   applyOrgTheme, saveOrgBranding, uploadOrgLogo, DEFAULT_THEME,
   type OrgTheme,
@@ -25,7 +26,7 @@ function Swatch({
         value={HEX.test(value) ? value : '#000000'}
         onChange={(e) => onChange(e.target.value)}
         aria-label={label}
-        className="h-10 w-12 shrink-0 rounded-lg border border-[#edf0f3] bg-white p-1 cursor-pointer"
+        className="h-10 w-12 shrink-0 rounded-xl border border-[#edf0f3] bg-white p-1 cursor-pointer"
       />
       <div className="min-w-0">
         <p className="text-xs font-semibold text-[#7f8c85]">{label}</p>
@@ -41,7 +42,7 @@ function Swatch({
 }
 
 export function InterfaceStudioScreen() {
-  const { org } = useAdminAuth();
+  const { org, refreshOrg } = useAdminAuth();
 
   const [theme, setTheme] = useState<OrgTheme | null>(null);
   const [logo, setLogo] = useState<string | null>(null);
@@ -49,6 +50,7 @@ export function InterfaceStudioScreen() {
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!org) return;
@@ -77,6 +79,7 @@ export function InterfaceStudioScreen() {
     setError('');
     try {
       await saveOrgBranding(org.id, { ...theme, logo_url: logo });
+      await refreshOrg();   // header avatar picks up a new logo at once
       setSavedAt(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
     } catch (e: any) {
       setError(e?.message || 'Could not save');
@@ -85,14 +88,34 @@ export function InterfaceStudioScreen() {
     }
   };
 
+  // Auto-save. Debounced, because dragging a colour picker fires constantly and
+  // every one of those would otherwise be a write.
+  const firstRun = useRef(true);
+  useEffect(() => {
+    if (!org || !theme || invalid) return;
+    if (firstRun.current) { firstRun.current = false; return; }  // skip the initial load
+    const t = setTimeout(() => { void save(); }, 900);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme, logo, invalid, org?.id]);
+
   const reset = () => setTheme({ ...DEFAULT_THEME });
 
-  const pickLogo = async (file: File) => {
+  /** Opens the cropper. Nothing uploads until the logo is positioned. */
+  const pickLogo = (file: File) => {
     if (!org) return;
     setError('');
+    setCropFile(file);
+  };
+
+  /** The cropper returns a square PNG, so the logo fills every container. */
+  const onCropped = async (blob: Blob) => {
+    if (!org) return;
+    setCropFile(null);
+    setError('');
     try {
-      const url = await uploadOrgLogo(org.id, file);
-      setLogo(url);
+      const url = await uploadOrgLogo(org.id, new File([blob], 'logo.png', { type: 'image/png' }));
+      setLogo(url);   // auto-save picks it up
     } catch (e: any) {
       setError(e?.message || 'Logo upload failed');
     }
@@ -173,9 +196,9 @@ export function InterfaceStudioScreen() {
             <h2 className="font-bold text-[#191f1d]">Company logo</h2>
             <p className="text-sm text-[#7f8c85] mt-0.5 mb-4">Shown on your deal rooms. PNG or SVG works best.</p>
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl border border-[#edf0f3] bg-[#f5f6f8] flex items-center justify-center overflow-hidden shrink-0">
+              <div className="w-16 h-16 rounded-2xl border border-[#edf0f3] bg-[#f5f6f8] flex items-center justify-center overflow-hidden shrink-0">
                 {logo
-                  ? <img src={logo} alt="" className="w-full h-full object-contain p-1.5" />
+                  ? <img src={logo} alt="" className="w-full h-full object-cover" />
                   : <span className="text-xs text-[#99a1af]">None</span>}
               </div>
               <input
@@ -202,9 +225,9 @@ export function InterfaceStudioScreen() {
 
           <div className="rounded-2xl border border-[#edf0f3] bg-[#f5f6f8] p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl overflow-hidden bg-white border border-[#edf0f3] flex items-center justify-center shrink-0">
+              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-white border border-[#edf0f3] flex items-center justify-center shrink-0">
                 {logo
-                  ? <img src={logo} alt="" className="w-full h-full object-contain p-1" />
+                  ? <img src={logo} alt="" className="w-full h-full object-cover" />
                   : <span
                       className="w-full h-full flex items-center justify-center text-white font-bold"
                       style={{ background: `linear-gradient(135deg, ${theme.brand_from}, ${theme.brand_to})` }}
@@ -255,6 +278,13 @@ export function InterfaceStudioScreen() {
           </div>
         </div>
       </div>
+      {cropFile && (
+        <LogoCropper
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onCropped={(blob) => { void onCropped(blob); }}
+        />
+      )}
     </div>
   );
 }
