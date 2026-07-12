@@ -28,7 +28,7 @@ function ClampText({ text, className }: { text: string; className?: string }) {
         <button
           type="button"
           onClick={() => setExpanded(e => !e)}
-          className="mt-1 ml-auto block text-sm font-semibold text-[var(--ds-brand)] hover:underline"
+          className="mt-1 ml-auto block text-sm font-semibold text-[var(--ds-accent-ink)] hover:underline"
         >
           {expanded ? 'Read less' : 'Read more'}
         </button>
@@ -120,8 +120,8 @@ export function MarketSection({ market }: { market: DealMarket }) {
             <svg viewBox="0 0 200 200" className="ds-pulse-pie h-44 w-44 shrink-0" aria-hidden="true">
               <defs>
                 <linearGradient id="selGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="var(--ds-grad-from)" />
-                  <stop offset="100%" stopColor="var(--ds-grad-to)" />
+                  <stop offset="0%" stopColor="var(--ds-accent)" />
+                  <stop offset="100%" stopColor="var(--ds-accent-to)" />
                 </linearGradient>
               </defs>
               <circle cx="100" cy="100" r="92" fill={active === 'tam' ? 'url(#selGrad)' : 'var(--ds-tint-5)'} className="cursor-pointer transition-all"
@@ -171,7 +171,7 @@ export function MarketSection({ market }: { market: DealMarket }) {
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-brd)] bg-white px-3 py-1 text-xs font-medium text-[var(--ds-brand)] hover:bg-[var(--ds-tint)] transition-colors"
+                    className="inline-flex items-center gap-1 rounded-full border border-[var(--ds-brd)] bg-white px-3 py-1 text-xs font-medium text-[var(--ds-accent-ink)] hover:bg-[var(--ds-accent-tint)] transition-colors"
                   >
                     {s.label || 'Source'} <ArrowUpRight className="w-3 h-3" />
                   </a>

@@ -157,7 +157,7 @@ export function EventsCalendar({
                         onClick={() => { onChangeMonth(new Date(year, i, 1)); setPicker('none'); }}
                         className={`py-2 rounded-lg text-sm font-medium transition-colors ${
                           active
-                            ? 'bg-[var(--ds-brand)] text-white'
+                            ? 'bg-gradient-to-br from-[var(--ds-accent)] to-[var(--ds-accent-to)] text-[var(--ds-on-accent)]'
                             : 'text-[#4a5565] hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)]'
                         }`}
                       >
@@ -177,7 +177,7 @@ export function EventsCalendar({
                         onClick={() => { onChangeMonth(new Date(y, month, 1)); setPicker('none'); }}
                         className={`py-2 rounded-lg text-sm font-medium transition-colors tabular-nums ${
                           active
-                            ? 'bg-[var(--ds-brand)] text-white'
+                            ? 'bg-gradient-to-br from-[var(--ds-accent)] to-[var(--ds-accent-to)] text-[var(--ds-on-accent)]'
                             : 'text-[#4a5565] hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)]'
                         }`}
                       >
@@ -235,7 +235,7 @@ export function EventsCalendar({
               {hasEvents && !isSelected && (
                 <div className="absolute bottom-0.5 flex gap-0.5">
                   {Array.from({ length: Math.min(eventCount, 3) }).map((_, i) => (
-                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]" />
+                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-[var(--ds-accent)] to-[var(--ds-accent-to)]" />
                   ))}
                 </div>
               )}

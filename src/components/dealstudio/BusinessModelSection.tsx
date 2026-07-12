@@ -152,10 +152,10 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
               <div key={r.id}>
                 <div className="flex items-center justify-between text-xs mb-1">
                   <span className="font-semibold uppercase tracking-wide text-white/85">Actual {r.name}</span>
-                  <span className="font-bold">{Math.round(r.pctOfTotal)}%</span>
+                  <span className="font-bold text-[var(--ds-accent)]">{Math.round(r.pctOfTotal)}%</span>
                 </div>
                 <div className="h-2 rounded-full bg-white/25 overflow-hidden">
-                  <div className="ds-bar h-full rounded-full bg-white" style={{ width: `${Math.min(100, r.pctOfTotal)}%` }} />
+                  <div className="ds-bar h-full rounded-full bg-gradient-to-r from-[var(--ds-accent)] to-[var(--ds-accent-to)]" style={{ width: `${Math.min(100, r.pctOfTotal)}%` }} />
                 </div>
               </div>
             ))}

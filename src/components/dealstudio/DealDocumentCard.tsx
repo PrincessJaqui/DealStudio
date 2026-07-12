@@ -75,7 +75,7 @@ export function DealDocumentCard({ doc, onOpen, admin = false, onEdit, onDelete,
           </span>
         )}
         {doc.is_deck && (
-          <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+          <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-gradient-to-br from-[var(--ds-accent)] to-[var(--ds-accent-to)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--ds-on-accent)] shadow">
             <Star className="w-3 h-3" /> Deck
           </span>
         )}

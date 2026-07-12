@@ -22,6 +22,7 @@
      tone on white (the bright stops fail contrast under white text, so anything
      sitting ON the accent uses --ds-on-accent instead). */
   --ds-accent:      #00c2c8;
+  --ds-accent-tint: #e4f7f8;
   --ds-accent-to:   #00d6af;
   --ds-accent-ink:  #07818B;
   --ds-on-accent:   #04333A;

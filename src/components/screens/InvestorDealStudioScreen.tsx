@@ -298,10 +298,10 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             <h2 className="lg:hidden text-sm font-bold text-[#191f1d] mb-2">Overview</h2>
             <h1 className="hidden lg:block text-2xl font-bold text-[#191f1d]">{room.company_name}&trade;</h1>
             {room.one_liner && <p className="hidden lg:block text-[#7f8c85] mt-1">{room.one_liner}</p>}
-            {room.headquarters && <p className="flex items-center gap-1 text-sm text-[var(--ds-brand)] lg:mt-2"><MapPin className="w-4 h-4" /> {room.headquarters}</p>}
+            {room.headquarters && <p className="flex items-center gap-1 text-sm text-[var(--ds-accent-ink)] lg:mt-2"><MapPin className="w-4 h-4" /> {room.headquarters}</p>}
             {(room.tags?.length > 0 || room.industries?.length > 0) && (
               <div className="flex flex-wrap gap-2 mt-3">
-                {room.tags?.map(t => <span key={t} className="rounded-full bg-[var(--ds-tint)] text-[var(--ds-brand)] text-xs font-medium px-3 py-1">{t}</span>)}
+                {room.tags?.map(t => <span key={t} className="rounded-full bg-[var(--ds-accent-tint)] text-[var(--ds-accent-ink)] text-xs font-medium px-3 py-1">{t}</span>)}
                 {room.industries?.map((ind, i) => (
                   <button
                     key={`ind-${i}`}
@@ -345,7 +345,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
                   <>
                     <RichTextRenderer html={aboutExpanded || !hasMore ? room.summary_html : preview} className="text-[14px] leading-[1.55] text-[#191f1d]" />
                     {hasMore && (
-                      <button onClick={() => setAboutExpanded(e => !e)} className="mt-3 ml-auto block text-sm font-semibold text-[var(--ds-brand)] hover:underline">
+                      <button onClick={() => setAboutExpanded(e => !e)} className="mt-3 ml-auto block text-sm font-semibold text-[var(--ds-accent-ink)] hover:underline">
                         {aboutExpanded ? 'Read less' : 'Read more'}
                       </button>
                     )}
@@ -376,7 +376,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
                   {(docsExpanded ? room.documents : room.documents.slice(0, 2)).map(d => <DealDocumentCard key={d.id} doc={d} onOpen={openDoc} />)}
                 </div>
                 {room.documents.length > 2 && (
-                  <button onClick={() => setDocsExpanded(e => !e)} className="mt-3 ml-auto block text-sm font-semibold text-[var(--ds-brand)] hover:underline">
+                  <button onClick={() => setDocsExpanded(e => !e)} className="mt-3 ml-auto block text-sm font-semibold text-[var(--ds-accent-ink)] hover:underline">
                     {docsExpanded ? 'Show less' : `Show all ${room.documents.length} documents`}
                   </button>
                 )}
