@@ -196,7 +196,7 @@ export function InterfaceStudioScreen() {
             <h2 className="font-bold text-[#191f1d]">Company logo</h2>
             <p className="text-sm text-[#7f8c85] mt-0.5 mb-4">Shown on your deal rooms. PNG or SVG works best.</p>
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl border border-[#edf0f3] bg-[#f5f6f8] flex items-center justify-center overflow-hidden shrink-0">
+              <div className="w-16 h-16 rounded-full border border-[#edf0f3] bg-[#f5f6f8] flex items-center justify-center overflow-hidden shrink-0">
                 {logo
                   ? <img src={logo} alt="" className="w-full h-full object-cover" />
                   : <span className="text-xs text-[#99a1af]">None</span>}
@@ -225,7 +225,7 @@ export function InterfaceStudioScreen() {
 
           <div className="rounded-2xl border border-[#edf0f3] bg-[#f5f6f8] p-4">
             <div className="flex items-center gap-3">
-              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-white border border-[#edf0f3] flex items-center justify-center shrink-0">
+              <div className="w-14 h-14 rounded-full overflow-hidden bg-white border border-[#edf0f3] flex items-center justify-center shrink-0">
                 {logo
                   ? <img src={logo} alt="" className="w-full h-full object-cover" />
                   : <span

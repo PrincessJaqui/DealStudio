@@ -160,7 +160,7 @@ export function SystemSettingsScreen() {
 
           <label className={label}>Logo</label>
           <div className="flex items-center gap-4 mt-1.5 mb-5">
-            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-[#edf0f3] bg-white flex items-center justify-center">
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-[#edf0f3] bg-white flex items-center justify-center">
               {logoUrl
                 ? <img src={logoUrl} alt="" className="h-full w-full object-cover" />
                 : <ImageIcon className="w-5 h-5 text-[#c7cdd4]" />}

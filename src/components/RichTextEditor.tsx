@@ -177,9 +177,9 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   );
 
   return (
-    <div className="rounded-xl border border-[#e5e7eb] bg-white overflow-hidden focus-within:border-[var(--ds-brand)] focus-within:ring-1 focus-within:ring-[var(--ds-brand)] transition-colors flex flex-col">
+    <div className="rounded-xl bg-[#f5f6f8] overflow-hidden focus-within:ring-2 focus-within:ring-[var(--ds-brand)]/30 transition-shadow flex flex-col">
       {/* Toolbar — stays at top of editor while content scrolls below */}
-      <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#e5e7eb] bg-[#fafafa] flex-wrap shrink-0">
+      <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#e6e9ec] bg-[#f5f6f8] flex-wrap shrink-0">
         <ToolbarBtn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })} title="Heading 1 (largest)">
           <Heading1 className="w-4 h-4" />
         </ToolbarBtn>
@@ -239,7 +239,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
 
       {/* Inline link input */}
       {showLinkInput && (
-        <div className="flex items-center gap-2 px-2 py-2 border-b border-[#e5e7eb] bg-[#fafafa] shrink-0">
+        <div className="flex items-center gap-2 px-2 py-2 border-b border-[#e6e9ec] bg-[#f5f6f8] shrink-0">
           <input
             type="url"
             value={linkUrl}

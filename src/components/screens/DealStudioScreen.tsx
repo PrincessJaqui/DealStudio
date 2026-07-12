@@ -277,7 +277,7 @@ export function DealStudioScreen() {
           {savedAt && <span className="hidden sm:inline-flex items-center h-9 text-xs font-medium px-2.5 rounded-xl bg-[var(--ds-tint)] text-[var(--ds-brand)]">{saving ? 'Saving…' : `Saved ${savedAt}`}</span>}
           <a href={`/d/${room.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm text-[#191f1d] hover:bg-[#f5f7f9]"><ExternalLink className="w-4 h-4" /> View</a>
           <button onClick={toggleActive} className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-sm font-medium ${room.is_active ? 'bg-[var(--ds-tint)] text-[var(--ds-brand)]' : 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'}`}>
-            <Power className="w-4 h-4" /> {room.is_active ? 'Active' : 'Activate'}
+            <Power className="w-4 h-4" /> {room.is_active ? 'Deactivate' : 'Activate'}
           </button>
         </div>
       </div>
@@ -466,6 +466,21 @@ export function DealStudioScreen() {
 
             {/* SETTINGS */}
             <TabsContent value="settings" className="space-y-4">
+              <DealThemeEditor
+                value={{
+                  brand_from: (room as any).brand_from ?? null,
+                  brand_to: (room as any).brand_to ?? null,
+                  brand_accent: (room as any).brand_accent ?? null,
+                  accent_to: (room as any).accent_to ?? null,
+                }}
+                orgFallback={{
+                  brand_from: org?.brand_from ?? null,
+                  brand_to: org?.brand_to ?? null,
+                  brand_accent: org?.brand_accent ?? null,
+                  accent_to: org?.accent_to ?? null,
+                }}
+                onChange={(patch) => update(patch as any)}
+              />
               <Card title="Requirements">
                 <ToggleRow label="Require email" checked={room.require_email} onChange={v => update({ require_email: v })} />
                 <ToggleRow label="Require password" checked={room.require_password} onChange={v => update({ require_password: v })} />

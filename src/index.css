@@ -114,3 +114,9 @@ button:focus-visible,
   outline: none !important;
   box-shadow: none !important;
 }
+
+
+/* Every admin page ends flush against the viewport. This adds breathing room
+   below the last card, in the page colour, so nothing looks cut off. */
+.ds-page-bottom { padding-bottom: 4rem; background-color: #f5f6f8; }
+html.dark .ds-page-bottom { background-color: #0b0e1a; }

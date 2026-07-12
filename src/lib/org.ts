@@ -192,3 +192,31 @@ export async function setOrgMemberRole(userId: string, role: 'owner' | 'admin') 
 export async function claimPendingInvites() {
   try { await supabase.rpc('claim_pending_invites'); } catch { /* not fatal */ }
 }
+
+
+/** The resolved theme a public deal room ships with (deal, then company). */
+export type DealTheme = {
+  brand_from: string | null;
+  brand_to: string | null;
+  brand_accent: string | null;
+  accent_to: string | null;
+  logo_url: string | null;
+};
+
+/**
+ * Paints a deal room in its own colours. Any value left null falls through to
+ * whatever the stylesheet already defines, so a partially themed deal still
+ * renders coherently rather than half-blank.
+ */
+export function applyDealTheme(theme: DealTheme | null | undefined) {
+  if (!theme) return;
+  const root = document.documentElement;
+  const set = (name: string, value: string | null) => {
+    if (value) root.style.setProperty(name, value);
+  };
+  set('--ds-grad-from', theme.brand_from);
+  set('--ds-grad-to', theme.brand_to);
+  set('--ds-brand', theme.brand_to ?? theme.brand_from);
+  set('--ds-accent', theme.brand_accent);
+  set('--ds-accent-to', theme.accent_to);
+}

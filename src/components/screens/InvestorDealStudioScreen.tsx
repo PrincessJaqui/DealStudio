@@ -7,6 +7,7 @@
 
 import { useParams } from 'react-router-dom';
 import { PublicHeader } from '../dealstudio/PublicHeader';
+import { applyDealTheme } from '../../lib/org';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 import { MapPin, Calendar as CalIcon, Share2, Check, LogOut } from 'lucide-react';
@@ -126,6 +127,9 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
         const r = await fetchDealStudioPublic(SLUG);
         if (!alive) return;
         setRoom(r);
+        // The room paints itself in the deal's colours, falling back to the
+        // company's. Without this a customer's investor page showed our blue.
+        applyDealTheme((r as any).theme);
         void fetchDealFieldLabels(SLUG).then(fl => { if (alive) setFieldLabels(fl); });
         const ex = await fetchDealExtras(SLUG);
         if (!alive) return;

@@ -93,7 +93,11 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
       </div>
 
       {m.revenues.length === 0 ? (
-        <p className="text-sm text-[#99a1af]">No revenue streams yet.{admin ? ' Add one to start modeling.' : ''}</p>
+        <div className="rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-8 text-center">
+          <p className="text-sm text-[#99a1af]">
+            No business model created yet.{admin ? ' Add a revenue stream to start modeling.' : ''}
+          </p>
+        </div>
       ) : (
         <div className="grid gap-5 lg:grid-cols-2 items-start">
           {m.revenues.map((r, ri) => {

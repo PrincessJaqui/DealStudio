@@ -206,7 +206,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <main className="flex-1 min-w-0 pt-14 md:pt-0">{children}</main>
+      <main className="flex-1 min-w-0 pt-14 md:pt-0 ds-page-bottom">{children}</main>
       </div>
     </div>
   );

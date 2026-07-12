@@ -121,11 +121,11 @@ export function LogoCropper({
 
         <h2 className="text-lg font-bold text-[#191f1d]">Position your logo</h2>
         <p className="text-sm text-[#7f8c85] mt-1 mb-4">
-          Drag to move, zoom to fit. The square is what investors will see.
+          Drag to move, zoom to fit. This circle is what investors will see.
         </p>
 
         <div
-          className="relative mx-auto rounded-2xl overflow-hidden border border-[#edf0f3] cursor-move select-none"
+          className="relative mx-auto rounded-full overflow-hidden border border-[#edf0f3] cursor-move select-none"
           style={{
             width: SIZE,
             height: SIZE,
