@@ -12,7 +12,7 @@ import { uploadDealFile } from '../../lib/dealStudio';
 import type { DealTeamMember, DealSource } from '../../lib/dealStudio';
 
 const card = 'rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
-const input = 'w-full rounded-xl border border-[#e5e7eb] px-3 py-2 text-sm text-[#191f1d] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#503DBB]';
+const input = 'w-full rounded-xl border border-[#e5e7eb] px-3 py-2 text-sm text-[#191f1d] placeholder:text-[#9ca3af] focus:outline-none focus:border-[var(--ds-brand)]';
 const labelCls = 'text-xs font-semibold text-[#7f8c85] uppercase tracking-wider';
 
 const EMPTY_MEMBER: DealTeamMember = { name: '', role: '', bio: '', photo_url: '', links: [] };
@@ -22,10 +22,10 @@ function PhotoField({ url, uploading, onPick, onClear }: { url: string; uploadin
     <div>
       <label className={labelCls}>Photo</label>
       <div className="mt-1 flex items-center gap-3">
-        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-[#edf0f3] bg-[#F1EFFB] flex items-center justify-center">
-          {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : <ImageIcon className="w-5 h-5 text-[#9C8FDD]" />}
+        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-[#edf0f3] bg-[var(--ds-tint)] flex items-center justify-center">
+          {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : <ImageIcon className="w-5 h-5 text-[var(--ds-muted)]" />}
         </div>
-        <label className={`inline-flex items-center gap-1.5 rounded-xl border border-[#D6D0F2] bg-white px-3 py-2 text-sm font-medium text-[#242473] ${uploading ? 'opacity-60' : 'hover:bg-[#F1EFFB] cursor-pointer'}`}>
+        <label className={`inline-flex items-center gap-1.5 rounded-xl border border-[var(--ds-brd)] bg-white px-3 py-2 text-sm font-medium text-[var(--ds-brand)] ${uploading ? 'opacity-60' : 'hover:bg-[var(--ds-tint)] cursor-pointer'}`}>
           <UploadCloud className="w-4 h-4" /> {uploading ? 'Uploading...' : url ? 'Change photo' : 'Upload photo'}
           <input type="file" accept="image/*" className="hidden" disabled={uploading}
             onChange={e => { const file = e.target.files?.[0]; if (file) onPick(file); e.currentTarget.value = ''; }} />
@@ -44,11 +44,11 @@ function ResumeField({ url, name, uploading, onPick, onLink, onClear }: { url: s
       <label className={labelCls}>Resume</label>
       <div className="mt-1 flex flex-wrap items-center gap-3">
         {url ? (
-          <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-xl border border-[#D6D0F2] bg-[#F1EFFB] px-3 py-2 text-sm font-medium text-[#242473] hover:bg-[#ECE9F9] max-w-[220px]">
+          <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--ds-brd)] bg-[var(--ds-tint)] px-3 py-2 text-sm font-medium text-[var(--ds-brand)] hover:bg-[var(--ds-tint-4)] max-w-[220px]">
             <FileText className="w-4 h-4 shrink-0" /> <span className="truncate">{name || 'View resume'}</span>
           </a>
         ) : null}
-        <label className={`inline-flex items-center gap-1.5 rounded-xl border border-[#D6D0F2] bg-white px-3 py-2 text-sm font-medium text-[#242473] ${uploading ? 'opacity-60' : 'hover:bg-[#F1EFFB] cursor-pointer'}`}>
+        <label className={`inline-flex items-center gap-1.5 rounded-xl border border-[var(--ds-brd)] bg-white px-3 py-2 text-sm font-medium text-[var(--ds-brand)] ${uploading ? 'opacity-60' : 'hover:bg-[var(--ds-tint)] cursor-pointer'}`}>
           <UploadCloud className="w-4 h-4" /> {uploading ? 'Uploading...' : url ? 'Replace PDF' : 'Upload PDF'}
           <input type="file" accept="application/pdf,.pdf" className="hidden" disabled={uploading}
             onChange={e => { const file = e.target.files?.[0]; if (file) onPick(file); e.currentTarget.value = ''; }} />
@@ -79,7 +79,7 @@ function LinkList({ links, onChange }: { links: DealSource[]; onChange: (l: Deal
         </div>
       ))}
       <button type="button" onClick={() => onChange([...links, { label: '', url: '' }])}
-        className="inline-flex items-center gap-1 text-xs font-semibold text-[#242473] hover:underline">
+        className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-brand)] hover:underline">
         <Plus className="w-3.5 h-3.5" /> Add link
       </button>
     </div>
@@ -102,7 +102,7 @@ export function TeamEditor({ value, onChange }: { value: DealTeamMember[] | null
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-[#191f1d]">Team members</span>
           <button type="button" onClick={() => onChange([...team, { ...EMPTY_MEMBER }])}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-[#242473] hover:underline">
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-brand)] hover:underline">
             <Plus className="w-3.5 h-3.5" /> Add member
           </button>
         </div>

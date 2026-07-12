@@ -65,12 +65,12 @@ export function PdfThumbnail({ url, label = 'PDF', page = 1 }: { url: string; la
       {(!ready || failed) && (
         <span className="absolute inset-0 flex items-center justify-center bg-white">
           <span className="w-[88px] h-28 rounded-md bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)] border border-[#edf0f3] p-2.5 flex flex-col gap-1.5">
-            <span className="h-2 w-3/4 rounded bg-[#503DBB]/40" />
+            <span className="h-2 w-3/4 rounded bg-[var(--ds-brand)]/40" />
             <span className="h-1.5 w-full rounded bg-[#eef1f4]" />
             <span className="h-1.5 w-full rounded bg-[#eef1f4]" />
             <span className="h-1.5 w-5/6 rounded bg-[#eef1f4]" />
             <span className="h-1.5 w-2/3 rounded bg-[#eef1f4]" />
-            <span className="mt-auto flex items-center gap-1 text-[#242473]"><FileText className="w-3 h-3" /><span className="text-[8px] font-bold tracking-wide">{label}</span></span>
+            <span className="mt-auto flex items-center gap-1 text-[var(--ds-brand)]"><FileText className="w-3 h-3" /><span className="text-[8px] font-bold tracking-wide">{label}</span></span>
           </span>
         </span>
       )}

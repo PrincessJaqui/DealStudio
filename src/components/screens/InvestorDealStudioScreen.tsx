@@ -221,7 +221,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#503DBB] border-t-transparent rounded-full animate-spin" /></div>;
+    return <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center"><div className="w-8 h-8 border-2 border-[var(--ds-brand)] border-t-transparent rounded-full animate-spin" /></div>;
   }
   if (!room) {
     return (
@@ -252,7 +252,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   return (
     <div className="min-h-screen bg-[#f5f6f8]">
       {isMasterAdmin && (
-        <div className={`w-full text-center text-sm font-medium py-2 px-4 ${room.is_active ? 'bg-[#F1EFFB] text-[#242473]' : 'bg-[#fff7ed] text-[#b45309]'}`}>
+        <div className={`w-full text-center text-sm font-medium py-2 px-4 ${room.is_active ? 'bg-[var(--ds-tint)] text-[var(--ds-brand)]' : 'bg-[#fff7ed] text-[#b45309]'}`}>
           {room.is_active ? 'Admin preview — this deal studio is live.' : 'Admin preview — this deal studio is inactive and not visible to investors yet.'}
         </div>
       )}
@@ -275,10 +275,10 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             <h2 className="lg:hidden text-sm font-bold text-[#191f1d] mb-2">Overview</h2>
             <h1 className="hidden lg:block text-2xl font-bold text-[#191f1d]">{room.company_name}&trade;</h1>
             {room.one_liner && <p className="hidden lg:block text-[#7f8c85] mt-1">{room.one_liner}</p>}
-            {room.headquarters && <p className="flex items-center gap-1 text-sm text-[#242473] lg:mt-2"><MapPin className="w-4 h-4" /> {room.headquarters}</p>}
+            {room.headquarters && <p className="flex items-center gap-1 text-sm text-[var(--ds-brand)] lg:mt-2"><MapPin className="w-4 h-4" /> {room.headquarters}</p>}
             {(room.tags?.length > 0 || room.industries?.length > 0) && (
               <div className="flex flex-wrap gap-2 mt-3">
-                {room.tags?.map(t => <span key={t} className="rounded-full bg-[#F1EFFB] text-[#242473] text-xs font-medium px-3 py-1">{t}</span>)}
+                {room.tags?.map(t => <span key={t} className="rounded-full bg-[var(--ds-tint)] text-[var(--ds-brand)] text-xs font-medium px-3 py-1">{t}</span>)}
                 {room.industries?.map((ind, i) => (
                   <button
                     key={`ind-${i}`}
@@ -304,7 +304,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             <h2 className="text-sm font-bold text-[#191f1d] mb-3">Deal Information</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {tiles.map(t => (
-                <div key={t.label} className="rounded-2xl bg-gradient-to-br from-[#242473] to-[#503DBB] p-4 text-white">
+                <div key={t.label} className="rounded-2xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] p-4 text-white">
                   <p className="text-[11px] font-semibold uppercase tracking-wide opacity-90">{t.label}</p>
                   <p className="text-xl font-bold mt-3 text-right leading-tight">{t.value}</p>
                 </div>
@@ -322,7 +322,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
                   <>
                     <RichTextRenderer html={aboutExpanded || !hasMore ? room.summary_html : preview} className="text-[14px] leading-[1.55] text-[#191f1d]" />
                     {hasMore && (
-                      <button onClick={() => setAboutExpanded(e => !e)} className="mt-3 ml-auto block text-sm font-semibold text-[#242473] hover:underline">
+                      <button onClick={() => setAboutExpanded(e => !e)} className="mt-3 ml-auto block text-sm font-semibold text-[var(--ds-brand)] hover:underline">
                         {aboutExpanded ? 'Read less' : 'Read more'}
                       </button>
                     )}
@@ -349,7 +349,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
                   {(docsExpanded ? room.documents : room.documents.slice(0, 2)).map(d => <DealDocumentCard key={d.id} doc={d} onOpen={openDoc} />)}
                 </div>
                 {room.documents.length > 2 && (
-                  <button onClick={() => setDocsExpanded(e => !e)} className="mt-3 ml-auto block text-sm font-semibold text-[#242473] hover:underline">
+                  <button onClick={() => setDocsExpanded(e => !e)} className="mt-3 ml-auto block text-sm font-semibold text-[var(--ds-brand)] hover:underline">
                     {docsExpanded ? 'Show less' : `Show all ${room.documents.length} documents`}
                   </button>
                 )}
@@ -364,7 +364,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
         <div className="contents lg:block lg:space-y-6 lg:sticky lg:top-6">
           <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5 text-center">
             <div className="w-20 h-20 rounded-full bg-[#f5f7f9] border border-[#edf0f3] mx-auto mb-3 overflow-hidden flex items-center justify-center">
-              {room.hero_image_url ? <img src={room.hero_image_url} alt="" className="w-full h-full object-cover" /> : <span className="text-2xl font-bold text-[#242473]">{(room.company_name || '?').trim().charAt(0).toUpperCase()}</span>}
+              {room.hero_image_url ? <img src={room.hero_image_url} alt="" className="w-full h-full object-cover" /> : <span className="text-2xl font-bold text-[var(--ds-brand)]">{(room.company_name || '?').trim().charAt(0).toUpperCase()}</span>}
             </div>
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85]">Company</p>
             <p className="text-lg font-bold text-[#191f1d]">{room.company_name}&trade;</p>
@@ -378,10 +378,10 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
               </p>
             )}
             {room.meeting_enabled && (
-              <Button onClick={() => setMeetingOpen(true)} className="w-full h-10 mt-3 rounded-full bg-gradient-to-br from-[#242473] to-[#503DBB] text-white hover:bg-[#2C42A5]">Schedule Meeting</Button>
+              <Button onClick={() => setMeetingOpen(true)} className="w-full h-10 mt-3 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]">Schedule Meeting</Button>
             )}
             {room.allow_share && (
-              <button onClick={shareDeal} className="w-full h-10 mt-2 rounded-full border border-[#503DBB] text-[#242473] hover:bg-[#F1EFFB] flex items-center justify-center gap-1.5 text-sm font-medium transition-colors">
+              <button onClick={shareDeal} className="w-full h-10 mt-2 rounded-full border border-[var(--ds-brand)] text-[var(--ds-brand)] hover:bg-[var(--ds-tint)] flex items-center justify-center gap-1.5 text-sm font-medium transition-colors">
                 {shareCopied ? <><Check className="w-4 h-4" /> Link copied</> : <><Share2 className="w-4 h-4" /> Share this deal</>}
               </button>
             )}
@@ -410,7 +410,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             <div data-section="calendar" className="order-12 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
               <p className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2"><span className="flex items-center gap-1"><CalIcon className="w-3.5 h-3.5" /> Availability</span></p>
               <EventsCalendar events={availabilityEvents} selectedDate={selectedDate} onSelectDate={(d) => setSelectedDate(d)} currentMonth={new Date()} onChangeMonth={() => {}} />
-              <Button onClick={() => setMeetingOpen(true)} className="w-full h-10 mt-3 rounded-full bg-gradient-to-br from-[#242473] to-[#503DBB] text-white hover:bg-[#2C42A5]">Request a meeting</Button>
+              <Button onClick={() => setMeetingOpen(true)} className="w-full h-10 mt-3 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]">Request a meeting</Button>
               <p className="text-xs text-[#99a1af] mt-2 text-center">Dots mark open dates. Pick a slot or request your own time.</p>
             </div>
           )}

@@ -93,7 +93,7 @@ export function EventsCalendar({
       {/* Header */}
       <div className="relative flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5 text-[#503DBB] shrink-0" />
+          <CalendarIcon className="h-5 w-5 text-[var(--ds-brand)] shrink-0" />
           {/* Month + year are individually clickable to open a quick picker,
               so users can jump straight to a month/year instead of clicking
               the chevrons repeatedly. */}
@@ -102,7 +102,7 @@ export function EventsCalendar({
               type="button"
               onClick={() => setPicker(p => (p === 'month' ? 'none' : 'month'))}
               aria-label="Choose month"
-              className="inline-flex items-center gap-0.5 rounded-md px-1 -mx-1 hover:bg-[#F1EFFB] hover:text-[#242473] transition-colors"
+              className="inline-flex items-center gap-0.5 rounded-md px-1 -mx-1 hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)] transition-colors"
             >
               {MONTH_NAMES[month]}
               <ChevronDown className={`h-3.5 w-3.5 transition-transform ${picker === 'month' ? 'rotate-180' : ''}`} />
@@ -111,7 +111,7 @@ export function EventsCalendar({
               type="button"
               onClick={() => setPicker(p => (p === 'year' ? 'none' : 'year'))}
               aria-label="Choose year"
-              className="inline-flex items-center gap-0.5 rounded-md px-1 hover:bg-[#F1EFFB] hover:text-[#242473] transition-colors"
+              className="inline-flex items-center gap-0.5 rounded-md px-1 hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)] transition-colors"
             >
               {year}
               <ChevronDown className={`h-3.5 w-3.5 transition-transform ${picker === 'year' ? 'rotate-180' : ''}`} />
@@ -157,8 +157,8 @@ export function EventsCalendar({
                         onClick={() => { onChangeMonth(new Date(year, i, 1)); setPicker('none'); }}
                         className={`py-2 rounded-lg text-sm font-medium transition-colors ${
                           active
-                            ? 'bg-[#503DBB] text-white'
-                            : 'text-[#4a5565] hover:bg-[#F1EFFB] hover:text-[#242473]'
+                            ? 'bg-[var(--ds-brand)] text-white'
+                            : 'text-[#4a5565] hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)]'
                         }`}
                       >
                         {m}
@@ -177,8 +177,8 @@ export function EventsCalendar({
                         onClick={() => { onChangeMonth(new Date(y, month, 1)); setPicker('none'); }}
                         className={`py-2 rounded-lg text-sm font-medium transition-colors tabular-nums ${
                           active
-                            ? 'bg-[#503DBB] text-white'
-                            : 'text-[#4a5565] hover:bg-[#F1EFFB] hover:text-[#242473]'
+                            ? 'bg-[var(--ds-brand)] text-white'
+                            : 'text-[#4a5565] hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)]'
                         }`}
                       >
                         {y}
@@ -218,11 +218,11 @@ export function EventsCalendar({
                 onClick={() => onSelectDate(isSelected ? null : cellKey)}
                 className={`flex items-center justify-center w-9 h-9 rounded-full text-sm transition-all ${
                   isSelected
-                    ? 'bg-[#503DBB] text-white font-semibold shadow-sm'
+                    ? 'bg-[var(--ds-brand)] text-white font-semibold shadow-sm'
                     : isHovered
-                    ? 'bg-[#503DBB]/20 text-[#191f1d] font-semibold ring-1 ring-[#503DBB]/50 scale-110'
+                    ? 'bg-[var(--ds-brand)]/20 text-[#191f1d] font-semibold ring-1 ring-[var(--ds-brand)]/50 scale-110'
                     : isToday
-                    ? 'bg-[#F1EFFB] text-[#191f1d] font-semibold ring-1 ring-[#503DBB]/40'
+                    ? 'bg-[var(--ds-tint)] text-[#191f1d] font-semibold ring-1 ring-[var(--ds-brand)]/40'
                     : 'text-[#4a5565] hover:bg-[#f8fafb]'
                 }`}
               >
@@ -235,7 +235,7 @@ export function EventsCalendar({
               {hasEvents && !isSelected && (
                 <div className="absolute bottom-0.5 flex gap-0.5">
                   {Array.from({ length: Math.min(eventCount, 3) }).map((_, i) => (
-                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-[#242473] to-[#503DBB]" />
+                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]" />
                   ))}
                 </div>
               )}

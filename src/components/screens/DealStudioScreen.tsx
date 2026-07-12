@@ -41,7 +41,7 @@ const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
-      <p className="text-[11px] font-bold uppercase tracking-wide text-[#503DBB]">{label}</p>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">{label}</p>
       <p className="text-2xl font-bold text-[#191f1d] mt-2">{value}</p>
     </div>
   );
@@ -264,9 +264,9 @@ export function DealStudioScreen() {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap sm:justify-end shrink-0">
-          {savedAt && <span className="hidden sm:inline-flex items-center h-9 text-xs font-medium px-2.5 rounded-xl bg-[#F1EFFB] text-[#242473]">{saving ? 'Saving…' : `Saved ${savedAt}`}</span>}
+          {savedAt && <span className="hidden sm:inline-flex items-center h-9 text-xs font-medium px-2.5 rounded-xl bg-[var(--ds-tint)] text-[var(--ds-brand)]">{saving ? 'Saving…' : `Saved ${savedAt}`}</span>}
           <a href="/dealstudio" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm text-[#191f1d] hover:bg-[#f5f7f9]"><ExternalLink className="w-4 h-4" /> View</a>
-          <button onClick={toggleActive} className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-sm font-medium ${room.is_active ? 'bg-[#F1EFFB] text-[#242473]' : 'bg-gradient-to-br from-[#242473] to-[#503DBB] text-white'}`}>
+          <button onClick={toggleActive} className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-sm font-medium ${room.is_active ? 'bg-[var(--ds-tint)] text-[var(--ds-brand)]' : 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'}`}>
             <Power className="w-4 h-4" /> {room.is_active ? 'Active' : 'Activate'}
           </button>
           <button onClick={() => void signOut()} className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm text-[#7f8c85] hover:text-[#191f1d] hover:bg-[#f5f7f9]">
@@ -287,7 +287,7 @@ export function DealStudioScreen() {
             <div className="mb-4 max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <TabsList className="bg-[#f5f7f9] border border-[#edf0f3] rounded-2xl p-1 gap-1 inline-flex">
                 {([['details', 'Details'], ['documents', 'Documents'], ['market', 'Market'], ['businessmodel', 'Business Model'], ['team', 'Team'], ['dealflow', 'Deal Flow'], ['settings', 'Settings']] as const).map(([t, label]) => (
-                  <TabsTrigger key={t} value={t} className="shrink-0 whitespace-nowrap rounded-xl px-4 py-1.5 text-sm font-medium data-[state=active]:bg-[#242473] data-[state=active]:text-white text-[#7f8c85]">{label}</TabsTrigger>
+                  <TabsTrigger key={t} value={t} className="shrink-0 whitespace-nowrap rounded-xl px-4 py-1.5 text-sm font-medium data-[state=active]:bg-[var(--ds-brand)] data-[state=active]:text-white text-[#7f8c85]">{label}</TabsTrigger>
                 ))}
               </TabsList>
             </div>
@@ -370,7 +370,7 @@ export function DealStudioScreen() {
                         <p className="text-sm font-medium text-[#191f1d]">{activeDays.length ? activeDays.join(', ') : 'No hours set'}</p>
                         <p className="text-xs text-[#7f8c85]">{sch.meetingLength || 30}-minute meetings{sch.overrides?.length ? ` · ${sch.overrides.length} date override${sch.overrides.length > 1 ? 's' : ''}` : ''}</p>
                       </div>
-                      <Button onClick={() => setAvailOpen(true)} className="h-9 rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] text-white hover:bg-[#2C42A5]">Edit availability</Button>
+                      <Button onClick={() => setAvailOpen(true)} className="h-9 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]">Edit availability</Button>
                     </div>
                   );
                 })()}
@@ -383,7 +383,7 @@ export function DealStudioScreen() {
                 title="Documents"
                 action={!selectMode && !reorderMode ? (
                   <button onClick={() => setDocModal({ open: true, existing: null })} aria-label="Add documents"
-                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#242473] to-[#503DBB] text-white shadow-sm hover:opacity-90">
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shadow-sm hover:opacity-90">
                     <Plus className="w-5 h-5" />
                   </button>
                 ) : null}
@@ -399,7 +399,7 @@ export function DealStudioScreen() {
                     ) : reorderMode ? (
                       <>
                         <span className="text-xs text-[#7f8c85]">Drag the handle to reorder</span>
-                        <Button onClick={() => setReorderMode(false)} className="h-9 rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] text-white hover:bg-[#2C42A5]"><Check className="w-4 h-4 mr-1" /> Done</Button>
+                        <Button onClick={() => setReorderMode(false)} className="h-9 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]"><Check className="w-4 h-4 mr-1" /> Done</Button>
                       </>
                     ) : (
                       <>
@@ -418,7 +418,7 @@ export function DealStudioScreen() {
                         key={d.id}
                         data-doc-card={d.id}
                         style={{ touchAction: 'none' }}
-                        className={`relative rounded-2xl transition ${dragId === d.id ? 'opacity-40 scale-[0.98]' : ''} ${overId === d.id && dragId !== d.id ? 'ring-2 ring-[#503DBB]' : ''}`}
+                        className={`relative rounded-2xl transition ${dragId === d.id ? 'opacity-40 scale-[0.98]' : ''} ${overId === d.id && dragId !== d.id ? 'ring-2 ring-[var(--ds-brand)]' : ''}`}
                       >
                         <button
                           type="button"
@@ -472,7 +472,7 @@ export function DealStudioScreen() {
                   <p className="text-xs font-semibold text-[#191f1d] mb-1">Standard link</p>
                   <div className="flex items-center gap-2">
                     <input readOnly value={PUBLIC_URL} className={`${inputCls} flex-1`} />
-                    <button onClick={copyLink} className="h-11 px-3 rounded-xl bg-[#f5f7f9] hover:bg-[#edf0f3] text-[#191f1d] flex items-center gap-1.5 text-sm">{copied ? <Check className="w-4 h-4 text-[#242473]" /> : <Copy className="w-4 h-4" />}{copied ? 'Copied' : 'Copy'}</button>
+                    <button onClick={copyLink} className="h-11 px-3 rounded-xl bg-[#f5f7f9] hover:bg-[#edf0f3] text-[#191f1d] flex items-center gap-1.5 text-sm">{copied ? <Check className="w-4 h-4 text-[var(--ds-brand)]" /> : <Copy className="w-4 h-4" />}{copied ? 'Copied' : 'Copy'}</button>
                   </div>
                 </div>
                 <div className="mt-3">
@@ -480,13 +480,13 @@ export function DealStudioScreen() {
                   <p className="text-xs text-[#7f8c85] mb-1.5">Investors skip the password but still enter their email, so you keep their analytics.</p>
                   <div className="flex items-center gap-2">
                     <input readOnly value={`${PUBLIC_URL}?share=1`} className={`${inputCls} flex-1`} />
-                    <button onClick={copyShareLink} className="h-11 px-3 rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] text-white hover:bg-[#2C42A5] flex items-center gap-1.5 text-sm">{shareCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}{shareCopied ? 'Copied' : 'Copy'}</button>
+                    <button onClick={copyShareLink} className="h-11 px-3 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)] flex items-center gap-1.5 text-sm">{shareCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}{shareCopied ? 'Copied' : 'Copy'}</button>
                   </div>
                 </div>
               </Card>
               <Card title="Shared room password">
                 <p className="text-xs text-[#7f8c85] mb-2">Optional single password any investor can use (in addition to per-investor approvals). Stored hashed.</p>
-                <div className={`flex items-center gap-2 mb-2 text-xs font-medium ${room.shared_password_hash ? 'text-[#242473]' : 'text-[#99a1af]'}`}>
+                <div className={`flex items-center gap-2 mb-2 text-xs font-medium ${room.shared_password_hash ? 'text-[var(--ds-brand)]' : 'text-[#99a1af]'}`}>
                   {room.shared_password_hash ? <><Check className="w-4 h-4" /> Password is set</> : 'No password set'}
                 </div>
                 <div className="flex items-center gap-2">
@@ -504,12 +504,12 @@ export function DealStudioScreen() {
                       />
                     );
                   })()}
-                  <Button onClick={setShared} className="h-11 rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] text-white hover:bg-[#2C42A5]">Set</Button>
+                  <Button onClick={setShared} className="h-11 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]">Set</Button>
                 </div>
               </Card>
               <Card title="Status">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-[#191f1d]">DealStudio is <span className={room.is_active ? 'text-[#242473] font-semibold' : 'text-[#99a1af] font-semibold'}>{room.is_active ? 'active' : 'inactive'}</span></p>
+                  <p className="text-sm text-[#191f1d]">DealStudio is <span className={room.is_active ? 'text-[var(--ds-brand)] font-semibold' : 'text-[#99a1af] font-semibold'}>{room.is_active ? 'active' : 'inactive'}</span></p>
                   <Switch checked={room.is_active} onCheckedChange={toggleActive} />
                 </div>
               </Card>
@@ -521,8 +521,8 @@ export function DealStudioScreen() {
         <div className="space-y-5 lg:sticky lg:top-6">
           <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="font-bold text-[#191f1d] flex items-center gap-2"><Users className="w-4 h-4 text-[#242473]" /> Investor Funnel</p>
-              <span className="text-[11px] font-bold uppercase tracking-wide text-[#503DBB]">Conv {funnel?.conversion ?? 0}%</span>
+              <p className="font-bold text-[#191f1d] flex items-center gap-2"><Users className="w-4 h-4 text-[var(--ds-brand)]" /> Investor Funnel</p>
+              <span className="text-[11px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">Conv {funnel?.conversion ?? 0}%</span>
             </div>
             {(() => {
               const v = funnel?.totalVisitors ?? 0;
@@ -542,7 +542,7 @@ export function DealStudioScreen() {
                       <span className="text-[#7f8c85]">{s.label}</span>
                       <span className="font-semibold text-[#191f1d]">{s.value}{i > 0 && <span className="text-[#99a1af] font-normal ml-1">({ofTop}%)</span>}</span>
                     </div>
-                    <div className="h-2.5 rounded-full bg-[#F1EFFB] overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-[#242473] to-[#503DBB]" style={{ width: `${Math.max(4, widthPct)}%` }} /></div>
+                    <div className="h-2.5 rounded-full bg-[var(--ds-tint)] overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]" style={{ width: `${Math.max(4, widthPct)}%` }} /></div>
                   </div>
                 );
               });
@@ -552,7 +552,7 @@ export function DealStudioScreen() {
           <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2">Deal Calendar</p>
             <EventsCalendar events={availabilityEvents} selectedDate={null} onSelectDate={() => {}} currentMonth={calMonth} onChangeMonth={setCalMonth} />
-            <button onClick={() => setAvailOpen(true)} className="w-full h-10 mt-2 rounded-full bg-gradient-to-br from-[#242473] to-[#503DBB] text-white text-sm font-semibold flex items-center justify-center gap-1.5"><RefreshCw className="w-4 h-4" /> Edit availability</button>
+            <button onClick={() => setAvailOpen(true)} className="w-full h-10 mt-2 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white text-sm font-semibold flex items-center justify-center gap-1.5"><RefreshCw className="w-4 h-4" /> Edit availability</button>
           </div>
         </div>
       </div>
@@ -574,9 +574,9 @@ export function DealStudioScreen() {
         <div className="fixed inset-0 z-[60] flex flex-col bg-black/60" onClick={() => setSiteOpen(false)}>
           <div className="mx-auto mt-6 flex h-[calc(100vh-3rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-[#edf0f3] px-4 py-2.5">
-              <div className="inline-flex items-center gap-2 text-sm font-medium text-[#191f1d]"><Globe className="w-4 h-4 text-[#242473]" /> dealstudio.io</div>
+              <div className="inline-flex items-center gap-2 text-sm font-medium text-[#191f1d]"><Globe className="w-4 h-4 text-[var(--ds-brand)]" /> dealstudio.io</div>
               <div className="flex items-center gap-1">
-                <a href="https://dealstudio.io" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium text-[#242473] hover:bg-[#F1EFFB]"><ExternalLink className="w-3.5 h-3.5" /> Open</a>
+                <a href="https://dealstudio.io" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium text-[var(--ds-brand)] hover:bg-[var(--ds-tint)]"><ExternalLink className="w-3.5 h-3.5" /> Open</a>
                 <button onClick={() => setSiteOpen(false)} className="rounded-lg p-2 text-[#7f8c85] hover:bg-[#f5f7f9]" aria-label="Close preview"><X className="w-4 h-4" /></button>
               </div>
             </div>
@@ -590,7 +590,7 @@ export function DealStudioScreen() {
 
 // ── Small building blocks ────────────────────────────────────────────────────
 
-const inputCls = 'w-full h-11 rounded-xl bg-[#f5f6f8] px-3 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40';
+const inputCls = 'w-full h-11 rounded-xl bg-[#f5f6f8] px-3 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/40';
 
 function Card({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -616,7 +616,7 @@ function EditableLabelField({ value, fallback, onChange, children }: { value: st
         onChange={e => onChange(e.target.value)}
         aria-label={`${fallback} label`}
         title="Rename this label"
-        className="block w-full mb-1 bg-transparent text-xs font-semibold text-[#7f8c85] placeholder:text-[#7f8c85] rounded px-1 -ml-1 outline-none transition-colors hover:bg-[#F1EFFB] focus:bg-[#F1EFFB] focus:text-[#242473]"
+        className="block w-full mb-1 bg-transparent text-xs font-semibold text-[#7f8c85] placeholder:text-[#7f8c85] rounded px-1 -ml-1 outline-none transition-colors hover:bg-[var(--ds-tint)] focus:bg-[var(--ds-tint)] focus:text-[var(--ds-brand)]"
       />
       {children}
     </label>
@@ -642,7 +642,7 @@ function IndustryEditor({ value, onChange }: { value: DealIndustry[]; onChange: 
           <button onClick={() => onChange(value.filter((_, j) => j !== i))} className="w-9 h-9 rounded-lg flex items-center justify-center text-[#7f8c85] hover:bg-[#f5f7f9]"><Trash2 className="w-4 h-4" /></button>
         </div>
       ))}
-      <button onClick={() => onChange([...value, { name: '', description: '' }])} className="text-sm text-[#242473] hover:underline">+ Add another industry</button>
+      <button onClick={() => onChange([...value, { name: '', description: '' }])} className="text-sm text-[var(--ds-brand)] hover:underline">+ Add another industry</button>
     </div>
   );
 }

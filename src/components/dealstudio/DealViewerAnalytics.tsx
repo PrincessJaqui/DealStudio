@@ -63,7 +63,7 @@ export function DealViewerAnalytics({ roomId, visit, name, docs, onClose }: Prop
               ['Deck views', String(visit.deck_views)],
             ].map(([l, v]) => (
               <div key={l} className="rounded-xl bg-[#f5f6f8] border border-[#edf0f3] p-3">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-[#503DBB]">{l}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">{l}</p>
                 <p className="text-lg font-bold text-[#191f1d] mt-1">{v}</p>
               </div>
             ))}
@@ -77,7 +77,7 @@ export function DealViewerAnalytics({ roomId, visit, name, docs, onClose }: Prop
                 {sections.map(([k, s]) => (
                   <div key={k} className="flex items-center gap-3">
                     <span className="text-xs text-[#191f1d] w-28 shrink-0 truncate">{label(k)}</span>
-                    <div className="flex-1 h-2 rounded-full bg-[#F1EFFB] overflow-hidden"><div className="h-full bg-gradient-to-r from-[#242473] to-[#503DBB]" style={{ width: `${Math.max(4, Math.round(((s as number) / maxSection) * 100))}%` }} /></div>
+                    <div className="flex-1 h-2 rounded-full bg-[var(--ds-tint)] overflow-hidden"><div className="h-full bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]" style={{ width: `${Math.max(4, Math.round(((s as number) / maxSection) * 100))}%` }} /></div>
                     <span className="text-xs text-[#7f8c85] w-12 text-right tabular-nums">{formatDuration(s as number)}</span>
                   </div>
                 ))}
@@ -91,7 +91,7 @@ export function DealViewerAnalytics({ roomId, visit, name, docs, onClose }: Prop
               <p className="text-xs font-semibold text-[#7f8c85] mb-2 flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> Documents opened</p>
               <div className="flex flex-wrap gap-2">
                 {docSections.map(([k, s]) => (
-                  <span key={k} className="text-[11px] text-[#242473] bg-[#F1EFFB] rounded-full px-2.5 py-1">{label(k)} · {formatDuration(s as number)}</span>
+                  <span key={k} className="text-[11px] text-[var(--ds-brand)] bg-[var(--ds-tint)] rounded-full px-2.5 py-1">{label(k)} · {formatDuration(s as number)}</span>
                 ))}
               </div>
             </div>
@@ -105,7 +105,7 @@ export function DealViewerAnalytics({ roomId, visit, name, docs, onClose }: Prop
                 {pages.map(p => (
                   <div key={p.page} className="flex items-center gap-3">
                     <span className="text-xs text-[#7f8c85] w-14 shrink-0">Page {p.page}</span>
-                    <div className="flex-1 h-2 rounded-full bg-[#F1EFFB] overflow-hidden"><div className="h-full bg-gradient-to-r from-[#242473] to-[#503DBB]" style={{ width: `${Math.max(4, Math.round((p.avgSeconds / maxPage) * 100))}%` }} /></div>
+                    <div className="flex-1 h-2 rounded-full bg-[var(--ds-tint)] overflow-hidden"><div className="h-full bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]" style={{ width: `${Math.max(4, Math.round((p.avgSeconds / maxPage) * 100))}%` }} /></div>
                     <span className="text-xs text-[#7f8c85] w-12 text-right tabular-nums">{formatDuration(p.avgSeconds)}</span>
                   </div>
                 ))}

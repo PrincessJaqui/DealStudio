@@ -68,7 +68,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center">
-        <Loader2 className="w-5 h-5 animate-spin text-[#503DBB]" />
+        <Loader2 className="w-5 h-5 animate-spin text-[var(--ds-brand)]" />
       </div>
     );
   }
@@ -108,7 +108,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') void signIn(); }}
               autoComplete="username"
-              className="w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40"
+              className="w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/40"
               placeholder="you@company.com"
             />
 
@@ -120,7 +120,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') void signIn(); }}
                 autoComplete="current-password"
-                className="w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 pr-10 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40"
+                className="w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 pr-10 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/40"
                 placeholder="Your password"
               />
               <button
@@ -138,7 +138,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
             <button
               onClick={() => void signIn()}
               disabled={busy || !email || !password}
-              className="mt-5 w-full rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] text-white font-semibold py-2.5 text-sm disabled:opacity-60 flex items-center justify-center gap-2"
+              className="mt-5 w-full rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white font-semibold py-2.5 text-sm disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {busy && <Loader2 className="w-4 h-4 animate-spin" />}
               Sign in

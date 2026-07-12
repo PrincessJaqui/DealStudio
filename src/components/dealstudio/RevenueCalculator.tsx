@@ -86,7 +86,7 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
         </div>
         {admin && (
           <button type="button" onClick={() => onChange({ ...m, revenues: [...m.revenues, newRevenue()] })}
-            className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-br from-[#242473] to-[#503DBB] px-4 py-2 text-sm font-semibold text-white shadow-sm shrink-0">
+            className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-4 py-2 text-sm font-semibold text-white shadow-sm shrink-0">
             <Plus className="w-4 h-4" /> New Revenue
           </button>
         )}
@@ -122,7 +122,7 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
                 <div className="mt-4 space-y-3">
                   {r.tiers.map((t, ti) => (
                     <div key={t.id} className="rounded-xl bg-[#f7f7f8] p-3">
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-[#0C8577] mb-2">Pricing Tier</p>
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-2">Pricing Tier</p>
                       <div className="grid grid-cols-2 gap-2">
                         <Box label="Tier Name"><TextInput value={t.tierName} placeholder="Facility Pro Plan" disabled={!admin} onChange={v => setTier(ri, ti, { tierName: v })} /></Box>
                         <Box label="Unit Type"><Select value={t.unitType} opts={UNIT_OPTS} disabled={!admin} onChange={v => setTier(ri, ti, { unitType: v })} /></Box>
@@ -144,8 +144,8 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
                       </label>
 
                       {t.impacts && (
-                        <div className="mt-2 rounded-xl bg-[#EEEBFA] border border-[#D3CDF1] p-3">
-                          <p className="text-[11px] font-bold uppercase tracking-wider text-[#0C8577] mb-2">Impacted Tier</p>
+                        <div className="mt-2 rounded-xl bg-[var(--ds-tint-2)] border border-[var(--ds-brd-3)] p-3">
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-2">Impacted Tier</p>
                           <div className="space-y-2">
                             {(t.impactedTiers || []).map((it, ii) => (
                               <div key={it.id} className="grid grid-cols-2 gap-2">
@@ -160,7 +160,7 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
                             ))}
                           </div>
                           {admin && (
-                            <button type="button" onClick={() => setTier(ri, ti, { impactedTiers: [...(t.impactedTiers || []), newImpacted()] })} className="mt-2 ml-auto block text-xs font-semibold text-[#242473] hover:underline">+ Add More Impacted Tiers</button>
+                            <button type="button" onClick={() => setTier(ri, ti, { impactedTiers: [...(t.impactedTiers || []), newImpacted()] })} className="mt-2 ml-auto block text-xs font-semibold text-[var(--ds-brand)] hover:underline">+ Add More Impacted Tiers</button>
                           )}
                         </div>
                       )}
@@ -169,12 +169,12 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
                 </div>
 
                 {admin && (
-                  <button type="button" onClick={() => setRev(ri, { tiers: [...r.tiers, newTier()] })} className="mt-3 ml-auto block text-xs font-semibold text-[#242473] hover:underline">+ Add Pricing Tier</button>
+                  <button type="button" onClick={() => setRev(ri, { tiers: [...r.tiers, newTier()] })} className="mt-3 ml-auto block text-xs font-semibold text-[var(--ds-brand)] hover:underline">+ Add Pricing Tier</button>
                 )}
 
                 <div className="mt-4 border-t border-[#edf0f3] pt-3 space-y-2">
                   <div className="flex items-center justify-between"><span className="text-sm text-[#7f8c85]">Monthly Revenue</span><span className="text-sm font-bold text-[#191f1d]">{fmtUsd(rMonthly)}</span></div>
-                  <div className="flex items-center justify-between"><span className="text-sm font-semibold text-[#191f1d]">Annual Revenue</span><span className="text-sm font-bold text-[#242473]">{fmtUsd(rMonthly * 12)}</span></div>
+                  <div className="flex items-center justify-between"><span className="text-sm font-semibold text-[#191f1d]">Annual Revenue</span><span className="text-sm font-bold text-[var(--ds-brand)]">{fmtUsd(rMonthly * 12)}</span></div>
                 </div>
               </div>
             );
@@ -207,7 +207,7 @@ export function ModelAnalytics({ value, onChange }: { value: DealBusinessModel; 
                   <span className="font-bold text-[#191f1d]">{Math.round(r.pctOfTotal)}%</span>
                 </div>
                 <div className="h-2 rounded-full bg-[#eef1f4] overflow-hidden">
-                  <div className="h-full rounded-full bg-gradient-to-r from-[#242473] to-[#503DBB]" style={{ width: `${Math.min(100, r.pctOfTotal)}%` }} />
+                  <div className="h-full rounded-full bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]" style={{ width: `${Math.min(100, r.pctOfTotal)}%` }} />
                 </div>
               </div>
             ))}
@@ -216,8 +216,8 @@ export function ModelAnalytics({ value, onChange }: { value: DealBusinessModel; 
         <div>
           <h3 className="text-base font-bold text-[#191f1d] mb-4">Global Metrics</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between"><span className="text-sm text-[#7f8c85]">Monthly Revenue</span><span className="text-base font-bold text-[#242473]">{fmtWhole(totals.totalMonthly)}</span></div>
-            <div className="flex items-center justify-between"><span className="text-sm text-[#7f8c85]">Annual Revenue</span><span className="text-base font-bold text-[#242473]">{fmtWhole(totals.totalAnnual)}</span></div>
+            <div className="flex items-center justify-between"><span className="text-sm text-[#7f8c85]">Monthly Revenue</span><span className="text-base font-bold text-[var(--ds-brand)]">{fmtWhole(totals.totalMonthly)}</span></div>
+            <div className="flex items-center justify-between"><span className="text-sm text-[#7f8c85]">Annual Revenue</span><span className="text-base font-bold text-[var(--ds-brand)]">{fmtWhole(totals.totalAnnual)}</span></div>
             <div className="flex items-center justify-between"><span className="text-sm text-[#7f8c85]">Revenue per User</span><span className="text-base font-bold text-[#191f1d]">{fmtWhole(totals.revenuePerUser)}</span></div>
           </div>
         </div>
@@ -242,7 +242,7 @@ export function ModelAnalytics({ value, onChange }: { value: DealBusinessModel; 
             </thead>
             <tbody>
               <tr className="border-b border-[#f2f4f6]"><td className="py-2 pr-3 font-medium text-[#191f1d]">Total Users</td>{totals.growth.map(g => <td key={g.year} className="py-2 px-3 text-right text-[#4a5565]">{g.users.toLocaleString()}</td>)}</tr>
-              <tr><td className="py-2 pr-3 font-medium text-[#191f1d]">Total Revenue</td>{totals.growth.map(g => <td key={g.year} className={`py-2 px-3 text-right font-semibold ${g.year === 4 ? 'text-[#242473]' : 'text-[#191f1d]'}`}>{fmtWhole(g.annual)}</td>)}</tr>
+              <tr><td className="py-2 pr-3 font-medium text-[#191f1d]">Total Revenue</td>{totals.growth.map(g => <td key={g.year} className={`py-2 px-3 text-right font-semibold ${g.year === 4 ? 'text-[var(--ds-brand)]' : 'text-[#191f1d]'}`}>{fmtWhole(g.annual)}</td>)}</tr>
             </tbody>
           </table>
         </div>

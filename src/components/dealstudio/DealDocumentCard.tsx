@@ -47,7 +47,7 @@ export function DealDocumentCard({ doc, onOpen, admin = false, onEdit, onDelete,
   }, [menuOpen]);
 
   return (
-    <div className={`ds-pulse ds-card group relative rounded-2xl border bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] overflow-hidden ${selected ? 'border-[#503DBB] ring-2 ring-[#503DBB]/40' : 'border-[#edf0f3]'}`}>
+    <div className={`ds-pulse ds-card group relative rounded-2xl border bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] overflow-hidden ${selected ? 'border-[var(--ds-brand)] ring-2 ring-[var(--ds-brand)]/40' : 'border-[#edf0f3]'}`}>
       {/* Preview */}
       <button
         type="button"
@@ -61,21 +61,21 @@ export function DealDocumentCard({ doc, onOpen, admin = false, onEdit, onDelete,
           : (
             <span className="absolute inset-0 flex items-center justify-center bg-white">
               <span className="w-[88px] h-28 rounded-md bg-white shadow-[0_2px_10px_rgba(0,0,0,0.08)] border border-[#edf0f3] p-2.5 flex flex-col gap-1.5">
-                <span className="h-2 w-3/4 rounded bg-[#503DBB]/40" />
+                <span className="h-2 w-3/4 rounded bg-[var(--ds-brand)]/40" />
                 <span className="h-1.5 w-full rounded bg-[#eef1f4]" />
                 <span className="h-1.5 w-full rounded bg-[#eef1f4]" />
                 <span className="h-1.5 w-5/6 rounded bg-[#eef1f4]" />
-                <span className="mt-auto flex items-center gap-1 text-[#242473]"><FileText className="w-3 h-3" /><span className="text-[8px] font-bold tracking-wide">FILE</span></span>
+                <span className="mt-auto flex items-center gap-1 text-[var(--ds-brand)]"><FileText className="w-3 h-3" /><span className="text-[8px] font-bold tracking-wide">FILE</span></span>
               </span>
             </span>
           )}
         {selectMode && (
-          <span className={`absolute top-2 right-2 w-6 h-6 rounded-md flex items-center justify-center border-2 ${selected ? 'bg-[#242473] border-[#242473]' : 'bg-white/90 border-[#edf0f3]'}`}>
+          <span className={`absolute top-2 right-2 w-6 h-6 rounded-md flex items-center justify-center border-2 ${selected ? 'bg-[var(--ds-brand)] border-[var(--ds-brand)]' : 'bg-white/90 border-[#edf0f3]'}`}>
             {selected && <Check className="w-4 h-4 text-white" />}
           </span>
         )}
         {doc.is_deck && (
-          <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-gradient-to-br from-[#242473] to-[#503DBB] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+          <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
             <Star className="w-3 h-3" /> Deck
           </span>
         )}
@@ -115,7 +115,7 @@ export function DealDocumentCard({ doc, onOpen, admin = false, onEdit, onDelete,
           {[doc.file_name, formatBytes(doc.file_size), doc.version > 1 ? `v${doc.version}` : ''].filter(Boolean).join(' · ')}
         </p>
         {admin && stat && (
-          <div className="flex items-center gap-3 mt-2 pt-2 border-t border-[#f0f0f0] text-[11px] text-[#242473] font-medium">
+          <div className="flex items-center gap-3 mt-2 pt-2 border-t border-[#f0f0f0] text-[11px] text-[var(--ds-brand)] font-medium">
             <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {stat.views} view{stat.views === 1 ? '' : 's'}</span>
             {stat.avgSeconds > 0 && <span className="flex items-center gap-1 text-[#7f8c85]"><Clock className="w-3 h-3" /> {formatDuration(stat.avgSeconds)} avg</span>}
           </div>

@@ -20,7 +20,7 @@ const stagePill: Record<DealAccessRow['stage'], string> = {
   lead: 'bg-[#f5f7f9] text-[#7f8c85] border-[#edf0f3]',
   reached_out: 'bg-[#eef6fb] text-[#0e6f88] border-[#d4e9f1]',
   engaged: 'bg-[#fff7ed] text-[#b45309] border-[#f6e3cf]',
-  committed: 'bg-[#F1EFFB] text-[#242473] border-[#DCD7F4]',
+  committed: 'bg-[var(--ds-tint)] text-[var(--ds-brand)] border-[var(--ds-brd-2)]',
   passed: 'bg-[#fdecec] text-[#c0392b] border-[#f5d6d6]',
 };
 
@@ -83,7 +83,7 @@ function InlineAnalytics({ roomId, deckId, deckUrl, visit, docs }: { roomId: str
             {docRows.map(d => (
               <div key={d.id} className="flex items-center gap-3">
                 <span className="text-xs text-[#191f1d] flex-1 min-w-0 truncate">{docTitle(d.id)}</span>
-                <div className="w-24 h-2 rounded-full bg-[#F1EFFB] overflow-hidden shrink-0"><div className="h-full bg-gradient-to-r from-[#242473] to-[#503DBB]" style={{ width: `${Math.max(6, Math.round((d.seconds / maxDoc) * 100))}%` }} /></div>
+                <div className="w-24 h-2 rounded-full bg-[var(--ds-tint)] overflow-hidden shrink-0"><div className="h-full bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]" style={{ width: `${Math.max(6, Math.round((d.seconds / maxDoc) * 100))}%` }} /></div>
                 <span className="text-xs text-[#7f8c85] w-12 text-right tabular-nums shrink-0">{formatDuration(d.seconds)}</span>
               </div>
             ))}
@@ -124,7 +124,7 @@ export function DealFlow({ roomId, rows, visits, docs, onChanged }: Props) {
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex flex-wrap gap-x-8 gap-y-3">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wide text-[#503DBB]">Committed</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">Committed</p>
               <p className="text-2xl font-bold text-[#191f1d]">{fmtMoney(raised)}</p>
             </div>
             <div>
@@ -136,7 +136,7 @@ export function DealFlow({ roomId, rows, visits, docs, onChanged }: Props) {
               <p className="text-2xl font-bold text-[#191f1d]">{totalClosed}</p>
             </div>
           </div>
-          <Button onClick={() => setAdding(true)} className="h-9 shrink-0 rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] text-white hover:bg-[#2C42A5]"><Plus className="w-4 h-4 mr-1" /> Add investor</Button>
+          <Button onClick={() => setAdding(true)} className="h-9 shrink-0 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]"><Plus className="w-4 h-4 mr-1" /> Add investor</Button>
         </div>
         <div className="flex flex-wrap gap-2">
           {counts.map(c => (
@@ -178,11 +178,11 @@ export function DealFlow({ roomId, rows, visits, docs, onChanged }: Props) {
                     <div className="flex items-center justify-between gap-4 mb-2">
                       <button onClick={() => setOpenOther(null)} className="text-xs font-semibold text-[#7f8c85] hover:text-[#191f1d]">Minimize</button>
                       <div className="flex items-center gap-4">
-                        <button onClick={() => setViewer({ visit: v, name: v.email })} className="text-xs font-semibold text-[#7f8c85] hover:text-[#242473] hover:underline">Full breakdown</button>
+                        <button onClick={() => setViewer({ visit: v, name: v.email })} className="text-xs font-semibold text-[#7f8c85] hover:text-[var(--ds-brand)] hover:underline">Full breakdown</button>
                         {v.email && (
                           <button
                             onClick={async () => { await adminCreateInvestor(roomId, { email: v.email!, name: v.email! }); toast.success('Added to pipeline'); onChanged(); }}
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-[#242473] hover:underline"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-brand)] hover:underline"
                           ><Plus className="w-3.5 h-3.5" /> Add to pipeline</button>
                         )}
                       </div>
@@ -268,7 +268,7 @@ function InvestorRow({ row, visit, roomId, deckId, deckUrl, docs, onChanged, onA
         <div className="min-w-0 flex-1">
           <input value={name} onChange={e => setName(e.target.value)} onBlur={() => { if (name !== (row.name || '')) save({ name: name || null }, false); }}
             placeholder="Investor name" className="w-full bg-transparent text-sm font-bold text-[#191f1d] outline-none placeholder:font-medium placeholder:text-[#c0c6cc]" />
-          <a href={`mailto:${row.email}`} className="inline-flex items-center gap-1 text-xs text-[#7f8c85] hover:text-[#242473]"><Mail className="w-3 h-3" /> {row.email}</a>
+          <a href={`mailto:${row.email}`} className="inline-flex items-center gap-1 text-xs text-[#7f8c85] hover:text-[var(--ds-brand)]"><Mail className="w-3 h-3" /> {row.email}</a>
         </div>
         <select
           value={row.stage}
@@ -300,15 +300,15 @@ function InvestorRow({ row, visit, roomId, deckId, deckUrl, docs, onChanged, onA
         <label className="flex items-center gap-1.5 text-xs text-[#7f8c85]">
           Reached out
           <input type="date" defaultValue={row.reached_out_at || ''} onChange={e => save({ reached_out_at: e.target.value || null }, false)}
-            className="h-8 rounded-lg bg-[#f5f6f8] px-2 text-xs text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40" />
+            className="h-8 rounded-lg bg-[#f5f6f8] px-2 text-xs text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/40" />
         </label>
         <label className="flex items-center gap-1.5 text-xs text-[#7f8c85]">
           Meeting
           <input type="datetime-local" defaultValue={row.meeting_at || ''} onChange={e => save({ meeting_at: e.target.value || null }, false)}
-            className="h-8 rounded-lg bg-[#f5f6f8] px-2 text-xs text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40" />
+            className="h-8 rounded-lg bg-[#f5f6f8] px-2 text-xs text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/40" />
         </label>
         <span className="flex items-center gap-1.5 text-xs">
-          <Eye className="w-3.5 h-3.5 text-[#242473]" />
+          <Eye className="w-3.5 h-3.5 text-[var(--ds-brand)]" />
           {deckViews > 0
             ? <span className="text-[#191f1d]">Viewed deck {deckViews}×{lastSeen ? <span className="text-[#99a1af]"> · last {timeAgo(lastSeen)}</span> : null}</span>
             : <span className="text-[#99a1af]">No deck views yet</span>}
@@ -320,17 +320,17 @@ function InvestorRow({ row, visit, roomId, deckId, deckUrl, docs, onChanged, onA
 
       {/* Commitment (shown when committed) */}
       {row.stage === 'committed' && (
-        <div className="flex flex-wrap items-center gap-3 mt-3 rounded-xl bg-[#F1EFFB] px-3 py-2.5">
-          <label className="flex items-center gap-1.5 text-xs font-medium text-[#242473]">
+        <div className="flex flex-wrap items-center gap-3 mt-3 rounded-xl bg-[var(--ds-tint)] px-3 py-2.5">
+          <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-brand)]">
             Amount
-            <span className="text-[#242473]">$</span>
+            <span className="text-[var(--ds-brand)]">$</span>
             <input value={amount} onChange={e => setAmount(e.target.value)} onBlur={saveAmount} inputMode="decimal" placeholder="0"
-              className="h-8 w-28 rounded-lg bg-white border border-[#DCD7F4] px-2 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40" />
+              className="h-8 w-28 rounded-lg bg-white border border-[var(--ds-brd-2)] px-2 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/40" />
           </label>
-          <label className="flex items-center gap-1.5 text-xs font-medium text-[#242473]">
+          <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--ds-brand)]">
             Date
             <input type="date" defaultValue={row.committed_at || today()} onChange={e => save({ committed_at: e.target.value || null }, false)}
-              className="h-8 rounded-lg bg-white border border-[#DCD7F4] px-2 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40" />
+              className="h-8 rounded-lg bg-white border border-[var(--ds-brd-2)] px-2 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/40" />
           </label>
         </div>
       )}
@@ -340,8 +340,8 @@ function InvestorRow({ row, visit, roomId, deckId, deckUrl, docs, onChanged, onA
         <div className="flex items-center gap-2">
           <input value={newNote} onChange={e => setNewNote(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addNote(); } }}
             placeholder="Add a note — context, next steps, why they passed…"
-            className="flex-1 rounded-xl bg-[#f5f6f8] px-3 py-2 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40" />
-          <button onClick={addNote} disabled={!newNote.trim()} className="shrink-0 rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] px-3 py-2 text-xs font-semibold text-white disabled:opacity-40">Add note</button>
+            className="flex-1 rounded-xl bg-[#f5f6f8] px-3 py-2 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/40" />
+          <button onClick={addNote} disabled={!newNote.trim()} className="shrink-0 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-3 py-2 text-xs font-semibold text-white disabled:opacity-40">Add note</button>
         </div>
         {history.length > 0 && (
           <div className="mt-2 space-y-1.5">
@@ -360,12 +360,12 @@ function InvestorRow({ row, visit, roomId, deckId, deckUrl, docs, onChanged, onA
       <div className="flex items-center justify-between mt-2">
         <div className="flex items-center gap-3">
           {row.status === 'approved'
-            ? <span className="inline-flex items-center gap-1 text-[11px] text-[#242473] font-medium">Portal access granted</span>
-            : <button onClick={grantAccess} className="text-xs font-medium text-[#242473] hover:underline">Grant portal access</button>}
+            ? <span className="inline-flex items-center gap-1 text-[11px] text-[var(--ds-brand)] font-medium">Portal access granted</span>
+            : <button onClick={grantAccess} className="text-xs font-medium text-[var(--ds-brand)] hover:underline">Grant portal access</button>}
           {visit && (
-            <button onClick={() => setOpenPages(o => !o)} className="inline-flex items-center gap-1 text-xs text-[#7f8c85] hover:text-[#242473]"><BarChart3 className="w-3.5 h-3.5" /> {openPages ? 'Hide analytics' : 'View analytics'}</button>
+            <button onClick={() => setOpenPages(o => !o)} className="inline-flex items-center gap-1 text-xs text-[#7f8c85] hover:text-[var(--ds-brand)]"><BarChart3 className="w-3.5 h-3.5" /> {openPages ? 'Hide analytics' : 'View analytics'}</button>
           )}
-          {onAnalytics && <button onClick={onAnalytics} className="text-xs text-[#7f8c85] hover:text-[#242473] hover:underline">Full breakdown</button>}
+          {onAnalytics && <button onClick={onAnalytics} className="text-xs text-[#7f8c85] hover:text-[var(--ds-brand)] hover:underline">Full breakdown</button>}
         </div>
         <button onClick={remove} className="inline-flex items-center gap-1 text-xs text-red-500 hover:underline"><Trash2 className="w-3.5 h-3.5" /> Remove</button>
       </div>
@@ -386,7 +386,7 @@ function AddInvestorModal({ roomId, onClose, onSaved }: { roomId: string; onClos
   const [stage, setStage] = useState<DealAccessRow['stage']>('reached_out');
   const [reachedOut, setReachedOut] = useState(today());
   const [saving, setSaving] = useState(false);
-  const input = 'w-full h-11 rounded-xl bg-[#f5f6f8] px-3 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40';
+  const input = 'w-full h-11 rounded-xl bg-[#f5f6f8] px-3 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/40';
 
   const save = async () => {
     if (!email.trim()) { toast.error('Investor email is required'); return; }
@@ -420,7 +420,7 @@ function AddInvestorModal({ roomId, onClose, onSaved }: { roomId: string; onClos
         </div>
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[#edf0f3]">
           <Button onClick={onClose} className="h-10 rounded-xl bg-[#f5f7f9] text-[#191f1d] hover:bg-[#edf0f3]">Cancel</Button>
-          <Button onClick={save} disabled={saving} className="h-10 rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] text-white hover:bg-[#2C42A5] disabled:opacity-50">Add investor</Button>
+          <Button onClick={save} disabled={saving} className="h-10 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)] disabled:opacity-50">Add investor</Button>
         </div>
       </div>
     </div>

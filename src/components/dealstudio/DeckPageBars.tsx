@@ -42,11 +42,11 @@ export function DeckPageBars({ roomId, deckId, email, deckUrl }: { roomId: strin
               >
                 <span className="text-[10px] font-medium text-[#7f8c85] tabular-nums leading-none whitespace-nowrap">{compact(p.avgSeconds)}</span>
                 <div
-                  className={`w-6 rounded-t-md transition-colors ${active ? 'bg-[#1B1B57]' : 'bg-gradient-to-t from-[#242473] to-[#503DBB] group-hover:from-[#1B1B57] group-hover:to-[#242473]'}`}
+                  className={`w-6 rounded-t-md transition-colors ${active ? 'bg-[var(--ds-brand-dark)]' : 'bg-gradient-to-t from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] group-hover:from-[var(--ds-brand-dark)] group-hover:to-[var(--ds-grad-from)]'}`}
                   style={{ height: h }}
                   title={`Page ${p.page} · ${formatDuration(p.avgSeconds)} avg · ${p.views} view${p.views === 1 ? '' : 's'}`}
                 />
-                <span className={`text-[10px] tabular-nums leading-none ${active ? 'text-[#1B1B57] font-bold' : 'text-[#99a1af]'}`}>{p.page}</span>
+                <span className={`text-[10px] tabular-nums leading-none ${active ? 'text-[var(--ds-brand-dark)] font-bold' : 'text-[#99a1af]'}`}>{p.page}</span>
               </button>
             );
           })}

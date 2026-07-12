@@ -12,7 +12,7 @@ import { supabase } from '../../lib/supabase';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 
-const GRAD = 'bg-gradient-to-br from-[#242473] via-[#2C42A5] to-[#503DBB]';
+const GRAD = 'bg-gradient-to-br from-[var(--ds-grad-from)] via-[var(--ds-grad-mid)] to-[var(--ds-grad-to)]';
 
 function useTheme() {
   const [dark, setDark] = useState(false);
@@ -107,7 +107,7 @@ export function LandingScreen() {
         <div>
           <h1 className="text-[clamp(38px,5vw,58px)] font-bold leading-[1.08] tracking-tight">
             Your Studio,{' '}
-            <span className="bg-gradient-to-br from-[#242473] via-[#2C42A5] to-[#503DBB] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-br from-[var(--ds-grad-from)] via-[var(--ds-grad-mid)] to-[var(--ds-grad-to)] bg-clip-text text-transparent">
               Your Raise.
             </span>
           </h1>
@@ -131,10 +131,10 @@ export function LandingScreen() {
             <span className="w-2 h-2 rounded-full bg-[#e6e8ee] dark:bg-[#242c47]" />
             <span className="w-2 h-2 rounded-full bg-[#e6e8ee] dark:bg-[#242c47]" />
             <span className="ml-2 flex-1 flex items-center gap-2 bg-[#eef0f4] dark:bg-[#1a2137] border border-[#e6e8ee] dark:border-[#242c47] rounded-lg px-3 py-1.5 text-[12.5px] text-[#5b6478] dark:text-[#9aa4be]">
-              <Lock className="w-3 h-3 text-[#0C8577] dark:text-[#64D7CD]" />
+              <Lock className="w-3 h-3 text-[var(--ds-accent-ink)] dark:text-[var(--ds-accent)]" />
               dealstudio.io/investors
-              <span className="ml-auto inline-flex items-center gap-1.5 font-semibold text-[#0C8577] dark:text-[#64D7CD]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#64D7CD] animate-pulse" />
+              <span className="ml-auto inline-flex items-center gap-1.5 font-semibold text-[var(--ds-accent-ink)] dark:text-[var(--ds-accent)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--ds-accent)] animate-pulse" />
                 live
               </span>
             </span>
@@ -147,7 +147,7 @@ export function LandingScreen() {
                 <div className="font-semibold">Northwind Robotics</div>
                 <div className="text-[12.5px] text-[#5b6478] dark:text-[#9aa4be]">Seed / $750K on a SAFE</div>
               </div>
-              <span className="ml-auto text-[11.5px] font-semibold text-[#503DBB] dark:text-[#9C8FDD] bg-[#F1EFFB] dark:bg-[#1a2137] px-2.5 py-1 rounded-full">
+              <span className="ml-auto text-[11.5px] font-semibold text-[var(--ds-brand)] dark:text-[var(--ds-muted)] bg-[var(--ds-tint)] dark:bg-[#1a2137] px-2.5 py-1 rounded-full">
                 Invite only
               </span>
             </div>
@@ -155,7 +155,7 @@ export function LandingScreen() {
             <div className="mt-3.5 grid grid-cols-2 gap-2.5">
               {[['Valuation cap', '$8.0M'], ['Committed', '$430K']].map(([lab, val]) => (
                 <div key={lab} className="rounded-xl bg-white dark:bg-[#141a2e] border border-[#e6e8ee] dark:border-[#242c47] px-3 py-2.5">
-                  <div className="text-[10.5px] uppercase tracking-wider font-semibold text-[#0C8577] dark:text-[#64D7CD]">{lab}</div>
+                  <div className="text-[10.5px] uppercase tracking-wider font-semibold text-[var(--ds-accent-ink)] dark:text-[var(--ds-accent)]">{lab}</div>
                   <div className="mt-0.5 font-bold text-[19px] tabular-nums">{val}</div>
                 </div>
               ))}
@@ -163,7 +163,7 @@ export function LandingScreen() {
 
             <div className="mt-3.5 flex items-end gap-1.5 h-[52px]">
               {[34, 52, 44, 70, 61, 88, 100].map((h, i) => (
-                <span key={i} className="flex-1 rounded-t-md bg-[#64D7CD]" style={{ height: `${h}%` }} />
+                <span key={i} className="flex-1 rounded-t-md bg-[var(--ds-accent)]" style={{ height: `${h}%` }} />
               ))}
             </div>
           </div>
@@ -182,8 +182,8 @@ export function LandingScreen() {
         <div className="grid md:grid-cols-3 gap-5">
           {[
             { Icon: Lock, tint: GRAD, iconColor: 'text-white', title: 'Gated access', body: 'Password, invite-only, or a private share link. Revoke anytime. You decide who sees what, per investor.' },
-            { Icon: BarChart3, tint: 'bg-[#64D7CD]', iconColor: 'text-[#08423b]', title: 'Live business model', body: 'An interactive revenue model and market funnel investors can explore. Edit once, everyone sees the latest.' },
-            { Icon: Eye, tint: 'bg-gradient-to-br from-[#242473] to-[#2C42A5]', iconColor: 'text-white', title: 'Investor analytics', body: 'See who opened the deck, what they read, and how long. Follow up on the ones leaning in.' },
+            { Icon: BarChart3, tint: 'bg-[var(--ds-accent)]', iconColor: 'text-[#08423b]', title: 'Live business model', body: 'An interactive revenue model and market funnel investors can explore. Edit once, everyone sees the latest.' },
+            { Icon: Eye, tint: 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-mid)]', iconColor: 'text-white', title: 'Investor analytics', body: 'See who opened the deck, what they read, and how long. Follow up on the ones leaning in.' },
           ].map(({ Icon, tint, iconColor, title, body }) => (
             <div
               key={title}
@@ -202,10 +202,10 @@ export function LandingScreen() {
       {/* CTA band */}
       <section className="mx-auto max-w-6xl px-6 pb-20">
         <div className={`relative overflow-hidden rounded-3xl ${GRAD} px-10 py-14 text-center text-white`}>
-          <span className="absolute -right-10 -top-16 w-72 h-72 rounded-full bg-[#64D7CD] opacity-30 blur-3xl" />
+          <span className="absolute -right-10 -top-16 w-72 h-72 rounded-full bg-[var(--ds-accent)] opacity-30 blur-3xl" />
           <h2 className="relative text-[clamp(28px,3.4vw,38px)] font-bold tracking-tight">Ready to open your deal room?</h2>
           <p className="relative mt-3 text-[17px] text-white/80">Publish a private, always-current investor page in minutes.</p>
-          <button onClick={() => nav('/admin')} className="relative mt-6 rounded-xl bg-white text-[#503DBB] px-[18px] py-3 font-semibold hover:-translate-y-0.5 transition">
+          <button onClick={() => nav('/admin')} className="relative mt-6 rounded-xl bg-white text-[var(--ds-brand)] px-[18px] py-3 font-semibold hover:-translate-y-0.5 transition">
             Start your deal room
           </button>
         </div>

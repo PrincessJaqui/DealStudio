@@ -2,6 +2,45 @@
 @source './**/*.{js,ts,jsx,tsx}';
 @import 'tw-animate-css';
 @import './styles/globals.css';
+
+/* ── DealStudio design tokens ─────────────────────────────────────────────────
+   Every brand colour in the app resolves through these variables. Per-company
+   theming (Interface Studio) works by overriding --ds-grad-from / --ds-grad-to
+   / --ds-accent at runtime on :root; nothing else needs to change. */
+:root {
+  /* Brand gradient */
+  --ds-grad-from: #627FD9;
+  --ds-grad-to:   #0030CD;
+  --ds-grad-mid:  #3557D4;
+
+  /* Brand solids (text, fills, borders on light surfaces) */
+  --ds-brand:       #0030CD;
+  --ds-brand-hover: #0027A6;
+  --ds-brand-dark:  #001F86;
+
+  /* Accent: bright teal for fills/dots/bars; -ink is the readable text tone */
+  --ds-accent:     #04B6C0;
+  --ds-accent-ink: #07818B;
+
+  /* Brand tints (light fills / selected states) */
+  --ds-tint:   #EDF1FC;
+  --ds-tint-2: #E7EDFB;
+  --ds-tint-3: #F5F7FE;
+  --ds-tint-4: #E9EFFC;
+  --ds-tint-5: #E6ECFB;
+
+  /* Brand borders / rings */
+  --ds-brd:    #C9D6F4;
+  --ds-brd-2:  #D2DCF6;
+  --ds-brd-3:  #C6D3F2;
+  --ds-ring:   #A9BEEC;
+  --ds-ring-2: #93AEE6;
+  --ds-muted:  #7C97DD;
+
+  /* Pulse cue colour, derived from the brand */
+  --ds-pulse-rgb: 0, 48, 205;
+}
+
 /* ── Global UI scale ─────────────────────────────────────────────────────────
    Render the entire app at 90%, i.e. a persistent browser zoom-out so nothing
    feels oversized. Applied to `body` so React-portalled overlays (dialogs,
@@ -12,9 +51,9 @@ body {
 
 /* ── DealStudio interaction cues ─────────────────────────────── */
 @keyframes dsPulseRing {
-  0%   { outline-color: rgba(118,178,82,0); outline-offset: 0; }
-  40%  { outline-color: rgba(118,178,82,0.6); outline-offset: 3px; }
-  100% { outline-color: rgba(118,178,82,0); outline-offset: 3px; }
+  0%   { outline-color: rgba(var(--ds-pulse-rgb),0); outline-offset: 0; }
+  40%  { outline-color: rgba(var(--ds-pulse-rgb),0.6); outline-offset: 3px; }
+  100% { outline-color: rgba(var(--ds-pulse-rgb),0); outline-offset: 3px; }
 }
 @keyframes dsPulseScale {
   0%, 100% { transform: scale(1); }
@@ -22,7 +61,7 @@ body {
 }
 @keyframes dsBarGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
-.ds-pulse { outline: 2px solid rgba(118,178,82,0); }
+.ds-pulse { outline: 2px solid rgba(var(--ds-pulse-rgb),0); }
 .ds-animate .ds-pulse { animation: dsPulseRing 1.5s ease-in-out 2; }
 .ds-pulse-pie { transform-origin: center; }
 .ds-animate .ds-pulse-pie { animation: dsPulseScale 1.4s ease-in-out 2; }

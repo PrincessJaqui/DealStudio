@@ -38,7 +38,7 @@ export function AvailabilityModal({ value, onClose, onSave }: Props) {
     setSchedule(s => ({ ...s, overrides: s.overrides.map((o, j) => j === i ? { ...o, ...patch } : o) }));
   const removeOverride = (i: number) => setSchedule(s => ({ ...s, overrides: s.overrides.filter((_, j) => j !== i) }));
 
-  const timeInput = 'h-9 rounded-lg bg-white border border-[#edf0f3] px-2 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40';
+  const timeInput = 'h-9 rounded-lg bg-white border border-[#edf0f3] px-2 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/40';
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
@@ -59,7 +59,7 @@ export function AvailabilityModal({ value, onClose, onSave }: Props) {
             <div className="flex gap-1">
               {LENGTHS.map(l => (
                 <button key={l} onClick={() => setSchedule(s => ({ ...s, meetingLength: l }))}
-                  className={`h-8 px-3 rounded-lg text-sm font-medium ${schedule.meetingLength === l ? 'bg-gradient-to-br from-[#242473] to-[#503DBB] text-white' : 'text-[#7f8c85] hover:bg-white'}`}>{l}m</button>
+                  className={`h-8 px-3 rounded-lg text-sm font-medium ${schedule.meetingLength === l ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white' : 'text-[#7f8c85] hover:bg-white'}`}>{l}m</button>
               ))}
             </div>
           </div>
@@ -76,7 +76,7 @@ export function AvailabilityModal({ value, onClose, onSave }: Props) {
                       <Switch checked={on} onCheckedChange={(v) => toggleDay(day, v)} />
                       <span className={`text-sm font-medium ${on ? 'text-[#191f1d]' : 'text-[#99a1af]'}`}>{name}</span>
                     </div>
-                    {on && <button onClick={() => addRange(day)} className="text-xs text-[#242473] hover:underline flex items-center gap-1"><Plus className="w-3 h-3" /> Add hours</button>}
+                    {on && <button onClick={() => addRange(day)} className="text-xs text-[var(--ds-brand)] hover:underline flex items-center gap-1"><Plus className="w-3 h-3" /> Add hours</button>}
                   </div>
                   {on && (
                     <div className="mt-2 space-y-1.5">
@@ -99,7 +99,7 @@ export function AvailabilityModal({ value, onClose, onSave }: Props) {
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-[#191f1d]">Specific date overrides</span>
-              <button onClick={addOverride} className="text-xs text-[#242473] hover:underline flex items-center gap-1"><Plus className="w-3 h-3" /> Add date</button>
+              <button onClick={addOverride} className="text-xs text-[var(--ds-brand)] hover:underline flex items-center gap-1"><Plus className="w-3 h-3" /> Add date</button>
             </div>
             {schedule.overrides.length === 0 ? (
               <p className="text-xs text-[#99a1af]">Optional. Add a date to override its weekly hours.</p>
@@ -121,7 +121,7 @@ export function AvailabilityModal({ value, onClose, onSave }: Props) {
 
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[#edf0f3]">
           <Button onClick={onClose} className="h-10 rounded-xl bg-[#f5f7f9] text-[#191f1d] hover:bg-[#edf0f3]">Cancel</Button>
-          <Button onClick={() => { onSave(schedule); onClose(); }} className="h-10 rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] text-white hover:bg-[#2C42A5]">Save availability</Button>
+          <Button onClick={() => { onSave(schedule); onClose(); }} className="h-10 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]">Save availability</Button>
         </div>
       </div>
     </div>
