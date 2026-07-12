@@ -29,6 +29,7 @@ import { DealFlow } from '../dealstudio/DealFlow';
 import { MarketEditor } from '../dealstudio/MarketEditor';
 import { ValuePropEditor } from '../dealstudio/ValuePropEditor';
 import { CompetitionEditor } from '../dealstudio/CompetitionEditor';
+import { DealThemeEditor } from '../dealstudio/DealThemeEditor';
 import { TeamEditor } from '../dealstudio/TeamEditor';
 import { BusinessModelEditor } from '../dealstudio/BusinessModelEditor';
 import {

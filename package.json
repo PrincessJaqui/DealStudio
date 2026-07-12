@@ -58,6 +58,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "node scripts/check-refs.mjs && vite build",
+    "typecheck": "tsc --noEmit"
   }
 }
