@@ -49,9 +49,8 @@ export function LandingScreen() {
     <div className="min-h-screen bg-[#f5f6f8] dark:bg-[#0b0e1a] text-[#0c1022] dark:text-[#eef1fa]">
       <header className="sticky top-0 z-30 border-b border-[#e6e8ee] dark:border-[#242c47] bg-[#f5f6f8]/85 dark:bg-[#0b0e1a]/85 backdrop-blur">
         <div className="mx-auto max-w-6xl px-6 h-[68px] flex items-center gap-7">
-          <button onClick={() => nav('/')} className="flex items-center gap-2.5 font-bold text-[21px] tracking-tight">
-            <span className={`w-[26px] h-[26px] rounded-lg ${GRAD}`} />
-            DealStudio<span className="text-[#0C8577] dark:text-[#64D7CD]">.io</span>
+          <button onClick={() => nav('/')} className="flex items-center font-bold text-[21px] tracking-tight">
+            DealStudio
           </button>
           <div className="ml-auto flex items-center gap-3">
             <button onClick={toggle} aria-label="Toggle theme" className="w-9 h-9 rounded-xl border border-[#e6e8ee] dark:border-[#242c47] flex items-center justify-center text-[#5b6478] dark:text-[#9aa4be] hover:text-[#0c1022] dark:hover:text-white">
@@ -158,9 +157,8 @@ export function LandingScreen() {
 
       <footer className="border-t border-[#e6e8ee] dark:border-[#242c47] py-9">
         <div className="mx-auto max-w-6xl px-6 flex flex-wrap items-center gap-4 text-[14px] text-[#5b6478] dark:text-[#9aa4be]">
-          <span className="flex items-center gap-2 font-bold text-[18px] text-[#0c1022] dark:text-[#eef1fa]">
-            <span className={`w-[22px] h-[22px] rounded-md ${GRAD}`} />
-            DealStudio<span className="text-[#0C8577] dark:text-[#64D7CD]">.io</span>
+          <span className="flex items-center font-bold text-[18px] text-[#0c1022] dark:text-[#eef1fa]">
+            DealStudio
           </span>
           <span>&copy; {new Date().getFullYear()} DealStudio</span>
         </div>
