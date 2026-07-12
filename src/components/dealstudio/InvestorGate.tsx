@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react';
+import { PublicHeader } from './PublicHeader';
 import { Loader2, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../ui/button';
 import { verifyDealAccess, requestDealAccess } from '../../lib/dealStudio';
@@ -62,7 +63,9 @@ export function InvestorGate({ slug, companyName, requirePassword, requireEmail 
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#f5f6f8] flex flex-col">
+      <PublicHeader variant={demoNotice ? 'full' : 'quiet'} />
+      <div className="flex-1 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         {/* Brand header */}
         <div className="rounded-t-2xl overflow-hidden h-28 bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] relative">
@@ -133,6 +136,7 @@ export function InvestorGate({ slug, companyName, requirePassword, requireEmail 
         </div>
         <p className="text-center text-[11px] text-[#99a1af] mt-4">Powered by DealStudio</p>
       </div>
+    </div>
     </div>
   );
 }

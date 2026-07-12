@@ -10,6 +10,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { Loader2, LogOut, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import dsMark from '../../assets/dealstudio-mark.png';
+import { PublicHeader } from './PublicHeader';
 import { refreshUserContext } from '../../lib/analytics';
 import { fetchMyOrg, applyOrgTheme, type Organization } from '../../lib/org';
 
@@ -86,7 +87,9 @@ export function AdminGate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#f5f6f8] flex flex-col">
+      <PublicHeader />
+      <div className="flex-1 flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-6">
         <img src={dsMark} alt="DealStudio" className="w-11 h-11 rounded-xl mb-4" />
         <h1 className="text-lg font-bold text-[#191f1d]">DealStudio Admin</h1>
@@ -149,6 +152,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
             </button>
           </>
         )}
+      </div>
       </div>
     </div>
   );

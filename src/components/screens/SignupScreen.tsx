@@ -8,6 +8,7 @@ import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { createMyOrg } from '../../lib/org';
 import dsMark from '../../assets/dealstudio-mark.png';
+import { PublicHeader } from '../dealstudio/PublicHeader';
 
 export function SignupScreen() {
   const nav = useNavigate();
@@ -50,7 +51,9 @@ export function SignupScreen() {
   const label = 'block text-xs font-semibold text-[#7f8c85] mt-3 mb-1';
 
   return (
-    <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#f5f6f8] flex flex-col">
+      <PublicHeader />
+      <div className="flex-1 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-6">
         <img src={dsMark} alt="" className="w-11 h-11 rounded-xl mb-4" />
         <h1 className="text-lg font-bold text-[#191f1d]">Start your deal room</h1>
@@ -93,6 +96,7 @@ export function SignupScreen() {
         <p className="text-center text-sm text-[#7f8c85] mt-4">
           Already have an account? <Link to="/admin" className="font-semibold text-[var(--ds-brand)]">Sign in</Link>
         </p>
+      </div>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@
  */
 
 import { useParams } from 'react-router-dom';
+import { PublicHeader } from '../dealstudio/PublicHeader';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 import { MapPin, Calendar as CalIcon, Share2, Check, LogOut } from 'lucide-react';
@@ -267,6 +268,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
 
   return (
     <div className="min-h-screen bg-[#f5f6f8]">
+      <PublicHeader variant={room.demo_mode ? 'full' : 'quiet'} />
       {isMasterAdmin && (
         <div className={`w-full text-center text-sm font-medium py-2 px-4 ${room.is_active ? 'bg-[var(--ds-tint)] text-[var(--ds-brand)]' : 'bg-[#fff7ed] text-[#b45309]'}`}>
           {room.is_active ? 'Admin preview — this deal studio is live.' : 'Admin preview — this deal studio is inactive and not visible to investors yet.'}
