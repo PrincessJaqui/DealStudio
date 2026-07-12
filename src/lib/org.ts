@@ -96,14 +96,39 @@ export async function saveOrgBranding(
  */
 export type OrgTheme = Pick<Organization, 'brand_from' | 'brand_to' | 'brand_accent' | 'accent_to'>;
 
+
+/**
+ * Blends two hex colours. --ds-grad-mid is a real token used by the landing
+ * page and the business model panel, but nothing ever themed it, so it stayed
+ * the default blue while everything around it turned the customer's colour.
+ * Deriving it from the two ends keeps every gradient coherent.
+ */
+function mixHex(a: string, b: string, t = 0.5): string {
+  const parse = (h: string) => {
+    const v = h.replace('#', '');
+    const full = v.length === 3 ? v.split('').map(c => c + c).join('') : v;
+    return [0, 2, 4].map(i => parseInt(full.slice(i, i + 2), 16));
+  };
+  try {
+    const [r1, g1, b1] = parse(a);
+    const [r2, g2, b2] = parse(b);
+    const mix = (x: number, y: number) => Math.round(x + (y - x) * t);
+    const hex = (n: number) => n.toString(16).padStart(2, '0');
+    return `#${hex(mix(r1, r2))}${hex(mix(g1, g2))}${hex(mix(b1, b2))}`;
+  } catch {
+    return a;
+  }
+}
+
 export function applyOrgTheme(theme: OrgTheme | null) {
   const root = document.documentElement;
-  const vars = ['--ds-grad-from', '--ds-grad-to', '--ds-brand', '--ds-accent', '--ds-accent-to'];
+  const vars = ['--ds-grad-from', '--ds-grad-mid', '--ds-grad-to', '--ds-brand', '--ds-accent', '--ds-accent-to'];
   if (!theme) {
     vars.forEach(v => root.style.removeProperty(v));
     return;
   }
   root.style.setProperty('--ds-grad-from', theme.brand_from);
+  root.style.setProperty('--ds-grad-mid', mixHex(theme.brand_from, theme.brand_to));
   root.style.setProperty('--ds-grad-to', theme.brand_to);
   root.style.setProperty('--ds-brand', theme.brand_to);
   root.style.setProperty('--ds-accent', theme.brand_accent);
@@ -216,6 +241,9 @@ export function applyDealTheme(theme: DealTheme | null | undefined) {
   };
   set('--ds-grad-from', theme.brand_from);
   set('--ds-grad-to', theme.brand_to);
+  if (theme.brand_from && theme.brand_to) {
+    set('--ds-grad-mid', mixHex(theme.brand_from, theme.brand_to));
+  }
   set('--ds-brand', theme.brand_to ?? theme.brand_from);
   set('--ds-accent', theme.brand_accent);
   set('--ds-accent-to', theme.accent_to);

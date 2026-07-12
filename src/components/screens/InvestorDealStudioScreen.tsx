@@ -300,7 +300,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
           {/* Company header */}
           <div data-section="header" className="order-2 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
             <h2 className="lg:hidden text-sm font-bold text-[#191f1d] mb-2">Overview</h2>
-            <h1 className="hidden lg:block text-2xl font-bold text-[#191f1d]">{room.company_name}&trade;</h1>
+            <h1 className="hidden lg:block text-2xl font-bold text-[#191f1d]">{room.company_name}</h1>
             {room.one_liner && <p className="hidden lg:block text-[#7f8c85] mt-1">{room.one_liner}</p>}
             {room.headquarters && <p className="flex items-center gap-1 text-sm text-[var(--ds-accent-ink)] lg:mt-2"><MapPin className="w-4 h-4" /> {room.headquarters}</p>}
             {(room.tags?.length > 0 || room.industries?.length > 0) && (
@@ -342,7 +342,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
           {/* About */}
           {room.summary_html && (
             <div data-section="about" className="order-5 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
-              <h2 className="text-sm font-bold text-[#191f1d] mb-3">About {room.company_name}&trade;</h2>
+              <h2 className="text-sm font-bold text-[#191f1d] mb-3">About {room.company_name}</h2>
               {(() => {
                 const { preview, hasMore } = splitHtmlParagraphs(room.summary_html, 4);
                 return (
@@ -395,10 +395,18 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
         <div className="contents lg:block lg:space-y-6 lg:sticky lg:top-6">
           <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5 text-center">
             <div className="w-20 h-20 rounded-full bg-[#f5f7f9] border border-[#edf0f3] mx-auto mb-3 overflow-hidden flex items-center justify-center">
-              {room.hero_image_url ? <img src={room.hero_image_url} alt="" className="w-full h-full object-cover" /> : <span className="text-2xl font-bold text-[var(--ds-brand)]">{(room.company_name || '?').trim().charAt(0).toUpperCase()}</span>}
+              {(() => {
+                // Resolved theme logo first (deal, then company), then the hero
+                // image, then initials. The logo never showed here because this
+                // only ever looked at hero_image_url.
+                const logo = (room as any).theme?.logo_url || room.hero_image_url;
+                return logo
+                  ? <img src={logo} alt="" className="w-full h-full object-cover" />
+                  : <span className="text-2xl font-bold text-[var(--ds-brand)]">{(room.company_name || '?').trim().charAt(0).toUpperCase()}</span>;
+              })()}
             </div>
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85]">Company</p>
-            <p className="text-lg font-bold text-[#191f1d]">{room.company_name}&trade;</p>
+            <p className="text-lg font-bold text-[#191f1d]">{room.company_name}</p>
             {room.one_liner && (
               <p className="lg:hidden text-sm text-[#7f8c85] mt-1">
                 {(() => {

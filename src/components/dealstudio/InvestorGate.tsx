@@ -76,7 +76,7 @@ export function InvestorGate({ slug, companyName, requirePassword, requireEmail 
           {heroImageUrl && <img src={heroImageUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />}
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <span className="bg-white rounded-xl px-3 py-2 shadow-sm text-base font-bold leading-none text-[var(--ds-brand)]">DealStudio<span className="text-[#191f1d]">.io</span></span>
-            <span className="text-white text-sm font-semibold">{companyName}&trade;</span>
+            <span className="text-white text-sm font-semibold">{companyName}</span>
           </div>
         </div>
 

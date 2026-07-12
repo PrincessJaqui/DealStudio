@@ -12,7 +12,6 @@ import { CustomLanding } from './CustomLanding';
 import { PublicHeader } from '../dealstudio/PublicHeader';
 import { Lock, BarChart3, Eye, Moon, Sun, ArrowRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import dsMark from '../../assets/dealstudio-mark.png';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 
 const GRAD = 'bg-gradient-to-br from-[var(--ds-grad-from)] via-[var(--ds-grad-mid)] to-[var(--ds-grad-to)]';
@@ -85,7 +84,6 @@ export function LandingScreen() {
       <header className="sticky top-0 z-30 border-b border-[#e6e8ee] dark:border-[#242c47] bg-[#f5f6f8]/85 dark:bg-[#0b0e1a]/85 backdrop-blur">
         <div className="mx-auto max-w-6xl px-6 h-[68px] flex items-center gap-7">
           <button onClick={() => nav('/')} className="flex items-center gap-2.5 font-bold text-[21px] tracking-tight">
-            <img src={dsMark} alt="" className="w-[26px] h-[26px] rounded-lg" />
             DealStudio
           </button>
 
