@@ -21,6 +21,7 @@ import { DealDocumentModal } from '../dealstudio/DealDocumentModal';
 import { AvailabilityModal } from '../dealstudio/AvailabilityModal';
 import { PdfDeckViewer } from '../dealstudio/PdfDeckViewer';
 import { useParams } from 'react-router-dom';
+import { useAdminAuth } from '../dealstudio/AdminGate';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { DealDocViewer } from '../dealstudio/DealDocViewer';
 import { DealFlow } from '../dealstudio/DealFlow';
@@ -49,6 +50,7 @@ function StatTile({ label, value }: { label: string; value: string }) {
 
 export function DealStudioScreen() {
   const { slug } = useParams<{ slug?: string }>();
+  const { org } = useAdminAuth();
   const [room, setRoom] = useState<DealStudio | null>(null);
   const [docs, setDocs] = useState<DealDocument[]>([]);
   const [access, setAccess] = useState<DealAccessRow[]>([]);
@@ -258,10 +260,14 @@ export function DealStudioScreen() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-3 min-w-0">
-          <img src={dsMark} alt="" className="w-11 h-11 rounded-xl shrink-0" />
+          <span className="w-11 h-11 rounded-xl shrink-0 overflow-hidden border border-[#edf0f3] bg-white flex items-center justify-center">
+            {org?.logo_url
+              ? <img src={org.logo_url} alt="" className="w-full h-full object-contain p-1" />
+              : <img src={dsMark} alt="" className="w-full h-full" />}
+          </span>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-[#191f1d] leading-tight truncate">DealStudio</h1>
-            <p className="text-sm text-[#7f8c85]">Master Admin</p>
+            <h1 className="text-2xl font-bold text-[#191f1d] leading-tight truncate">{room.company_name || org?.name || 'Untitled deal'}</h1>
+            <p className="text-sm text-[#7f8c85]">Admin</p>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap sm:justify-end shrink-0">
