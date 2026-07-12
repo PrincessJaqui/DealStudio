@@ -7,16 +7,19 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User } from 'lucide-react';
+import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, CreditCard, Shield } from 'lucide-react';
 import { useAdminAuth } from './AdminGate';
+import { isPlatformAdmin } from '../../lib/billing';
 import dsMark from '../../assets/dealstudio-mark.png';
 
-const NAV = [
+const BASE_NAV = [
   { to: '/admin', label: 'Deal Studio', Icon: Presentation, end: true },
   { to: '/admin/deals', label: 'Deal Manager', Icon: LayoutGrid, end: false },
   { to: '/admin/interface', label: 'Interface Studio', Icon: Palette, end: false },
+  { to: '/admin/billing', label: 'Billing', Icon: CreditCard, end: false },
   { to: '/admin/settings', label: 'System Settings', Icon: Settings, end: false },
 ];
+const MASTER_NAV = { to: '/admin/master', label: 'User Management', Icon: Shield, end: false };
 
 const linkCls = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition ${
@@ -32,6 +35,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   const [drawer, setDrawer] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
+  const [isMaster, setIsMaster] = useState(false);
+
+  useEffect(() => { void isPlatformAdmin().then(setIsMaster); }, []);
+  const NAV = isMaster ? [...BASE_NAV, MASTER_NAV] : BASE_NAV;
 
   // Navigating closes any open overlay, so the drawer never lingers.
   useEffect(() => { setDrawer(false); setUserMenu(false); }, [loc.pathname]);

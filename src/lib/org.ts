@@ -17,6 +17,9 @@ export type Organization = {
   plan: string;
   subscription_status: string;
   trial_ends_at: string;
+  suspended: boolean;
+  comped: boolean;
+  stripe_customer_id: string | null;
 };
 
 export type OrgDeal = {

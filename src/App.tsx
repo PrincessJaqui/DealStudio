@@ -16,6 +16,9 @@ import { DealStudioScreen } from './components/screens/DealStudioScreen';
 import { DealManagerScreen } from './components/screens/DealManagerScreen';
 import { InterfaceStudioScreen } from './components/screens/InterfaceStudioScreen';
 import { SystemSettingsScreen } from './components/screens/SystemSettingsScreen';
+import { BillingScreen } from './components/screens/BillingScreen';
+import { MasterAdminScreen } from './components/screens/MasterAdminScreen';
+import { SignupScreen } from './components/screens/SignupScreen';
 import { AdminGate } from './components/dealstudio/AdminGate';
 import { AdminShell } from './components/dealstudio/AdminShell';
 
@@ -33,6 +36,7 @@ export default function App() {
     <>
       <Routes>
         <Route path="/" element={<LandingScreen />} />
+        <Route path="/signup" element={<SignupScreen />} />
 
         <Route path="/d/:slug" element={<InvestorDealStudioScreen />} />
         <Route path="/dealstudio" element={<InvestorDealStudioScreen />} />
@@ -43,6 +47,8 @@ export default function App() {
         <Route path="/admin/d/:slug" element={<Admin><DealStudioScreen /></Admin>} />
         <Route path="/admin/interface" element={<Admin><InterfaceStudioScreen /></Admin>} />
         <Route path="/admin/settings" element={<Admin><SystemSettingsScreen /></Admin>} />
+        <Route path="/admin/billing" element={<Admin><BillingScreen /></Admin>} />
+        <Route path="/admin/master" element={<Admin><MasterAdminScreen /></Admin>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
