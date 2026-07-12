@@ -6,9 +6,10 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ExternalLink, Copy, Check, Loader2, Pencil } from 'lucide-react';
+import { Plus, ExternalLink, Copy, Check, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { useAdminAuth } from '../dealstudio/AdminGate';
 import { fetchOrgDeals, createDeal, type OrgDeal } from '../../lib/org';
+import { DeleteDealDialog } from '../dealstudio/DeleteDealDialog';
 
 export function DealManagerScreen() {
   const { org } = useAdminAuth();
@@ -20,6 +21,7 @@ export function DealManagerScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState<string | null>(null);
+  const [toDelete, setToDelete] = useState<OrgDeal | null>(null);
 
   const load = async () => setDeals(await fetchOrgDeals());
   useEffect(() => { void load(); }, []);
@@ -142,10 +144,25 @@ export function DealManagerScreen() {
                 >
                   {copied === d.slug ? <Check className="w-4 h-4 text-[var(--ds-accent-ink)]" /> : <Copy className="w-4 h-4" />}
                 </button>
+                <button
+                  onClick={() => setToDelete(d)}
+                  className="ml-auto inline-flex items-center justify-center h-9 w-9 rounded-xl border border-[#edf0f3] text-[#7f8c85] hover:text-red-600 hover:border-red-200 hover:bg-red-50"
+                  title="Delete deal"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {toDelete && (
+        <DeleteDealDialog
+          deal={toDelete}
+          onClose={() => setToDelete(null)}
+          onDeleted={() => { setToDelete(null); void load(); }}
+        />
       )}
     </div>
   );

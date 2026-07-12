@@ -10,6 +10,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, CreditCard, Shield } from 'lucide-react';
 import { useAdminAuth } from './AdminGate';
 import { isPlatformAdmin } from '../../lib/billing';
+import { DealSwitcher } from './DealSwitcher';
 import dsMark from '../../assets/dealstudio-mark.png';
 
 const BASE_NAV = [
@@ -59,6 +60,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <img src={dsMark} alt="" className="w-7 h-7 rounded-lg" />
           <span className="font-bold text-[19px] text-[#191f1d]">DealStudio</span>
         </button>
+
+        <div className="ml-6"><DealSwitcher /></div>
 
         <div className="ml-auto relative">
           <button

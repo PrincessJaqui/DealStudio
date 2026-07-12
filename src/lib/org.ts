@@ -128,3 +128,26 @@ export async function uploadOrgLogo(orgId: string, file: File): Promise<string> 
   const { data } = supabase.storage.from('org-logos').getPublicUrl(path);
   return data.publicUrl;
 }
+
+/** What deleting a deal would destroy. Read-only. */
+export async function previewDeleteDeal(dealId: string) {
+  const { data, error } = await supabase.rpc('deal_delete_preview', { p_deal: dealId });
+  if (error) throw error;
+  return data as {
+    name: string; slug: string;
+    documents: number; investors: number; visits: number; meetings: number;
+  } | null;
+}
+
+/**
+ * Permanently deletes a deal and everything attached to it. The caller must
+ * pass the deal's own slug, which the server re-checks, so a mistaken click
+ * cannot destroy the wrong room.
+ */
+export async function deleteDeal(dealId: string, confirmSlug: string) {
+  const { data, error } = await supabase.rpc('delete_deal', {
+    p_deal: dealId, p_confirm_slug: confirmSlug,
+  });
+  if (error) throw error;
+  return data as { deleted: boolean; name: string; slug: string };
+}
