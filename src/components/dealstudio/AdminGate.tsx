@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { Loader2, LogOut } from 'lucide-react';
+import { Loader2, LogOut, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { refreshUserContext } from '../../lib/analytics';
@@ -31,6 +31,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
   const [email, setEmail] = useState('hello@dealstudio.io');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -115,15 +116,21 @@ export function AdminGate({ children }: { children: ReactNode }) {
             />
 
             <label className="block text-xs font-semibold text-[#7f8c85] mt-3 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') void signIn(); }}
-              autoComplete="current-password"
-              className="w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40"
-              placeholder="Your password"
-            />
+            <div className="relative">
+              <input
+                type={showPw ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') void signIn(); }}
+                autoComplete="current-password"
+                className="w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 pr-10 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40"
+                placeholder="Your password"
+              />
+              <button type="button" onClick={() => setShowPw((v) => !v)} aria-label="Show password"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#7f8c85] hover:text-[#191f1d]">
+                {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
 
             {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
 
