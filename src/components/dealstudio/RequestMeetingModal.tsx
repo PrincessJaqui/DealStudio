@@ -34,7 +34,7 @@ export function RequestMeetingModal({ slug, schedule, defaultEmail, onClose, onS
   const slots = useMemo(() => (date ? scheduleSlots(schedule, date) : []), [schedule, date]);
   const hasAvailability = dates.length > 0;
 
-  const input = 'w-full h-11 rounded-xl bg-[#f9fafb] px-3 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#76b252]/40';
+  const input = 'w-full h-11 rounded-xl bg-[#f5f6f8] px-3 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40';
 
   const submit = async () => {
     if (!email.trim()) { toast.error('Enter your email'); return; }
@@ -81,7 +81,7 @@ export function RequestMeetingModal({ slug, schedule, defaultEmail, onClose, onS
                   {slots.length > 0 ? (
                     <div className="grid grid-cols-3 gap-1.5">
                       {slots.map(s => (
-                        <button key={s} onClick={() => setSlot(s)} className={`h-9 rounded-lg text-sm font-medium border ${slot === s ? 'bg-gradient-to-br from-[#5d8f41] to-[#76b252] text-white border-transparent' : 'border-[#edf0f3] text-[#191f1d] hover:border-[#76b252]'}`}>{s}</button>
+                        <button key={s} onClick={() => setSlot(s)} className={`h-9 rounded-lg text-sm font-medium border ${slot === s ? 'bg-gradient-to-br from-[#242473] to-[#503DBB] text-white border-transparent' : 'border-[#edf0f3] text-[#191f1d] hover:border-[#503DBB]'}`}>{s}</button>
                       ))}
                     </div>
                   ) : <p className="text-xs text-[#99a1af]">No times on this date.</p>}
@@ -107,13 +107,13 @@ export function RequestMeetingModal({ slug, schedule, defaultEmail, onClose, onS
           </div>
           <div>
             <label className="block text-xs font-semibold text-[#7f8c85] mb-1">Note (optional)</label>
-            <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} className="w-full rounded-xl bg-[#f9fafb] px-3 py-2 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#76b252]/40 resize-none" placeholder="Anything you'd like to cover" />
+            <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} className="w-full rounded-xl bg-[#f5f6f8] px-3 py-2 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40 resize-none" placeholder="Anything you'd like to cover" />
           </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[#edf0f3]">
           <Button onClick={onClose} className="h-10 rounded-xl bg-[#f5f7f9] text-[#191f1d] hover:bg-[#edf0f3]">Cancel</Button>
-          <Button onClick={submit} disabled={busy} className="h-10 rounded-xl bg-gradient-to-br from-[#5d8f41] to-[#76b252] text-white hover:bg-[#648f47] disabled:opacity-50">
+          <Button onClick={submit} disabled={busy} className="h-10 rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] text-white hover:bg-[#2C42A5] disabled:opacity-50">
             {busy && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Send request
           </Button>
         </div>

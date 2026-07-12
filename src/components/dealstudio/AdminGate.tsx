@@ -44,8 +44,8 @@ export function AdminGate({ children }: { children: ReactNode }) {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center">
-        <Loader2 className="w-5 h-5 animate-spin text-[#76b252]" />
+      <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center">
+        <Loader2 className="w-5 h-5 animate-spin text-[#503DBB]" />
       </div>
     );
   }
@@ -64,9 +64,9 @@ export function AdminGate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-6">
-        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#5d8f41] to-[#76b252] flex items-center justify-center text-white font-bold text-lg mb-4">D</div>
+        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] flex items-center justify-center text-white font-bold text-lg mb-4">D</div>
         <h1 className="text-lg font-bold text-[#191f1d]">DealStudio Admin</h1>
         {status === 'notadmin' ? (
           <>
@@ -79,14 +79,14 @@ export function AdminGate({ children }: { children: ReactNode }) {
             <label className="block text-xs font-semibold text-[#7f8c85] mt-5 mb-1">Email</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') void signIn(); }} autoComplete="username"
-              className="w-full bg-[#f9fafb] rounded-xl px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#76b252]/40" placeholder="you@company.com" />
+              className="w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40" placeholder="you@company.com" />
             <label className="block text-xs font-semibold text-[#7f8c85] mt-3 mb-1">Password</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') void signIn(); }} autoComplete="current-password"
-              className="w-full bg-[#f9fafb] rounded-xl px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#76b252]/40" placeholder="Your password" />
+              className="w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40" placeholder="Your password" />
             {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
             <button onClick={() => void signIn()} disabled={busy || !email || !password}
-              className="mt-5 w-full rounded-xl bg-gradient-to-br from-[#5d8f41] to-[#76b252] text-white font-semibold py-2.5 text-sm disabled:opacity-60 flex items-center justify-center gap-2">
+              className="mt-5 w-full rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] text-white font-semibold py-2.5 text-sm disabled:opacity-60 flex items-center justify-center gap-2">
               {busy && <Loader2 className="w-4 h-4 animate-spin" />}
               Sign in
             </button>

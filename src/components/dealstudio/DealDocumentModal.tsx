@@ -107,30 +107,30 @@ export function DealDocumentModal({ roomId, existing, defaultIsDeck, onClose, on
             <>
               <div>
                 <label className="block text-xs font-semibold text-[#7f8c85] mb-1">Title</label>
-                <input value={title} onChange={e => setTitle(e.target.value)} className="w-full h-11 rounded-xl bg-[#f9fafb] px-3 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#76b252]/40" placeholder="Pitch Deck" />
+                <input value={title} onChange={e => setTitle(e.target.value)} className="w-full h-11 rounded-xl bg-[#f5f6f8] px-3 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40" placeholder="Pitch Deck" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#7f8c85] mb-1">Description</label>
-                <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} className="w-full rounded-xl bg-[#f9fafb] px-3 py-2 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#76b252]/40 resize-none" placeholder="Optional summary investors see on the card" />
+                <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} className="w-full rounded-xl bg-[#f5f6f8] px-3 py-2 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40 resize-none" placeholder="Optional summary investors see on the card" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#7f8c85] mb-1">Replace file (optional)</label>
-                <label className="flex items-center gap-3 rounded-xl border border-dashed border-[#d7dde2] bg-[#f9fafb] px-4 py-3 cursor-pointer hover:border-[#76b252]">
-                  <UploadCloud className="w-5 h-5 text-[#76b252]" />
+                <label className="flex items-center gap-3 rounded-xl border border-dashed border-[#d7dde2] bg-[#f5f6f8] px-4 py-3 cursor-pointer hover:border-[#503DBB]">
+                  <UploadCloud className="w-5 h-5 text-[#503DBB]" />
                   <span className="text-sm text-[#7f8c85] truncate">{replaceFile ? replaceFile.name : existing?.file_name || 'Keep current file'}</span>
                   <input type="file" accept="application/pdf,image/*" className="hidden" onChange={e => setReplaceFile(e.target.files?.[0] || null)} />
                 </label>
                 {replaceFile && <p className="text-[11px] text-[#b45309] mt-1">The current version will be archived and stays viewable in history.</p>}
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={isDeck} onChange={e => setIsDeck(e.target.checked)} className="w-4 h-4 accent-[#5d8f41]" />
+                <input type="checkbox" checked={isDeck} onChange={e => setIsDeck(e.target.checked)} className="w-4 h-4 accent-[#242473]" />
                 <span className="text-sm text-[#191f1d]">Feature as the pitch deck (shown at the top)</span>
               </label>
             </>
           ) : (
             <>
-              <label className="flex items-center gap-3 rounded-xl border border-dashed border-[#d7dde2] bg-[#f9fafb] px-4 py-3 cursor-pointer hover:border-[#76b252]">
-                <UploadCloud className="w-5 h-5 text-[#76b252]" />
+              <label className="flex items-center gap-3 rounded-xl border border-dashed border-[#d7dde2] bg-[#f5f6f8] px-4 py-3 cursor-pointer hover:border-[#503DBB]">
+                <UploadCloud className="w-5 h-5 text-[#503DBB]" />
                 <span className="text-sm text-[#7f8c85]">Choose one or more files (PDF)</span>
                 <input type="file" accept="application/pdf,image/*" multiple className="hidden" onChange={e => addFiles(e.target.files)} />
               </label>
@@ -139,12 +139,12 @@ export function DealDocumentModal({ roomId, existing, defaultIsDeck, onClose, on
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-[#7f8c85]">{pending.length} file{pending.length > 1 ? 's' : ''} &mdash; names default to the file name, edit as needed</p>
                   {pending.map((p, i) => (
-                    <div key={i} className="rounded-xl bg-[#f9fafb] p-2.5">
+                    <div key={i} className="rounded-xl bg-[#f5f6f8] p-2.5">
                       <div className="flex items-center gap-2">
                         <input
                           value={p.title}
                           onChange={e => setPending(prev => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))}
-                          className="flex-1 h-9 rounded-lg bg-white border border-[#edf0f3] px-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#76b252]/40"
+                          className="flex-1 h-9 rounded-lg bg-white border border-[#edf0f3] px-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[#503DBB]/40"
                           placeholder="Document title"
                         />
                         <button type="button" onClick={() => { setPending(prev => prev.filter((_, j) => j !== i)); setDeckIndex(d => d === i ? null : (d !== null && d > i ? d - 1 : d)); }} className="w-9 h-9 rounded-lg flex items-center justify-center text-[#7f8c85] hover:bg-white"><Trash2 className="w-4 h-4" /></button>
@@ -152,7 +152,7 @@ export function DealDocumentModal({ roomId, existing, defaultIsDeck, onClose, on
                       <div className="flex items-center justify-between mt-1.5 px-0.5">
                         <span className="text-[11px] text-[#99a1af] truncate">{p.file.name}</span>
                         <label className="flex items-center gap-1.5 text-[11px] text-[#191f1d] cursor-pointer shrink-0">
-                          <input type="radio" name="deck" checked={deckIndex === i} onChange={() => setDeckIndex(i)} className="accent-[#5d8f41]" /> Pitch deck
+                          <input type="radio" name="deck" checked={deckIndex === i} onChange={() => setDeckIndex(i)} className="accent-[#242473]" /> Pitch deck
                         </label>
                       </div>
                     </div>
@@ -168,7 +168,7 @@ export function DealDocumentModal({ roomId, existing, defaultIsDeck, onClose, on
 
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-[#edf0f3]">
           <Button onClick={onClose} className="h-10 rounded-xl bg-[#f5f7f9] text-[#191f1d] hover:bg-[#edf0f3]">Cancel</Button>
-          <Button onClick={isEdit ? saveEdit : saveAdd} disabled={saving} className="h-10 rounded-xl bg-gradient-to-br from-[#5d8f41] to-[#76b252] text-white hover:bg-[#648f47] disabled:opacity-50">
+          <Button onClick={isEdit ? saveEdit : saveAdd} disabled={saving} className="h-10 rounded-xl bg-gradient-to-br from-[#242473] to-[#503DBB] text-white hover:bg-[#2C42A5] disabled:opacity-50">
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             {isEdit ? 'Save' : pending.length > 1 ? `Add ${pending.length} documents` : 'Add document'}
           </Button>

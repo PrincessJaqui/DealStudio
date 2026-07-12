@@ -161,7 +161,7 @@ export function PdfDeckViewer({ url, className = '', onPageView }: Props) {
     return () => { el?.removeEventListener('keydown', onKey); window.removeEventListener('keydown', onKey); };
   }, [go]);
 
-  const pillBtn = 'w-10 h-10 rounded-full bg-white border border-[#edf0f3] shadow-[0_2px_10px_rgba(0,0,0,0.12)] flex items-center justify-center text-[#191f1d] hover:border-[#76b252] disabled:opacity-30 disabled:cursor-not-allowed transition-colors';
+  const pillBtn = 'w-10 h-10 rounded-full bg-white border border-[#edf0f3] shadow-[0_2px_10px_rgba(0,0,0,0.12)] flex items-center justify-center text-[#191f1d] hover:border-[#503DBB] disabled:opacity-30 disabled:cursor-not-allowed transition-colors';
   const hint = !navigated && page < numPages;
 
   const styleTag = (
@@ -175,7 +175,7 @@ export function PdfDeckViewer({ url, className = '', onPageView }: Props) {
         0%, 100% { transform: scale(1); box-shadow: 0 2px 10px rgba(0,0,0,0.12); }
         50% { transform: scale(1.14); box-shadow: 0 0 0 7px rgba(118,178,82,0.20), 0 2px 10px rgba(0,0,0,0.12); }
       }
-      .deck-next-pulse { animation: deckNextPulse 1.5s ease-in-out infinite; border-color: #76b252; }
+      .deck-next-pulse { animation: deckNextPulse 1.5s ease-in-out infinite; border-color: #503DBB; }
       @keyframes deckStageHint {
         0%, 100% { box-shadow: inset 0 0 0 0 rgba(118,178,82,0); }
         50% { box-shadow: inset 0 0 0 3px rgba(118,178,82,0.28); }
@@ -189,7 +189,7 @@ export function PdfDeckViewer({ url, className = '', onPageView }: Props) {
       <div ref={rootRef} tabIndex={0} className="fixed inset-0 z-[95] bg-black/95 flex flex-col items-center justify-center outline-none select-none">
         {styleTag}
         <button type="button" onClick={() => setFullscreen(false)} aria-label="Exit full screen" className="absolute top-3 right-3 z-30 w-9 h-9 rounded-full bg-white/95 backdrop-blur border border-[#edf0f3] shadow-[0_2px_10px_rgba(0,0,0,0.15)] flex items-center justify-center text-[#191f1d] hover:bg-white"><X className="w-4 h-4" /></button>
-        {loading && <span className="absolute inset-0 flex items-center justify-center"><Loader2 className="w-7 h-7 text-[#76b252] animate-spin" /></span>}
+        {loading && <span className="absolute inset-0 flex items-center justify-center"><Loader2 className="w-7 h-7 text-[#503DBB] animate-spin" /></span>}
         {error && <span className="absolute inset-0 flex items-center justify-center text-sm text-white/70">Couldn’t load this document.</span>}
         <canvas ref={canvasRef} className={loading || error ? 'hidden' : 'block'} />
         {!loading && !error && numPages > 1 && (
@@ -208,7 +208,7 @@ export function PdfDeckViewer({ url, className = '', onPageView }: Props) {
       {styleTag}
       {/* Stage — the slide itself; expand button stays here as an overlay */}
       <div className={`relative w-full bg-white ${hint ? 'deck-stage-hint' : ''}`} style={{ aspectRatio: aspect }}>
-        {loading && <span className="absolute inset-0 flex items-center justify-center"><Loader2 className="w-7 h-7 text-[#76b252] animate-spin" /></span>}
+        {loading && <span className="absolute inset-0 flex items-center justify-center"><Loader2 className="w-7 h-7 text-[#503DBB] animate-spin" /></span>}
         {error && <span className="absolute inset-0 flex items-center justify-center text-sm text-[#99a1af]">Couldn’t load this document.</span>}
         <canvas ref={canvasRef} className={loading || error ? 'hidden' : 'block'} />
         {!loading && !error && (

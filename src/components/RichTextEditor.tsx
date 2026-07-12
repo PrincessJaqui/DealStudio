@@ -111,7 +111,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
       Link.configure({
         openOnClick: false,
         autolink: true,
-        HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank', class: 'text-[#76b252] underline' },
+        HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank', class: 'text-[#503DBB] underline' },
       }),
     ],
     content: plainToHtml(value),
@@ -169,7 +169,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
       onClick={onClick}
       title={title}
       className={`h-8 w-8 flex items-center justify-center rounded-md text-sm transition-colors ${
-        active ? 'bg-[#76b252] text-white' : 'text-[#364153] hover:bg-[#f3f4f6]'
+        active ? 'bg-[#503DBB] text-white' : 'text-[#364153] hover:bg-[#f3f4f6]'
       }`}
     >
       {children}
@@ -177,7 +177,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   );
 
   return (
-    <div className="rounded-xl border border-[#e5e7eb] bg-white overflow-hidden focus-within:border-[#76b252] focus-within:ring-1 focus-within:ring-[#76b252] transition-colors flex flex-col">
+    <div className="rounded-xl border border-[#e5e7eb] bg-white overflow-hidden focus-within:border-[#503DBB] focus-within:ring-1 focus-within:ring-[#503DBB] transition-colors flex flex-col">
       {/* Toolbar — stays at top of editor while content scrolls below */}
       <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#e5e7eb] bg-[#fafafa] flex-wrap shrink-0">
         <ToolbarBtn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })} title="Heading 1 (largest)">
@@ -246,10 +246,10 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
             onChange={e => setLinkUrl(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddLink(); } if (e.key === 'Escape') { clearGhostSelection(); setShowLinkInput(false); setLinkUrl(''); } }}
             placeholder="https://example.com"
-            className="flex-1 h-8 px-2 text-sm rounded-md border border-[#e5e7eb] focus:outline-none focus:border-[#76b252]"
+            className="flex-1 h-8 px-2 text-sm rounded-md border border-[#e5e7eb] focus:outline-none focus:border-[#503DBB]"
             autoFocus
           />
-          <button type="button" onClick={handleAddLink} className="h-8 px-3 text-xs font-medium rounded-md bg-gradient-to-br from-[#5d8f41] to-[#76b252] text-white hover:bg-[#5d8f41]">
+          <button type="button" onClick={handleAddLink} className="h-8 px-3 text-xs font-medium rounded-md bg-gradient-to-br from-[#242473] to-[#503DBB] text-white hover:bg-[#242473]">
             {linkUrl.trim() ? 'Apply' : 'Remove'}
           </button>
           <button type="button" onClick={() => { clearGhostSelection(); setShowLinkInput(false); setLinkUrl(''); }} className="h-8 px-3 text-xs font-medium rounded-md text-[#6a7282] hover:bg-[#f3f4f6]">
@@ -284,7 +284,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         .ProseMirror ul { list-style-type: disc; padding-left: 1.25rem; margin: 0 0 12px 0; }
         .ProseMirror ul li { margin: 0 0 2px 0; }
         .ProseMirror ul li p { margin: 0; }
-        .ProseMirror a { color: #76b252; text-decoration: underline; }
+        .ProseMirror a { color: #503DBB; text-decoration: underline; }
         .ProseMirror strong { font-weight: 700; }
         .ProseMirror em { font-style: italic; }
         .ProseMirror u { text-decoration: underline; }
@@ -317,7 +317,7 @@ export function RichTextRenderer({ html, className }: { html: string; className?
         .rich-text-content ul { list-style-type: disc; padding-left: 1.25rem; margin: 0 0 12px 0; }
         .rich-text-content ul li { margin: 0 0 2px 0; }
         .rich-text-content ul li p { margin: 0; }
-        .rich-text-content a { color: #76b252; text-decoration: underline; overflow-wrap: anywhere; word-break: break-word; }
+        .rich-text-content a { color: #503DBB; text-decoration: underline; overflow-wrap: anywhere; word-break: break-word; }
         .rich-text-content strong { font-weight: 700; }
         .rich-text-content em { font-style: italic; }
         .rich-text-content u { text-decoration: underline; }

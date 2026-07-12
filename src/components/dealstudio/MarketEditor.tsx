@@ -10,7 +10,7 @@ import { EMPTY_MARKET, fetchLinkPreview } from '../../lib/dealStudio';
 import type { DealMarket, DealMetric, DealArticle, DealSource } from '../../lib/dealStudio';
 
 const card = 'rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
-const input = 'w-full rounded-xl border border-[#e5e7eb] px-3 py-2 text-sm text-[#191f1d] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#76b252]';
+const input = 'w-full rounded-xl border border-[#e5e7eb] px-3 py-2 text-sm text-[#191f1d] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#503DBB]';
 const labelCls = 'text-xs font-semibold text-[#7f8c85] uppercase tracking-wider';
 
 const METRICS: { key: 'tam' | 'sam' | 'som'; label: string; hint: string }[] = [
@@ -35,7 +35,7 @@ function SourceList({ sources, onChange }: { sources: DealSource[]; onChange: (s
         </div>
       ))}
       <button type="button" onClick={() => onChange([...sources, { label: '', url: '' }])}
-        className="inline-flex items-center gap-1 text-xs font-semibold text-[#5d8f41] hover:underline">
+        className="inline-flex items-center gap-1 text-xs font-semibold text-[#242473] hover:underline">
         <Plus className="w-3.5 h-3.5" /> Add source link
       </button>
     </div>
@@ -109,7 +109,7 @@ export function MarketEditor({ value, onChange }: { value: DealMarket | null | u
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-[#191f1d]">Industry &amp; market articles</span>
           <button type="button" onClick={() => onChange({ ...m, articles: [...m.articles, { title: '', source: '', url: '', date: '', description: '', image: '' }] })}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-[#5d8f41] hover:underline">
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[#242473] hover:underline">
             <Plus className="w-3.5 h-3.5" /> Add article
           </button>
         </div>
@@ -124,11 +124,11 @@ export function MarketEditor({ value, onChange }: { value: DealMarket | null | u
                 <div className="flex items-center gap-2">
                   <div className="flex shrink-0 flex-col">
                     <button type="button" onClick={() => moveArticle(i, -1)} disabled={i === 0}
-                      className="rounded p-0.5 text-[#99a1af] hover:bg-[#f0f7ea] hover:text-[#5d8f41] disabled:opacity-30" aria-label="Move article up">
+                      className="rounded p-0.5 text-[#99a1af] hover:bg-[#F1EFFB] hover:text-[#242473] disabled:opacity-30" aria-label="Move article up">
                       <ChevronUp className="w-4 h-4" />
                     </button>
                     <button type="button" onClick={() => moveArticle(i, 1)} disabled={i === m.articles.length - 1}
-                      className="rounded p-0.5 text-[#99a1af] hover:bg-[#f0f7ea] hover:text-[#5d8f41] disabled:opacity-30" aria-label="Move article down">
+                      className="rounded p-0.5 text-[#99a1af] hover:bg-[#F1EFFB] hover:text-[#242473] disabled:opacity-30" aria-label="Move article down">
                       <ChevronDown className="w-4 h-4" />
                     </button>
                   </div>
@@ -136,7 +136,7 @@ export function MarketEditor({ value, onChange }: { value: DealMarket | null | u
                     onChange={e => setArticle(i, { url: e.target.value })}
                     onBlur={e => pull(i, e.target.value.trim())} />
                   <button type="button" onClick={() => pull(i, a.url)} disabled={!a.url || !!fetching[i]}
-                    className="shrink-0 rounded-lg p-2 text-[#7f8c85] hover:bg-[#f0f7ea] hover:text-[#5d8f41] disabled:opacity-40" aria-label="Refetch preview">
+                    className="shrink-0 rounded-lg p-2 text-[#7f8c85] hover:bg-[#F1EFFB] hover:text-[#242473] disabled:opacity-40" aria-label="Refetch preview">
                     {fetching[i] ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                   </button>
                   <button type="button" onClick={() => onChange({ ...m, articles: m.articles.filter((_, j) => j !== i) })}
@@ -160,7 +160,7 @@ export function MarketEditor({ value, onChange }: { value: DealMarket | null | u
                 {!!a.image && (
                   <label className="mt-2 flex items-center gap-2 text-xs font-medium text-[#191f1d] cursor-pointer select-none">
                     <input type="checkbox" checked={!!a.hideImage} onChange={e => setArticle(i, { hideImage: e.target.checked })}
-                      className="h-4 w-4 rounded border-[#cfe6b8] text-[#5d8f41] focus:ring-[#76b252]" />
+                      className="h-4 w-4 rounded border-[#D6D0F2] text-[#242473] focus:ring-[#503DBB]" />
                     Hide this image for investors
                   </label>
                 )}

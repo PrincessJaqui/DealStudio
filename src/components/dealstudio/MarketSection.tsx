@@ -28,7 +28,7 @@ function ClampText({ text, className }: { text: string; className?: string }) {
         <button
           type="button"
           onClick={() => setExpanded(e => !e)}
-          className="mt-1 ml-auto block text-sm font-semibold text-[#5d8f41] hover:underline"
+          className="mt-1 ml-auto block text-sm font-semibold text-[#242473] hover:underline"
         >
           {expanded ? 'Read less' : 'Read more'}
         </button>
@@ -55,20 +55,20 @@ function ArticleCard({ a, textOnly }: { a: DealArticle; textOnly?: boolean }) {
         <div className="p-3">
           <div className="flex items-start gap-2">
             {!showImage && (
-              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#f0f7ea] text-[#5d8f41]"><FileText className="w-4 h-4" /></span>
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F1EFFB] text-[#242473]"><FileText className="w-4 h-4" /></span>
             )}
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-[#191f1d] line-clamp-2 group-hover:text-[#5d8f41]">{a.title || 'Untitled'}</span>
+              <span className="block text-sm font-semibold text-[#191f1d] line-clamp-2 group-hover:text-[#242473]">{a.title || 'Untitled'}</span>
               <span className="mt-0.5 block truncate text-xs text-[#99a1af]">{[a.source, a.date].filter(Boolean).join(' · ')}</span>
             </span>
-            <ArrowUpRight className="w-4 h-4 shrink-0 text-[#cbd5cf] group-hover:text-[#5d8f41]" />
+            <ArrowUpRight className="w-4 h-4 shrink-0 text-[#cbd5cf] group-hover:text-[#242473]" />
           </div>
         </div>
       </a>
       {hasDesc && (
         <div className="px-3 pb-3">
           <p className={`text-xs leading-relaxed text-[#7f8c85] ${open ? '' : 'line-clamp-2'}`}>{a.description}</p>
-          <button type="button" onClick={() => setOpen(o => !o)} className="mt-1 ml-auto block text-xs font-semibold text-[#5d8f41] hover:underline">
+          <button type="button" onClick={() => setOpen(o => !o)} className="mt-1 ml-auto block text-xs font-semibold text-[#242473] hover:underline">
             {open ? 'Show less' : 'Show more'}
           </button>
         </div>
@@ -114,15 +114,15 @@ export function MarketSection({ market }: { market: DealMarket }) {
             <svg viewBox="0 0 200 200" className="ds-pulse-pie h-44 w-44 shrink-0" aria-hidden="true">
               <defs>
                 <linearGradient id="selGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#3f6629" />
-                  <stop offset="100%" stopColor="#5d8f41" />
+                  <stop offset="0%" stopColor="#1B1B57" />
+                  <stop offset="100%" stopColor="#242473" />
                 </linearGradient>
               </defs>
-              <circle cx="100" cy="100" r="92" fill={active === 'tam' ? 'url(#selGrad)' : '#e9f2df'} className="cursor-pointer transition-all"
+              <circle cx="100" cy="100" r="92" fill={active === 'tam' ? 'url(#selGrad)' : '#E9E6F8'} className="cursor-pointer transition-all"
                 onClick={() => setActive('tam')} />
-              <circle cx="100" cy="100" r="64" fill={active === 'sam' ? 'url(#selGrad)' : '#c4deaa'} className="cursor-pointer transition-all"
+              <circle cx="100" cy="100" r="64" fill={active === 'sam' ? 'url(#selGrad)' : '#C6BEEC'} className="cursor-pointer transition-all"
                 onClick={() => setActive('sam')} />
-              <circle cx="100" cy="100" r="36" fill={active === 'som' ? 'url(#selGrad)' : '#a9d485'} className="cursor-pointer transition-all"
+              <circle cx="100" cy="100" r="36" fill={active === 'som' ? 'url(#selGrad)' : '#AFA4E4'} className="cursor-pointer transition-all"
                 onClick={() => setActive('som')} />
               <text x="100" y="105" textAnchor="middle" className="fill-white font-bold" style={{ fontSize: '14px' }}>{metric?.value || '—'}</text>
             </svg>
@@ -139,13 +139,13 @@ export function MarketSection({ market }: { market: DealMarket }) {
                     type="button"
                     onClick={() => setActive(b.key)}
                     style={{ animationDelay: `${bi * 180}ms` }}
-                    className={`ds-pulse ds-card relative flex w-full items-center justify-between gap-3 rounded-2xl border px-5 py-4 text-left transition-colors ${on ? 'border-transparent bg-gradient-to-r from-[#5d8f41] to-[#76b252] shadow-[0_6px_20px_-6px_rgba(63,102,41,0.6)]' : 'border-[#edf0f3] bg-white hover:bg-[#f9fafb]'}`}
+                    className={`ds-pulse ds-card relative flex w-full items-center justify-between gap-3 rounded-2xl border px-5 py-4 text-left transition-colors ${on ? 'border-transparent bg-gradient-to-r from-[#242473] to-[#503DBB] shadow-[0_6px_20px_-6px_rgba(63,102,41,0.6)]' : 'border-[#edf0f3] bg-white hover:bg-[#f5f6f8]'}`}
                   >
                     <span className="min-w-0">
-                      <span className={`block text-[11px] font-bold uppercase tracking-wider ${on ? 'text-white' : 'text-[#5d8f41]'}`}>{b.label}</span>
+                      <span className={`block text-[11px] font-bold uppercase tracking-wider ${on ? 'text-white' : 'text-[#242473]'}`}>{b.label}</span>
                       <span className={`block text-xs ${on ? 'text-white/85' : 'text-[#7f8c85]'}`}>{b.full}</span>
                     </span>
-                    <span className={`text-xl font-bold ${on ? 'text-white' : 'text-[#5d8f41]'}`}>{m?.value || '—'}</span>
+                    <span className={`text-xl font-bold ${on ? 'text-white' : 'text-[#242473]'}`}>{m?.value || '—'}</span>
                   </button>
                 );
               })}
@@ -153,7 +153,7 @@ export function MarketSection({ market }: { market: DealMarket }) {
           </div>
 
           {/* Selected metric detail */}
-          <div className="mt-4 rounded-xl border border-[#edf0f3] bg-[#f9fafb] p-4">
+          <div className="mt-4 rounded-xl border border-[#edf0f3] bg-[#f5f6f8] p-4">
             {metric?.note
               ? <ClampText text={metric.note} className="text-sm leading-relaxed text-[#4a5565]" />
               : <p className="text-sm leading-relaxed text-[#99a1af]">No methodology note for {active.toUpperCase()} yet.</p>}
@@ -165,7 +165,7 @@ export function MarketSection({ market }: { market: DealMarket }) {
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-full border border-[#cfe6b8] bg-white px-3 py-1 text-xs font-medium text-[#5d8f41] hover:bg-[#f0f7ea] transition-colors"
+                    className="inline-flex items-center gap-1 rounded-full border border-[#D6D0F2] bg-white px-3 py-1 text-xs font-medium text-[#242473] hover:bg-[#F1EFFB] transition-colors"
                   >
                     {s.label || 'Source'} <ArrowUpRight className="w-3 h-3" />
                   </a>
@@ -196,7 +196,7 @@ export function IndustryReadingSection({ market }: { market: DealMarket }) {
       {articles.length > 2 && (
         <button
           onClick={() => setShowAll(s => !s)}
-          className="mt-3 ml-auto block text-sm font-semibold text-[#5d8f41] hover:underline"
+          className="mt-3 ml-auto block text-sm font-semibold text-[#242473] hover:underline"
         >
           {showAll ? 'Show less' : `Show all ${articles.length} Articles`}
         </button>

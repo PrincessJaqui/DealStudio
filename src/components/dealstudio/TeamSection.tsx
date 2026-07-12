@@ -32,7 +32,7 @@ function MemberCard({ m }: { m: DealTeamMember }) {
         )}
         {longBio && (
           <div className="mt-1 flex justify-end">
-            <button onClick={() => setOpen(o => !o)} className="text-xs font-semibold text-[#5d8f41] hover:underline">
+            <button onClick={() => setOpen(o => !o)} className="text-xs font-semibold text-[#242473] hover:underline">
               {open ? 'Show less' : 'Read more'}
             </button>
           </div>
@@ -46,7 +46,7 @@ function MemberCard({ m }: { m: DealTeamMember }) {
                 href={l.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 rounded-full border border-[#cfe6b8] bg-white px-3 py-1 text-xs font-medium text-[#5d8f41] hover:bg-[#f0f7ea] transition-colors"
+                className="inline-flex items-center gap-1 rounded-full border border-[#D6D0F2] bg-white px-3 py-1 text-xs font-medium text-[#242473] hover:bg-[#F1EFFB] transition-colors"
               >
                 {l.label || 'Link'} <ArrowUpRight className="w-3 h-3" />
               </a>
@@ -56,7 +56,7 @@ function MemberCard({ m }: { m: DealTeamMember }) {
         {m.resume_url && (
           <div className="mt-2">
             <a href={m.resume_url} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#cfe6b8] bg-white px-3 py-1 text-xs font-medium text-[#5d8f41] hover:bg-[#f0f7ea] transition-colors">
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#D6D0F2] bg-white px-3 py-1 text-xs font-medium text-[#242473] hover:bg-[#F1EFFB] transition-colors">
               <FileText className="w-3.5 h-3.5" /> Resume
             </a>
           </div>

@@ -9,13 +9,13 @@
      behind/below the URL bar) dark. */
   color-scheme: light only;
   /* Updated Color System - Green & Blue Palette */
-  --primary: #76b252;
+  --primary: #503DBB;
   --primary-foreground: #ffffff;
   --secondary: #191f1d;
   --secondary-foreground: #ffffff;
   --accent: #7f8c85;
   --accent-foreground: #ffffff;
-  --medium-green: #4a8072;
+  --medium-green: #0C8577;
   --medium-green-foreground: #ffffff;
   --blue: #0086ef;
   --blue-foreground: #ffffff;
@@ -38,7 +38,7 @@
   --input: #E0E0E0;
   --input-background: #F9F9F9;
   --switch-background: #D1D5DB;
-  --ring: #76b252;
+  --ring: #503DBB;
   
   /* Typography */
   --font-weight-light: 300;
@@ -63,8 +63,8 @@
   --radius-xl: 16px;
   
   /* Charts */
-  --chart-1: #76b252;
-  --chart-2: #4a8072;
+  --chart-1: #503DBB;
+  --chart-2: #0C8577;
   --chart-3: #0086ef;
   --chart-4: #7f8c85;
   --chart-5: #191f1d;
@@ -72,12 +72,12 @@
   /* Sidebar */
   --sidebar: #ffffff;
   --sidebar-foreground: #191f1d;
-  --sidebar-primary: #76b252;
+  --sidebar-primary: #503DBB;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #7f8c85;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #E0E0E0;
-  --sidebar-ring: #76b252;
+  --sidebar-ring: #503DBB;
 }
 
 .dark {
@@ -87,20 +87,20 @@
   --card-foreground: #ffffff;
   --popover: #2A2A2A;
   --popover-foreground: #ffffff;
-  --primary: #76b252;
+  --primary: #503DBB;
   --primary-foreground: #ffffff;
   --secondary: #3A3A3A;
   --secondary-foreground: #ffffff;
   --muted: #2A2A2A;
   --muted-foreground: #9CA3AF;
-  --accent: #4a8072;
+  --accent: #0C8577;
   --accent-foreground: #ffffff;
   --destructive: #EF4444;
   --destructive-foreground: #ffffff;
   --border: #3A3A3A;
   --input: #3A3A3A;
-  --ring: #76b252;
-  --medium-green: #4a8072;
+  --ring: #503DBB;
+  --medium-green: #0C8577;
   --medium-green-foreground: #ffffff;
   --blue: #0086ef;
   --blue-foreground: #ffffff;
