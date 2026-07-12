@@ -20,7 +20,7 @@ function MemberCard({ m }: { m: DealTeamMember }) {
     <div className="ds-pulse ds-card flex items-stretch gap-4 rounded-xl border border-[#edf0f3] bg-white p-4">
       {/* Fixed square: self-stretch let the bio's length drive the height, which
           made the box tall and narrow and cropped the subject's head. */}
-      <div className="h-28 w-28 shrink-0 self-start overflow-hidden rounded-2xl bg-[#f5f6f8] flex items-center justify-center">
+      <div className="h-28 w-28 shrink-0 self-start overflow-hidden rounded-2xl bg-transparent flex items-center justify-center">
         {m.photo_url
           ? <img
               src={m.photo_url}
