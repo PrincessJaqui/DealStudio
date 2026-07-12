@@ -10,7 +10,7 @@ import { EMPTY_MARKET, fetchLinkPreview } from '../../lib/dealStudio';
 import type { DealMarket, DealMetric, DealArticle, DealSource } from '../../lib/dealStudio';
 
 const card = 'rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
-const input = 'w-full rounded-xl border border-[#e5e7eb] px-3 py-2 text-sm text-[#191f1d] placeholder:text-[#9ca3af] focus:outline-none focus:border-[var(--ds-brand)]';
+const input = 'w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm text-[#191f1d] placeholder:text-[#9ca3af] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
 const labelCls = 'text-xs font-semibold text-[#7f8c85] uppercase tracking-wider';
 
 const METRICS: { key: 'tam' | 'sam' | 'som'; label: string; hint: string }[] = [
