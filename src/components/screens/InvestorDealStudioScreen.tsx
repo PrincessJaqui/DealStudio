@@ -515,7 +515,14 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
  
             On mobile all of this is off: the column flattens into the single
             stack via display:contents. */}
-        <div className="contents lg:block lg:self-start lg:space-y-6 lg:sticky lg:top-[68px] lg:h-[calc(100vh-68px)] lg:overflow-y-auto lg:overscroll-contain ds-scroll-y">
+        {/* The numbers have to agree, and they did not. The header is 68px and the
+            grid adds 24px of padding, so the sidebar's natural top is 92px -- but
+            it was given calc(100vh - 68px) of height, which put its bottom 24px
+            BELOW the fold. The calendar was hanging off the screen.
+
+            top and height now use the same 92px, so the panel ends exactly at the
+            bottom of the screen whether it is stuck or not. */}
+        <div className="contents lg:block lg:self-start lg:space-y-6 lg:sticky lg:top-[92px] lg:h-[calc(100vh-92px)] lg:overflow-y-auto lg:overscroll-contain ds-scroll-y">
           <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 text-center">
             {/* A white ring plus a soft shadow, so the mark sits ON the card
                 rather than flat against it. The hairline border alone left it

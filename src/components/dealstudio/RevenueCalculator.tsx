@@ -113,10 +113,10 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
                 </div>
 
                 <label className="mt-3 block text-[11px] font-bold uppercase tracking-wider text-[#7f8c85]">Name</label>
-                <div className="mt-1 rounded-lg bg-[#f4f4f5] px-3 py-2"><TextInput value={r.name} placeholder="Subscriptions" disabled={!admin} onChange={v => setRev(ri, { name: v })} /></div>
+                <div className="mt-1 rounded-lg bg-[#f2f4f6] px-3 py-2"><TextInput value={r.name} placeholder="Subscriptions" disabled={!admin} onChange={v => setRev(ri, { name: v })} /></div>
 
                 <label className="mt-3 block text-[11px] font-bold uppercase tracking-wider text-[#7f8c85]">Details</label>
-                <div className="mt-1 rounded-lg bg-[#f4f4f5] px-3 py-2">
+                <div className="mt-1 rounded-lg bg-[#f2f4f6] px-3 py-2">
                   {admin
                     ? <textarea value={r.details} placeholder="What this stream is" onChange={e => setRev(ri, { details: e.target.value })} className="w-full bg-transparent text-sm text-[#191f1d] placeholder:text-[#9ca3af] outline-none resize-none min-h-[40px]" />
                     : <p className="text-sm text-[#4a5565]">{r.details}</p>}
@@ -233,7 +233,7 @@ export function ModelAnalytics({ value, onChange }: { value: DealBusinessModel; 
           <h3 className="text-base font-bold text-[#191f1d]">Growth Projections</h3>
           <div className="text-right">
             <p className="text-[11px] font-bold uppercase tracking-wider text-[#7f8c85]">Annual Growth Rate</p>
-            <div className="mt-1 rounded-lg bg-[#f4f4f5] px-3 py-1.5 w-28"><NumInput value={m.annualGrowthRate} suffix="%" onChange={v => onChange({ ...m, annualGrowthRate: v })} /></div>
+            <div className="mt-1 rounded-lg bg-[#f2f4f6] px-3 py-1.5 w-28"><NumInput value={m.annualGrowthRate} suffix="%" onChange={v => onChange({ ...m, annualGrowthRate: v })} /></div>
           </div>
         </div>
         <div className="overflow-x-auto">

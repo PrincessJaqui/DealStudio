@@ -107,7 +107,7 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                   <ArrowDown className="md:hidden w-3.5 h-3.5" />
                 </span>
 
-                <span className="block min-w-0 rounded-xl border border-[var(--ds-accent-tint)] bg-[var(--ds-accent-tint)]/40 p-3 text-center md:text-left">
+                <span className="block min-w-0 rounded-xl border border-[#edf0f3] bg-[#fafbfc] p-3 text-center md:text-left">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-0.5">
                     Solution
                   </span>
