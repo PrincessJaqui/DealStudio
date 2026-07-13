@@ -289,7 +289,7 @@ function UsersTab() {
                     <tr key={o.id} className="border-b border-[#f2f4f6] last:border-0">
                       <td className="px-5 py-3 font-semibold text-[#191f1d] whitespace-nowrap">
                         <span className="flex items-center gap-2.5">
-                          <span className="w-7 h-7 shrink-0 rounded-full overflow-hidden border border-[#edf0f3] bg-white flex items-center justify-center">
+                          <span className="w-7 h-7 shrink-0 rounded-full overflow-hidden ring-2 ring-white shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] bg-white flex items-center justify-center">
                             {o.logo_url
                               ? <img src={o.logo_url} alt="" className="w-full h-full object-cover" />
                               : <span className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white text-[11px] font-semibold">

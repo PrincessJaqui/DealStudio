@@ -13,7 +13,7 @@ export function TermsScreen() {
     <LegalPage title="Terms of Service" version="Version 1.0" effective="July 12, 2026">
       <p className="text-sm leading-relaxed text-[#4b5563] mb-7">
         These Terms of Service (the "Terms") govern your use of DealStudio&trade;, an investor deal room
-        service operated by JM Solutions ("JM Solutions", "we", "us"). By creating an account or
+        service operated by JM Solutions Group ("JM Solutions Group", "we", "us"). By creating an account or
         using the service, you agree to these Terms. If you are agreeing on behalf of a company,
         you represent that you have authority to bind it.
       </p>
@@ -152,7 +152,7 @@ export function TermsScreen() {
       <Clause n={11} title="Disclaimers">
         <p>
           The service is provided "as is" and "as available". To the fullest extent permitted by
-          law, JM Solutions disclaims all warranties, express or implied, including merchantability,
+          law, JM Solutions Group disclaims all warranties, express or implied, including merchantability,
           fitness for a particular purpose, and non-infringement. We do not warrant that the service
           will be uninterrupted, error free, or that it will result in you raising capital.
         </p>
@@ -160,7 +160,7 @@ export function TermsScreen() {
 
       <Clause n={12} title="Limitation of liability">
         <p>
-          To the fullest extent permitted by law, JM Solutions will not be liable for indirect,
+          To the fullest extent permitted by law, JM Solutions Group will not be liable for indirect,
           incidental, special, consequential, or punitive damages, or for lost profits, lost
           investment opportunity, or lost data.
         </p>
@@ -177,7 +177,7 @@ export function TermsScreen() {
 
       <Clause n={13} title="Indemnity">
         <p>
-          You will indemnify JM Solutions against claims, damages, and reasonable costs arising from
+          You will indemnify JM Solutions Group against claims, damages, and reasonable costs arising from
           your content, your use of the service, or your breach of these Terms.
         </p>
       </Clause>
@@ -201,7 +201,7 @@ export function TermsScreen() {
 
       <Clause n={16} title="Contact">
         <p>
-          JM Solutions
+          JM Solutions Group
           <br />
           hello@dealstudio.io
         </p>

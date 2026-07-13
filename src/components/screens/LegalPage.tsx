@@ -6,7 +6,6 @@
  */
 
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import { PublicHeader } from '../dealstudio/PublicHeader';
 
 export function LegalPage({
@@ -27,13 +26,6 @@ export function LegalPage({
       <PublicHeader />
 
       <div className="mx-auto max-w-3xl px-6 py-10">
-        <button
-          onClick={() => nav('/')}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#5b6478] hover:text-[#0c1022] mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-
         <div className="rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-8 sm:p-10">
           <h1 className="text-2xl font-bold text-[#191f1d]">{title}</h1>
           <p className="text-sm text-[#7f8c85] mt-1">

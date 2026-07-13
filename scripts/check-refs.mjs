@@ -30,7 +30,11 @@ try {
   out = (e.stdout || '') + (e.stderr || '');
 }
 
-const fatal = out.split('\n').filter((l) => /error TS(2304|2552):/.test(l));
+// TS2448/TS2454: used before declaration. A const is hoisted but unusable until
+// its initializer runs, so reading it above that line is a temporal dead zone
+// error. React surfaces it as "Cannot access 'x' before initialization" and a
+// white screen -- and this shipped once, on the settings page.
+const fatal = out.split('\n').filter((l) => /error TS(2304|2552|2448|2454):/.test(l));
 
 if (fatal.length) {
   console.error('\nBuild blocked: used but never imported.\n');

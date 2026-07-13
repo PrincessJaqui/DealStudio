@@ -35,6 +35,8 @@ function SavedPill({ at }: { at?: string }) {
 export function SystemSettingsScreen() {
   const [tab, setTab] = useState('identity');
 
+  const { org, refreshOrg } = useAdminAuth();
+
   const [handleDraft, setHandleDraft] = useState('');
   const [handleBusy, setHandleBusy] = useState(false);
   const [handleNote, setHandleNote] = useState('');
@@ -53,7 +55,7 @@ export function SystemSettingsScreen() {
       : (r.message || 'Could not save that handle.'));
     if (r.ok) await refreshOrg();
   };
-  const { org, refreshOrg } = useAdminAuth();
+
 
   const [name, setName] = useState('');
   const [savingName, setSavingName] = useState(false);
@@ -173,7 +175,7 @@ export function SystemSettingsScreen() {
     n ? <p className={`text-sm mt-2 ${n.kind === 'ok' ? 'text-[var(--ds-accent-ink)]' : 'text-red-600'}`}>{n.text}</p> : null;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-16">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-16">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#191f1d] leading-tight">System Settings</h1>
         <p className="text-sm text-[#7f8c85]">Your company and your account.</p>
@@ -230,7 +232,7 @@ export function SystemSettingsScreen() {
 
           <label className={label}>Logo</label>
           <div className="flex items-center gap-4 mt-1.5 mb-5">
-            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-[#edf0f3] bg-white flex items-center justify-center">
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full ring-2 ring-white bg-white shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
               {logoUrl
                 ? <img src={logoUrl} alt="" className="h-full w-full object-cover" />
                 : <ImageIcon className="w-5 h-5 text-[#c7cdd4]" />}

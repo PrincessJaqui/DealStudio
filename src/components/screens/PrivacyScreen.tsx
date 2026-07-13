@@ -18,7 +18,7 @@ export function PrivacyScreen() {
   return (
     <LegalPage title="Privacy Policy" version="Version 1.0" effective="July 12, 2026">
       <p className="text-sm leading-relaxed text-[#4b5563] mb-7">
-        This policy explains what DealStudio&trade;, operated by JM Solutions ("we", "us"), collects, why,
+        This policy explains what DealStudio&trade;, operated by JM Solutions Group ("we", "us"), collects, why,
         and what we do with it. DealStudio&trade; is an investor deal room service. Two different groups of
         people appear in this policy: <strong className="text-[#191f1d]">customers</strong>, who are
         founders with an account, and <strong className="text-[#191f1d]">investors</strong>, who
@@ -47,7 +47,7 @@ export function PrivacyScreen() {
           room is not anonymous to the founder who shared it.
         </p>
         <p>
-          <strong className="text-[#191f1d]">The customer, not JM Solutions, decides what to do with
+          <strong className="text-[#191f1d]">The customer, not JM Solutions Group, decides what to do with
           this information.</strong> For that data we act on the customer's instructions. If you are
           an investor and want your activity removed, contact the company whose room you visited, or
           us at hello@dealstudio.io and we will pass the request on.
@@ -160,7 +160,7 @@ export function PrivacyScreen() {
 
       <Clause n={12} title="Contact">
         <p>
-          JM Solutions
+          JM Solutions Group
           <br />
           hello@dealstudio.io
         </p>

@@ -425,7 +425,7 @@ export function DealStudioScreen() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="w-11 h-11 rounded-full shrink-0 overflow-hidden border border-[#edf0f3] bg-white flex items-center justify-center">
+          <span className="w-11 h-11 rounded-full shrink-0 overflow-hidden ring-2 ring-white bg-white shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
             {org?.logo_url
               ? <img src={org.logo_url} alt="" className="w-full h-full object-cover" />
               : <img src={dsMark} alt="" className="w-full h-full object-cover" />}

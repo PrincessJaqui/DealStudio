@@ -37,7 +37,7 @@ export function BillingScreen() {
     : 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-16">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-16">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#191f1d] leading-tight">Billing & Payments</h1>
         <p className="text-sm text-[#7f8c85]">Manage your plan and payment method.</p>

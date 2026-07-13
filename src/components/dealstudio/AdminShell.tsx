@@ -97,7 +97,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             onClick={() => setUserMenu((v) => !v)}
             className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 hover:bg-[#f5f6f8]"
           >
-            <span className="w-9 h-9 rounded-full overflow-hidden border border-[#edf0f3] bg-white flex items-center justify-center shrink-0">
+            <span className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] bg-white flex items-center justify-center shrink-0">
               {org?.logo_url
                 ? <img src={org.logo_url} alt="" className="w-full h-full object-cover" />
                 : <span className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white text-[13px] font-semibold">{initial}</span>}
@@ -151,16 +151,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
         {/* Legal and the credit sit at the foot of the rail, out of the way of
             the work but never more than one glance from it. */}
-        <div className="px-3 pb-2">
-          <div className="flex items-center gap-3 px-3 text-[11px] text-[#9ca3af]">
-            <a href="/terms" className="hover:text-[#191f1d]">Terms</a>
-            <a href="/privacy" className="hover:text-[#191f1d]">Privacy</a>
-          </div>
-          <p className="px-3 mt-1.5 text-[11px] text-[#c7cdd4]">
-            Powered by DealStudio&trade;
-          </p>
-        </div>
-
         <div className="p-3 border-t border-[#edf0f3]">
           <button
             onClick={() => void signOut()}
@@ -169,6 +159,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <LogOut className="w-4 h-4" />
             Sign out
           </button>
+
+          {/* Below sign-out and legible. These used to be a whisper-grey line
+              ABOVE the button, which is the one place nobody looks. */}
+          <div className="mt-3 pt-3 border-t border-[#edf0f3]">
+            <div className="flex items-center gap-4 px-3">
+              <a href="/terms" className="text-xs font-medium text-[#7f8c85] hover:text-[#191f1d]">Terms</a>
+              <a href="/privacy" className="text-xs font-medium text-[#7f8c85] hover:text-[#191f1d]">Privacy</a>
+            </div>
+            <p className="px-3 mt-2 text-xs text-[#9ca3af]">Powered by DealStudio&trade;</p>
+          </div>
         </div>
         </div>
       </aside>
@@ -261,14 +261,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
               </a>
             </nav>
 
-            <div className="px-3 pb-2">
-              <div className="flex items-center gap-3 px-3 text-[11px] text-[#9ca3af]">
-                <a href="/terms" className="hover:text-[#191f1d]">Terms</a>
-                <a href="/privacy" className="hover:text-[#191f1d]">Privacy</a>
+            <div className="px-3 pb-3 pt-3 border-t border-[#edf0f3]">
+              <div className="flex items-center gap-4 px-3">
+                <a href="/terms" className="text-xs font-medium text-[#7f8c85] hover:text-[#191f1d]">Terms</a>
+                <a href="/privacy" className="text-xs font-medium text-[#7f8c85] hover:text-[#191f1d]">Privacy</a>
               </div>
-              <p className="px-3 mt-1.5 text-[11px] text-[#c7cdd4]">
-                Powered by DealStudio&trade;
-              </p>
+              <p className="px-3 mt-2 text-xs text-[#9ca3af]">Powered by DealStudio&trade;</p>
             </div>
 
             {org && (
