@@ -30,9 +30,10 @@ export function ValuePropSection({ value }: { value: DealValueProp }) {
 
       <div>
         {value.headline && (
-          <p className="text-xl font-bold text-[#191f1d] leading-snug text-center max-w-3xl mx-auto">
-            {value.headline}
-          </p>
+          <div className="mb-4">
+            <h3 className="text-base font-bold text-[#191f1d]">{value.headline}</h3>
+            <p className="text-xs text-[#7f8c85]">Why this wins</p>
+          </div>
         )}
 
         {(value.problem || value.solution) && (
@@ -197,22 +198,25 @@ export function CompetitionSection({ value }: { value: DealCompetition }) {
 
 /* ── The value proposition wheel ───────────────────────────────────────────── */
 
-const CX = 150, CY = 150, R_IN = 58, R_OUT = 132, GAP = 3, EXPLODE = 5;
+const CX = 150, CY = 150, R_IN = 52, R_OUT = 138, GAP = 3, EXPLODE = 5;
+/** Where a selected wedge comes to rest: top-right, with its card beside it. */
+const TARGET = 45;
 
 function polar(cx: number, cy: number, r: number, deg: number): [number, number] {
   const a = ((deg - 90) * Math.PI) / 180;
   return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
 }
 
-/**
- * One slice of the wheel, nudged out along its own bisector so the segments
- * read as separate pieces rather than a single pie.
- */
+function midOf(i: number, n: number): number {
+  const span = 360 / n;
+  return (i * span + GAP / 2 + ((i + 1) * span - GAP / 2)) / 2;
+}
+
 function slice(i: number, n: number) {
   const span = 360 / n;
   const start = i * span + GAP / 2;
   const end = (i + 1) * span - GAP / 2;
-  const mid = (start + end) / 2;
+  const mid = midOf(i, n);
 
   const [ox, oy] = polar(0, 0, EXPLODE, mid);
   const cx = CX + ox, cy = CY + oy;
@@ -226,98 +230,184 @@ function slice(i: number, n: number) {
   return {
     d: `M ${x1} ${y1} A ${R_OUT} ${R_OUT} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${R_IN} ${R_IN} 0 ${large} 0 ${x4} ${y4} Z`,
     label: polar(cx, cy, (R_IN + R_OUT) / 2, mid),
+    mid,
   };
 }
 
-/** Walks the brand palette so the slices read as one family, not a rainbow. */
+/** Shortest way round, so the wheel never spins the long way for no reason. */
+function rotationFor(i: number, n: number): number {
+  let r = TARGET - midOf(i, n);
+  while (r > 180) r -= 360;
+  while (r < -180) r += 360;
+  return r;
+}
+
+/** Walks the brand palette, so the wedges read as one family and not a rainbow. */
 function sliceFill(i: number, n: number): string {
   const t = n > 1 ? i / (n - 1) : 0;
   const pct = Math.round(t * 100);
   return `color-mix(in srgb, var(--ds-grad-to) ${pct}%, var(--ds-accent) ${100 - pct}%)`;
 }
 
-function ValuePropWheel({ pillars }: { pillars: { title?: string; description?: string }[] }) {
+/** SVG has no text wrapping, so titles are split by hand. */
+function wrap(text: string, perLine = 12, maxLines = 3): string[] {
+  const words = text.trim().split(/\s+/);
+  const lines: string[] = [];
+  let cur = '';
+  for (const w of words) {
+    if (!cur) { cur = w; continue; }
+    if ((cur + ' ' + w).length <= perLine) cur += ' ' + w;
+    else { lines.push(cur); cur = w; }
+    if (lines.length === maxLines) break;
+  }
+  if (cur && lines.length < maxLines) lines.push(cur);
+  if (lines.length === maxLines && words.join(' ').length > lines.join(' ').length) {
+    lines[maxLines - 1] = lines[maxLines - 1].replace(/.{1}$/, '\u2026');
+  }
+  return lines;
+}
+
+function ValuePropWheel({
+  pillars,
+}: { pillars: { title?: string; description?: string }[] }) {
   const n = pillars.length;
-  const [active, setActive] = useState<number | null>(null);
+  const [sel, setSel] = useState<number | null>(null);
+
+  // With nothing picked the wheel sits where it was built. Picking one spins it
+  // so that wedge lands top-right, next to its card.
+  const rot = sel === null ? 0 : rotationFor(sel, n);
+  const active = sel === null ? null : pillars[sel];
 
   return (
-    <div className="mt-8 grid gap-8 lg:grid-cols-[300px_1fr] items-center">
+    <div className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr] items-center">
       <svg
         viewBox="0 0 300 300"
-        className="w-full max-w-[300px] mx-auto"
+        className="w-full max-w-[320px] mx-auto overflow-visible"
         role="img"
         aria-label="Value proposition pillars"
       >
-        {pillars.map((p, i) => {
-          const sg = slice(i, n);
-          const on = active === null || active === i;
-          return (
-            <g
-              key={i}
-              onMouseEnter={() => setActive(i)}
-              onMouseLeave={() => setActive(null)}
-              className="cursor-default transition-opacity"
-              style={{ opacity: on ? 1 : 0.35 }}
-            >
-              <path d={sg.d} fill={sliceFill(i, n)} />
-              <text
-                x={sg.label[0]}
-                y={sg.label[1]}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                className="fill-white font-bold"
-                style={{ fontSize: n > 4 ? 11 : 13 }}
-              >
-                {i + 1}
-              </text>
-            </g>
-          );
-        })}
+        <g
+          style={{
+            transform: `rotate(${rot}deg)`,
+            transformOrigin: '150px 150px',
+            transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
+          {pillars.map((p, i) => {
+            const sg = slice(i, n);
+            const dim = sel !== null && sel !== i;
+            const lines = wrap(p.title || `Pillar ${i + 1}`, n > 4 ? 10 : 12);
 
-        {/* The hub. Deliberately empty: the pillars are the content, and a
-            label here would compete with them. */}
-        <circle cx={CX} cy={CY} r={R_IN - 12} fill="white" />
+            return (
+              <g
+                key={i}
+                onClick={() => setSel(sel === i ? null : i)}
+                className="cursor-pointer"
+                style={{ opacity: dim ? 0.4 : 1, transition: 'opacity 300ms' }}
+              >
+                <path d={sg.d} fill={sliceFill(i, n)} />
+
+                {/* Counter-rotate, or the labels turn upside down as it spins. */}
+                <g
+                  style={{
+                    transform: `rotate(${-rot}deg)`,
+                    transformOrigin: `${sg.label[0]}px ${sg.label[1]}px`,
+                    transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                >
+                  <text
+                    x={sg.label[0]}
+                    y={sg.label[1]}
+                    textAnchor="middle"
+                    className="fill-white font-bold pointer-events-none"
+                    style={{ fontSize: n > 4 ? 8.5 : 9.5 }}
+                  >
+                    {lines.map((ln, k) => (
+                      <tspan
+                        key={k}
+                        x={sg.label[0]}
+                        dy={k === 0 ? -((lines.length - 1) * 5) : 10}
+                      >
+                        {ln}
+                      </tspan>
+                    ))}
+                  </text>
+                </g>
+              </g>
+            );
+          })}
+        </g>
+
+        {/* The hub sits outside the rotating group so it never spins. */}
+        <circle cx={CX} cy={CY} r={R_IN - 8} fill="white" />
         <circle
-          cx={CX} cy={CY} r={R_IN - 12}
-          fill="none"
-          stroke="var(--ds-accent-tint)"
-          strokeWidth="2"
+          cx={CX} cy={CY} r={R_IN - 8}
+          fill="none" stroke="var(--ds-accent-tint)" strokeWidth="2"
         />
+        <text
+          x={CX} y={CY}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          className="fill-[#9ca3af] font-semibold"
+          style={{ fontSize: 9 }}
+        >
+          {sel === null ? 'Tap a wedge' : `${sel + 1} of ${n}`}
+        </text>
       </svg>
 
-      <div className="space-y-3">
-        {pillars.map((p, i) => {
-          const on = active === null || active === i;
-          return (
-            <div
-              key={i}
-              onMouseEnter={() => setActive(i)}
-              onMouseLeave={() => setActive(null)}
-              className="flex gap-3 rounded-xl p-3 transition"
-              style={{
-                opacity: on ? 1 : 0.45,
-                background: active === i ? 'var(--ds-accent-tint)' : 'transparent',
-              }}
-            >
+      {/* The card for whatever is selected. */}
+      <div>
+        {active ? (
+          <div className="rounded-2xl border border-[#edf0f3] bg-white p-5 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]">
+            <div className="flex items-start gap-3">
               <span
-                className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                style={{ background: sliceFill(i, n) }}
+                className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                style={{ background: sliceFill(sel!, n) }}
               >
-                {i + 1}
+                {sel! + 1}
               </span>
               <div className="min-w-0">
-                {p.title && (
-                  <p className="text-sm font-bold text-[#191f1d] leading-snug">{p.title}</p>
+                {active.title && (
+                  <h4 className="text-base font-bold text-[#191f1d] leading-snug">
+                    {active.title}
+                  </h4>
                 )}
-                {p.description && (
-                  <p className="text-sm text-[#7f8c85] leading-relaxed mt-0.5">
-                    {p.description}
+                {active.description && (
+                  <p className="text-sm text-[#7f8c85] leading-relaxed mt-1.5">
+                    {active.description}
                   </p>
                 )}
               </div>
             </div>
-          );
-        })}
+
+            <button
+              onClick={() => setSel(null)}
+              className="mt-4 text-xs font-semibold text-[var(--ds-accent-ink)] hover:underline"
+            >
+              Show all
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {pillars.map((p, i) => (
+              <button
+                key={i}
+                onClick={() => setSel(i)}
+                className="w-full flex items-center gap-3 rounded-xl border border-[#edf0f3] bg-white px-4 py-3 text-left hover:border-[var(--ds-accent)] transition"
+              >
+                <span
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                  style={{ background: sliceFill(i, n) }}
+                >
+                  {i + 1}
+                </span>
+                <span className="min-w-0 text-sm font-semibold text-[#191f1d] truncate">
+                  {p.title || `Pillar ${i + 1}`}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
