@@ -60,7 +60,7 @@ export function DealDocumentModal({ roomId, existing, defaultIsDeck, onClose, on
     try {
       let uploaded: { url: string; size: number; name: string } | undefined;
       if (replaceFile) {
-        const up = await uploadDealFile(replaceFile);
+        const up = await uploadDealFile(replaceFile, roomId);
         if (!up) { toast.error('Upload failed'); setSaving(false); return; }
         uploaded = up;
       }
@@ -79,7 +79,7 @@ export function DealDocumentModal({ roomId, existing, defaultIsDeck, onClose, on
       let ok = 0;
       for (let i = 0; i < pending.length; i++) {
         const p = pending[i];
-        const up = await uploadDealFile(p.file);
+        const up = await uploadDealFile(p.file, roomId);
         if (!up) continue;
         const r = await adminCreateDocument({
           dealstudio_id: roomId, title: p.title.trim(), description: '',

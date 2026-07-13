@@ -558,8 +558,24 @@ export async function adminFetchDocuments(roomId: string, includeArchived = fals
   return (data || []) as DealDocument[];
 }
 
-export async function uploadDealFile(file: File): Promise<{ url: string; size: number; name: string } | null> {
-  const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
+/**
+ * Upload a deal file.
+ *
+ * `dealId` prefixes the path. Files used to land in a flat namespace shared by
+ * every customer on the platform, which meant one company's confidential deck
+ * sat next to another's with nothing but an unguessable timestamp between them,
+ * and there was no way to LIST the files belonging to a company in order to
+ * delete them.
+ *
+ * It is optional so existing callers keep working; old files stay reachable and
+ * are still deleted via their database row.
+ */
+export async function uploadDealFile(
+  file: File,
+  dealId?: string,
+): Promise<{ url: string; size: number; name: string } | null> {
+  const safe = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+  const path = dealId ? `${dealId}/${Date.now()}-${safe}` : `${Date.now()}-${safe}`;
   const { error } = await supabase.storage.from(DOC_BUCKET).upload(path, file, { upsert: false, contentType: file.type });
   if (error) { console.warn('[dealStudio] upload', error); return null; }
   const { data } = supabase.storage.from(DOC_BUCKET).getPublicUrl(path);

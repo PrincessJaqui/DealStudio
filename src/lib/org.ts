@@ -200,12 +200,94 @@ export async function previewDeleteDeal(dealId: string) {
  * pass the deal's own slug, which the server re-checks, so a mistaken click
  * cannot destroy the wrong room.
  */
+/**
+ * Turn a public storage URL back into the path inside its bucket.
+ *
+ * Uploaded documents are recorded by URL, not by path, so the path has to be
+ * recovered from the URL to delete the file. A public Supabase URL looks like
+ *   .../storage/v1/object/public/<bucket>/<path...>
+ * and everything after the bucket is the path.
+ */
+function storagePathFromUrl(url: string, bucket: string): string | null {
+  if (!url) return null;
+  const marker = `/storage/v1/object/public/${bucket}/`;
+  const i = url.indexOf(marker);
+  if (i === -1) return null;
+  const path = url.slice(i + marker.length).split('?')[0];
+  return path ? decodeURIComponent(path) : null;
+}
+
+/**
+ * Delete the FILES belonging to a deal.
+ *
+ * The database cascade removes deal_documents rows; it does not touch Supabase
+ * Storage, so the actual PDFs survived a deletion. The Privacy Policy promises
+ * they are deleted, so until now the product was making a promise the code did
+ * not keep.
+ *
+ * Must run BEFORE the rows are deleted: the rows are the only record of where
+ * the files live. Delete them first and the files are orphaned forever, taking
+ * up space and still holding a customer's confidential deck.
+ */
+export async function purgeDealFiles(dealId: string): Promise<number> {
+  const { data: docs } = await supabase
+    .from('deal_documents')
+    .select('file_url')
+    .eq('dealstudio_id', dealId);
+
+  const paths = (docs ?? [])
+    .map((d: { file_url: string }) => storagePathFromUrl(d.file_url, 'deal-documents'))
+    .filter((p): p is string => !!p);
+
+  if (paths.length === 0) return 0;
+
+  const { error } = await supabase.storage.from('deal-documents').remove(paths);
+  if (error) {
+    console.warn('[storage] could not remove deal files', error);
+    return 0;
+  }
+  return paths.length;
+}
+
 export async function deleteDeal(dealId: string, confirmSlug: string) {
+  // Files first. Once delete_deal runs, the rows that point at them are gone and
+  // the files can never be found again.
+  await purgeDealFiles(dealId);
+
   const { data, error } = await supabase.rpc('delete_deal', {
     p_deal: dealId, p_confirm_slug: confirmSlug,
   });
   if (error) throw error;
   return data as { deleted: boolean; name: string; slug: string };
+}
+
+/**
+ * Delete every file a company owns: every deal's documents, plus its logos.
+ *
+ * Logos are stored under an {orgId}/ prefix so they can be listed. Documents are
+ * not (they land in a flat namespace), which is why they have to be found
+ * through the database rather than by listing the bucket.
+ */
+export async function purgeOrgFiles(orgId: string): Promise<{ docs: number; logos: number }> {
+  const { data: deals } = await supabase
+    .from('dealstudios')
+    .select('id')
+    .eq('org_id', orgId);
+
+  let docs = 0;
+  for (const d of deals ?? []) {
+    docs += await purgeDealFiles((d as { id: string }).id);
+  }
+
+  let logos = 0;
+  const { data: files } = await supabase.storage.from('org-logos').list(orgId);
+  if (files && files.length) {
+    const paths = files.map((f) => `${orgId}/${f.name}`);
+    const { error } = await supabase.storage.from('org-logos').remove(paths);
+    if (!error) logos = paths.length;
+  }
+
+  return { docs, logos };
 }
 
 /* ── Team members ──────────────────────────────────────────────────────────── */

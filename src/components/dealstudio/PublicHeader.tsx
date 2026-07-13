@@ -12,6 +12,8 @@ import { useNavigate } from 'react-router-dom';
 import { Moon, Sun } from 'lucide-react';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { supabase } from '../../lib/supabase';
+import { fetchMyOrg, type Organization } from '../../lib/org';
+import { isPlatformAdmin } from '../../lib/billing';
 
 function useTheme() {
   const [dark, setDark] = useState(false);
@@ -48,6 +50,21 @@ export function PublicHeader({
   const nav = useNavigate();
   const { dark, toggle } = useTheme();
   const [email, setEmail] = useState<string | null>(null);
+  const [myOrg, setMyOrg] = useState<Organization | null>(null);
+  const [isMaster, setIsMaster] = useState(false);
+
+  // Only when signed in. An investor viewing a deal room must never trigger this.
+  useEffect(() => {
+    if (!email) { setMyOrg(null); setIsMaster(false); return; }
+    let alive = true;
+    void (async () => {
+      const [o, m] = await Promise.all([fetchMyOrg(), isPlatformAdmin()]);
+      if (!alive) return;
+      setMyOrg(o);
+      setIsMaster(!!m);
+    })();
+    return () => { alive = false; };
+  }, [email]);
 
   useEffect(() => {
     let alive = true;
@@ -96,17 +113,28 @@ export function PublicHeader({
               Powered by DealStudio&trade;
             </span>
           ) : email ? (
-            <>
-              <button
-                onClick={() => nav('/admin')}
-                className="rounded-xl border border-[#e6e8ee] dark:border-[#242c47] px-4 py-2.5 text-[15px] font-semibold text-[#0c1022] dark:text-[#eef1fa] hover:bg-white dark:hover:bg-[#141a2e]"
-              >
-                Dashboard
-              </button>
-              <span className={`w-[34px] h-[34px] rounded-full ${GRAD} text-white text-[13px] font-semibold flex items-center justify-center`}>
-                {initials}
+            /* Signed in: show the same profile block as the admin shell, so the
+               home page does not feel like a different product. Clicking it goes
+               back to the dashboard, which is also what the browser back button
+               should do -- but a person reaches for whatever is visible. */
+            <button
+              onClick={() => nav('/admin')}
+              className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 hover:bg-white/60 dark:hover:bg-[#141a2e]"
+            >
+              <span className="w-9 h-9 rounded-full overflow-hidden border border-[#e6e8ee] bg-white flex items-center justify-center shrink-0">
+                {myOrg?.logo_url
+                  ? <img src={myOrg.logo_url} alt="" className="w-full h-full object-cover" />
+                  : <span className={`w-full h-full flex items-center justify-center ${GRAD} text-white text-[13px] font-semibold`}>{initials}</span>}
               </span>
-            </>
+              <span className="text-left leading-tight hidden sm:block">
+                <span className="block text-sm font-bold text-[#0c1022] dark:text-[#eef1fa] truncate max-w-[160px]">
+                  {myOrg?.name || 'Dashboard'}
+                </span>
+                <span className={`block text-xs ${isMaster ? 'font-semibold text-[var(--ds-brand)]' : 'text-[#5b6478] dark:text-[#9aa4be]'}`}>
+                  {isMaster ? 'Master Admin' : 'Admin'}
+                </span>
+              </span>
+            </button>
           ) : (
             <>
               <button

@@ -10,8 +10,9 @@ import { Loader2, Check, Upload, Trash2, Image as ImageIcon, Eye, EyeOff } from 
 import { supabase } from '../../lib/supabase';
 import { useAdminAuth } from '../dealstudio/AdminGate';
 import { TeamMembers } from '../dealstudio/TeamMembers';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { LogoCropper } from '../dealstudio/LogoCropper';
-import { saveOrgBranding, uploadOrgLogo, renameOrg } from '../../lib/org';
+import { saveOrgBranding, uploadOrgLogo, renameOrg, setOrgHandle } from '../../lib/org';
 
 const card = 'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5';
 const field = 'w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
@@ -32,6 +33,26 @@ function SavedPill({ at }: { at?: string }) {
 }
 
 export function SystemSettingsScreen() {
+  const [tab, setTab] = useState('identity');
+
+  const [handleDraft, setHandleDraft] = useState('');
+  const [handleBusy, setHandleBusy] = useState(false);
+  const [handleNote, setHandleNote] = useState('');
+  const [handleOk, setHandleOk] = useState(false);
+
+  useEffect(() => { setHandleDraft(org?.handle ?? ''); }, [org?.handle]);
+
+  const saveHandle = async () => {
+    if (!org) return;
+    setHandleBusy(true); setHandleNote('');
+    const r = await setOrgHandle(org.id, handleDraft.trim());
+    setHandleBusy(false);
+    setHandleOk(r.ok);
+    setHandleNote(r.ok
+      ? `Saved. Your rooms are now at dealstudio.io/${r.handle}/deal-name`
+      : (r.message || 'Could not save that handle.'));
+    if (r.ok) await refreshOrg();
+  };
   const { org, refreshOrg } = useAdminAuth();
 
   const [name, setName] = useState('');
@@ -159,11 +180,53 @@ export function SystemSettingsScreen() {
       </div>
 
       <div className="space-y-5">
+      {/* Settings split into tabs. It was one long scroll where a password field
+          sat below team management below the company name, and nothing told you
+          the page had more on it. */}
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <TabsList className="mb-5">
+          <TabsTrigger value="identity">Identity</TabsTrigger>
+          <TabsTrigger value="team">Team</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="identity" className="space-y-5">
         <div className={card}>
           <div className="flex items-center gap-3 mb-4">
             <h2 className="font-bold text-[#191f1d]">Company</h2>
             <SavedPill at={savedAt.company} />
           </div>
+
+          {/* The handle belongs with the company's identity, not buried in Deal
+              Manager. Every deal room URL hangs off it. */}
+          <label className={label}>Public handle</label>
+          <div className="mt-1.5 mb-1 flex flex-wrap gap-2">
+            <div className="flex-1 min-w-[240px] flex items-center rounded-xl bg-[#f5f6f8] px-3">
+              <span className="text-sm text-[#9ca3af] shrink-0">dealstudio.io/</span>
+              <input
+                value={handleDraft}
+                onChange={(e) => setHandleDraft(e.target.value.toLowerCase())}
+                placeholder="your-company"
+                className="flex-1 bg-transparent py-2.5 text-sm text-[#191f1d] outline-none min-w-0"
+              />
+            </div>
+            <button
+              onClick={() => void saveHandle()}
+              disabled={handleBusy || !handleDraft.trim() || handleDraft.trim() === org?.handle}
+              className="inline-flex items-center justify-center h-11 px-4 rounded-xl text-sm font-semibold text-white bg-[#191f1d] disabled:opacity-40"
+            >
+              Save handle
+            </button>
+          </div>
+          {handleNote && (
+            <p className={`mb-1 text-sm ${handleOk ? 'text-[var(--ds-accent-ink)]' : 'text-red-600'}`}>
+              {handleNote}
+            </p>
+          )}
+          <p className="mb-5 text-xs text-[#9ca3af]">
+            Deal rooms live at dealstudio.io/{org?.handle || 'your-handle'}/deal-name.
+            Links you have already shared keep working.
+          </p>
 
           <label className={label}>Logo</label>
           <div className="flex items-center gap-4 mt-1.5 mb-5">
@@ -213,17 +276,13 @@ export function SystemSettingsScreen() {
           </div>
           {noteEl(nameNote)}
         </div>
+        </TabsContent>
 
+        <TabsContent value="team" className="space-y-5">
+          <TeamMembers />
+        </TabsContent>
 
-        <TeamMembers />
-
-      {cropFile && (
-        <LogoCropper
-          file={cropFile}
-          onCancel={() => setCropFile(null)}
-          onCropped={(blob) => { void onCropped(blob); }}
-        />
-      )}
+        <TabsContent value="security" className="space-y-5">
         <div className={card}>
           <div className="flex items-center gap-3 mb-4">
             <h2 className="font-bold text-[#191f1d]">Login email</h2>
@@ -287,6 +346,17 @@ export function SystemSettingsScreen() {
           </div>
           {noteEl(pwNote)}
         </div>
+        </TabsContent>
+      </Tabs>
+
+      {cropFile && (
+        <LogoCropper
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onCropped={(blob) => { void onCropped(blob); }}
+        />
+      )}
+
       </div>
     </div>
   );
