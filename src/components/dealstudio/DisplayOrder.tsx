@@ -12,9 +12,9 @@
  * more useful than wondering where they went.
  */
 
-import { ChevronUp, ChevronDown, Lock } from 'lucide-react';
+import { ChevronUp, ChevronDown, Lock, RotateCcw } from 'lucide-react';
 import {
-  SECTION_LABELS, type SectionKey,
+  SECTION_LABELS, DEFAULT_SECTION_ORDER, type SectionKey,
 } from '../../lib/dealStudio';
 
 export function DisplayOrder({
@@ -24,6 +24,10 @@ export function DisplayOrder({
   order: SectionKey[];
   onChange: (next: SectionKey[]) => void;
 }) {
+  const isDefault =
+    order.length === DEFAULT_SECTION_ORDER.length &&
+    order.every((k, i) => k === DEFAULT_SECTION_ORDER[i]);
+
   const move = (i: number, dir: -1 | 1) => {
     const j = i + dir;
     if (j < 0 || j >= order.length) return;
@@ -79,6 +83,15 @@ export function DisplayOrder({
           </div>
         ))}
       </div>
+
+      {!isDefault && (
+        <button
+          onClick={() => onChange([...DEFAULT_SECTION_ORDER])}
+          className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--ds-accent-ink)] hover:underline"
+        >
+          <RotateCcw className="w-3.5 h-3.5" /> Restore default order
+        </button>
+      )}
 
       {/* Pinned last. Admin only: an investor never sees these. */}
       <div className="mt-1.5 space-y-1.5">

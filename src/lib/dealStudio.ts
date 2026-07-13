@@ -309,11 +309,26 @@ export const DEFAULT_STAT_SLOTS: StatSlot[] = [
 
 export interface DealValuePillar { title: string; description: string; }
 
-/** One problem paired with the thing you do about it. */
+/** One problem paired with the thing you do about it.
+ *  The titles are what an investor scans; the bodies are what they read if the
+ *  title earns it. */
 export interface ProblemSolution {
   id: string;
+  problem_title?: string;
   problem: string;
+  solution_title?: string;
   solution: string;
+}
+
+/** Collapsed cards need a header. Use the title if there is one, otherwise the
+ *  opening words of the body, so a pair written before titles existed still
+ *  reads as something rather than an empty bar. */
+export function psHeader(text: string, title?: string, max = 44): string {
+  const t = (title ?? '').trim();
+  if (t) return t;
+  const body = (text ?? '').trim().replace(/\s+/g, ' ');
+  if (body.length <= max) return body;
+  return body.slice(0, body.lastIndexOf(' ', max) > 0 ? body.lastIndexOf(' ', max) : max) + '\u2026';
 }
 
 export interface DealValueProp {

@@ -6,9 +6,10 @@
  */
 
 import { useState } from 'react';
-import { Check, X, ExternalLink, ArrowRight, ArrowDown } from 'lucide-react';
+import { Check, X, ExternalLink, ArrowRight, ChevronDown } from 'lucide-react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
-import type { DealValueProp, DealCompetition } from '../../lib/dealStudio';
+import { psHeader } from '../../lib/dealStudio';
+import type { DealValueProp, DealCompetition, ProblemSolution } from '../../lib/dealStudio';
 
 const card =
   'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]';
@@ -35,14 +36,13 @@ export function ValuePropSection({ value }: { value: DealValueProp }) {
 
 export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
   const { ref, inView } = useInViewOnce<HTMLDivElement>();
+  const [open, setOpen] = useState<string | null>(null);
 
-  // Pairs are the shape now. The legacy single problem/solution is folded in as
-  // one pair so existing deals do not silently lose their text.
-  const pairs = (value.pairs ?? []).filter(p => p.problem || p.solution);
+  const pairs = (value.pairs ?? []).filter(p => p.problem || p.solution || p.problem_title);
   const legacy = !pairs.length && (value.problem || value.solution)
     ? [{ id: 'legacy', problem: value.problem, solution: value.solution }]
     : [];
-  const rows = pairs.length ? pairs : legacy;
+  const rows: ProblemSolution[] = pairs.length ? pairs : legacy;
 
   if (!rows.length && !value.statement) return null;
 
@@ -51,47 +51,73 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
       <h2 className="text-sm font-bold text-[#191f1d] mb-3">Problem and Solution</h2>
 
       {value.statement && (
-        <p className="text-sm leading-relaxed text-[#4b5563] mb-5 whitespace-pre-line">
+        <p className="text-sm leading-relaxed text-[#4b5563] mb-4 whitespace-pre-line">
           {value.statement}
         </p>
       )}
 
-      <div className="space-y-3">
-        {rows.map((p, i) => (
-          <div
-            key={p.id || i}
-            className="ds-card grid gap-3 md:grid-cols-[1fr_auto_1fr] items-stretch"
-            style={{ transitionDelay: `${i * 60}ms` }}
-          >
-            {/* Problem */}
-            <div className="rounded-2xl border border-[#edf0f3] bg-[#f8f9fb] p-4">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-1.5">
-                Problem
-              </p>
-              <p className="text-sm leading-relaxed text-[#191f1d] whitespace-pre-line">
-                {p.problem}
-              </p>
-            </div>
+      {/* Collapsed to titles. An investor scans the pairs, then opens the one
+          that matters to them. Showing every body at once buried the argument
+          in text nobody read. */}
+      <div className="space-y-2">
+        {rows.map((p, i) => {
+          const isOpen = open === (p.id || String(i));
+          const key = p.id || String(i);
 
-            {/* The arrow is the argument: this problem leads to that answer. */}
-            <div className="flex md:flex-col items-center justify-center">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shadow-sm">
-                <ArrowRight className="w-4 h-4 md:block hidden" />
-                <ArrowDown className="w-4 h-4 md:hidden" />
-              </span>
-            </div>
+          return (
+            <div
+              key={key}
+              className="ds-card rounded-2xl border border-[#edf0f3] bg-white overflow-hidden"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
+              <button
+                onClick={() => setOpen(isOpen ? null : key)}
+                aria-expanded={isOpen}
+                className="w-full grid gap-2 md:grid-cols-[1fr_auto_1fr] items-center p-3 text-left hover:bg-[#fafbfc] transition-colors"
+              >
+                <span className="flex items-center gap-2 min-w-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#9ca3af] shrink-0">
+                    Problem
+                  </span>
+                  <span className="text-sm font-semibold text-[#191f1d] truncate">
+                    {psHeader(p.problem, p.problem_title)}
+                  </span>
+                </span>
 
-            {/* Solution */}
-            <div className="rounded-2xl bg-[var(--ds-tint)] p-4">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-1.5">
-                Solution
-              </p>
-              <p className="text-sm leading-relaxed text-[#191f1d] whitespace-pre-line">
-                {p.solution}
-              </p>
+                <span className="hidden md:flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shrink-0">
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+
+                <span className="flex items-center gap-2 min-w-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] shrink-0">
+                    Solution
+                  </span>
+                  <span className="text-sm font-semibold text-[#191f1d] truncate">
+                    {psHeader(p.solution, p.solution_title)}
+                  </span>
+                  <ChevronDown
+                    className={`ml-auto w-4 h-4 shrink-0 text-[#c7cdd4] transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                  />
+                </span>
+              </button>
+
+              {isOpen && (
+                <div className="grid gap-3 md:grid-cols-2 px-3 pb-3">
+                  <div className="rounded-xl bg-[#f8f9fb] p-3.5">
+                    <p className="text-sm leading-relaxed text-[#4b5563] whitespace-pre-line">
+                      {p.problem}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-[var(--ds-tint)] p-3.5">
+                    <p className="text-sm leading-relaxed text-[#4b5563] whitespace-pre-line">
+                      {p.solution}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

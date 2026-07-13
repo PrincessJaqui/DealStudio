@@ -41,7 +41,7 @@ export function ProblemSolutionEditor({
     set({ pairs: pairs.map(p => (p.id === id ? { ...p, ...patch } : p)) });
 
   const addPair = () =>
-    set({ pairs: [...pairs, { id: newId('ps'), problem: '', solution: '' }] });
+    set({ pairs: [...pairs, { id: newId('ps'), problem_title: '', problem: '', solution_title: '', solution: '' }] });
 
   const removePair = (id: string) =>
     set({ pairs: pairs.filter(p => p.id !== id) });
@@ -51,8 +51,9 @@ export function ProblemSolutionEditor({
       <div className={card}>
         <p className={labelCls}>Problem and solution</p>
         <p className="text-xs text-[#9ca3af] mt-1 mb-2">
-          A statement to open with, then each specific problem paired with what you do about it.
-          Investors read the pairs, so keep each one concrete.
+          A statement to open with, then each problem paired with what you do about it.
+          The short titles are all an investor sees until they tap to expand, so make them
+          carry the point on their own.
         </p>
         <textarea
           className={`${input} min-h-[80px] resize-y`}
@@ -82,6 +83,12 @@ export function ProblemSolutionEditor({
                   <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9ca3af] mb-1">
                     Problem
                   </label>
+                  <input
+                    className={`${input} bg-white mb-2 font-semibold`}
+                    value={pr.problem_title ?? ''}
+                    onChange={(e) => setPair(pr.id, { problem_title: e.target.value })}
+                    placeholder="Short title, e.g. Fragmented assets"
+                  />
                   <textarea
                     className={`${input} min-h-[88px] resize-y bg-white`}
                     value={pr.problem}
@@ -93,6 +100,12 @@ export function ProblemSolutionEditor({
                   <label className="block text-[11px] font-semibold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-1">
                     Solution
                   </label>
+                  <input
+                    className={`${input} bg-white mb-2 font-semibold`}
+                    value={pr.solution_title ?? ''}
+                    onChange={(e) => setPair(pr.id, { solution_title: e.target.value })}
+                    placeholder="Short title, e.g. Central deal hub"
+                  />
                   <textarea
                     className={`${input} min-h-[88px] resize-y bg-white`}
                     value={pr.solution}
