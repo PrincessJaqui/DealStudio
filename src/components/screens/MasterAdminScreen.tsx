@@ -13,6 +13,7 @@ import { EditOrgDialog } from '../dealstudio/EditOrgDialog';
 import { PricingSetup } from '../dealstudio/PricingSetup';
 import {
   adminListOrgs, adminUpdateOrg, adminListTransactions, adminListPlans, savePlan,
+  adminActivateUser,
   isPlatformAdmin, money, type AdminOrg, type Txn, type Plan,
 } from '../../lib/billing';
 
@@ -91,6 +92,34 @@ function UsersTab() {
   const [q, setQ] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
   const [editing, setEditing] = useState<AdminOrg | null>(null);
+
+  const [actEmail, setActEmail] = useState('');
+  const [actCompany, setActCompany] = useState('');
+  const [actBusy, setActBusy] = useState(false);
+  const [actNote, setActNote] = useState('');
+  const [actOk, setActOk] = useState(false);
+
+  const activate = async () => {
+    setActBusy(true); setActNote('');
+    const r = await adminActivateUser(actEmail, actCompany);
+    setActBusy(false);
+    setActOk(r.ok);
+
+    if (!r.ok) {
+      setActNote(r.message || 'Could not activate that user.');
+      return;
+    }
+
+    setActNote(
+      r.note === 'already in a company'
+        ? 'Activated. They were already in a company, so that was left alone.'
+        : r.already
+          ? 'That account was already confirmed.'
+          : 'Activated. They can sign in now.'
+    );
+    setActEmail(''); setActCompany('');
+    await load();
+  };
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'created_at', dir: -1 });
 
   const load = async () => setOrgs(await adminListOrgs());
@@ -130,6 +159,48 @@ function UsersTab() {
 
   return (
     <>
+      {/* Activation. Email confirmation is on, so a customer whose confirmation
+          mail bounced, expired, or landed in spam is stuck outside with no way
+          in. This is the way in. It cannot CREATE an account: the person must
+          sign up first, because forging an auth user in SQL corrupts the
+          identities table and 500s their next login. */}
+      <div className={`${card} p-5 mb-5`}>
+        <h2 className="font-bold text-[#191f1d]">Activate a user</h2>
+        <p className="text-sm text-[#7f8c85] mt-0.5">
+          Confirms their email and puts them in a company, without waiting on the
+          confirmation link. They must have signed up already.
+        </p>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+          <input
+            value={actEmail}
+            onChange={(e) => setActEmail(e.target.value)}
+            placeholder="their@email.com"
+            className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+          />
+          <input
+            value={actCompany}
+            onChange={(e) => setActCompany(e.target.value)}
+            placeholder="Company name (if they have none)"
+            className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+          />
+          <button
+            onClick={() => void activate()}
+            disabled={!actEmail.trim() || actBusy}
+            className="inline-flex items-center justify-center gap-1.5 h-11 px-5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
+          >
+            {actBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            Activate
+          </button>
+        </div>
+
+        {actNote && (
+          <p className={`mt-3 text-sm ${actOk ? 'text-[var(--ds-accent-ink)]' : 'text-red-600'}`}>
+            {actNote}
+          </p>
+        )}
+      </div>
+
       <div className={card}>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-5 border-b border-[#edf0f3]">
           <div>

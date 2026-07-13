@@ -369,6 +369,7 @@ function ValuePropWheel({
           style={{
             transform: inView ? `rotate(${rot}deg) scale(1)` : 'rotate(-25deg) scale(0.86)',
             opacity: inView ? 1 : 0,
+            transformBox: 'view-box',
             transformOrigin: '150px 150px',
             transition: 'transform 700ms cubic-bezier(0.34, 1.2, 0.64, 1), opacity 500ms ease-out',
           }}
@@ -408,6 +409,7 @@ function ValuePropWheel({
                 <g
                   style={{
                     transform: `rotate(${-rot}deg)`,
+                    transformBox: 'view-box',
                     transformOrigin: `${sg.label[0]}px ${sg.label[1]}px`,
                     transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)',
                   }}

@@ -82,6 +82,7 @@ body {
   50%      { transform: scale(1.028); }
 }
 .ds-wedge-pulse {
+  transform-box: view-box;
   transform-origin: 150px 150px;
   animation: dsWedgePulse 2.6s ease-in-out infinite;
 }
@@ -94,7 +95,7 @@ body {
 
 .ds-pulse { outline: 2px solid rgba(var(--ds-pulse-rgb),0); }
 .ds-animate .ds-pulse { animation: dsPulseRing 1.5s ease-in-out 2; }
-.ds-pulse-pie { transform-origin: center; }
+.ds-pulse-pie { transform-box: view-box; transform-origin: center; }
 .ds-animate .ds-pulse-pie { animation: dsPulseScaleLoop 2.6s ease-in-out infinite; }
 .ds-bar { transform-origin: left center; transform: scaleX(0); }
 .ds-animate .ds-bar { animation: dsBarGrow 0.9s ease-out forwards; }

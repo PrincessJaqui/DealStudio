@@ -12,7 +12,7 @@ import { supabase } from '../../lib/supabase';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { PublicHeader } from './PublicHeader';
 import { refreshUserContext } from '../../lib/analytics';
-import { fetchMyOrg, applyOrgTheme, claimPendingInvites, type Organization } from '../../lib/org';
+import { fetchMyOrg, createMyOrg, applyOrgTheme, claimPendingInvites, type Organization } from '../../lib/org';
 import { AccountLock, isEntitled } from './AccountLock';
 import { isPlatformAdmin } from '../../lib/billing';
 
@@ -31,10 +31,31 @@ async function resolve(): Promise<{ status: Status; org: Organization | null }> 
   // An invited colleague has no org until their invite is claimed, so try that
   // before concluding they have no company.
   let org = await fetchMyOrg();
+
   if (!org) {
     await claimPendingInvites();
     org = await fetchMyOrg();
   }
+
+  // Still nothing? They may have just confirmed their email. With confirmation
+  // on, signup has no session, so the org could not be created then -- the
+  // company name was carried in user metadata instead. Create it now, or they
+  // arrive at a confirmed account with no company and get locked out of their
+  // own product.
+  if (!org) {
+    const { data: auth } = await supabase.auth.getUser();
+    const company = String(auth?.user?.user_metadata?.company ?? '').trim();
+    if (company) {
+      try {
+        await createMyOrg(company, company);
+        org = await fetchMyOrg();
+      } catch {
+        // Already created by a parallel tab, or a race. Re-read and move on.
+        org = await fetchMyOrg();
+      }
+    }
+  }
+
   return { status: org ? 'admin' : 'notadmin', org };
 }
 

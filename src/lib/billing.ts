@@ -304,3 +304,34 @@ export async function orgDealStatus(orgId: string): Promise<DealStatus | null> {
 export function isDealLimitError(e: unknown): boolean {
   return String((e as any)?.message ?? '').includes('DEAL_LIMIT');
 }
+
+/* ── Master admin: activation ──────────────────────────────────────────────── */
+
+export type ActivateResult = {
+  ok: boolean;
+  reason?: string;
+  message?: string;
+  already?: boolean;
+  org_id?: string;
+  note?: string;
+};
+
+/**
+ * Confirm a user's email and put them in a company.
+ *
+ * The account must already exist. We deliberately do NOT create auth users from
+ * SQL: it corrupts the identities table and the user gets a 500 on next login.
+ */
+export async function adminActivateUser(
+  email: string,
+  company?: string,
+  orgId?: string,
+): Promise<ActivateResult> {
+  const { data, error } = await supabase.rpc('admin_activate_and_assign', {
+    p_email: email.trim(),
+    p_company: company?.trim() || null,
+    p_org: orgId ?? null,
+  });
+  if (error) return { ok: false, message: error.message };
+  return (data ?? { ok: false }) as ActivateResult;
+}

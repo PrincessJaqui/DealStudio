@@ -18,6 +18,7 @@ export function SignupScreen() {
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [sent, setSent] = useState(false);
 
   const submit = async () => {
     setError('');
@@ -28,14 +29,26 @@ export function SignupScreen() {
       const { error: signErr } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
+        options: {
+          // Without this, Supabase falls back to the project's Site URL for the
+          // confirmation link. If that is still pointing at localhost, every
+          // confirmation email is a dead link.
+          emailRedirectTo: `${window.location.origin}/admin`,
+
+          // The company name has to survive the email round trip. When
+          // confirmation is on there is no session at signup, so the org cannot
+          // be created here -- and it used to be silently thrown away, leaving a
+          // confirmed user with no company at all.
+          data: { company: company.trim() },
+        },
       });
       if (signErr) throw signErr;
 
-      // If the project requires email confirmation there is no session yet.
+      // Confirmation required: no session yet. This is success, not an error.
       const { data: s } = await supabase.auth.getSession();
       if (!s.session) {
         setBusy(false);
-        setError('Check your inbox to confirm your email, then sign in.');
+        setSent(true);
         return;
       }
 
@@ -56,6 +69,32 @@ export function SignupScreen() {
       <div className="flex-1 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-6">
         <img src={dsMark} alt="" className="w-11 h-11 rounded-full object-cover mb-4" />
+
+        {/* Once the email is out, the form is done. Leaving it live with a red
+            line under the password read as a failure, so people retried and hit
+            "user already registered", which really is an error. */}
+        {sent ? (
+          <div>
+            <h1 className="text-lg font-bold text-[#191f1d]">Check your inbox</h1>
+            <p className="text-sm text-[#7f8c85] mt-2 leading-relaxed">
+              We sent a confirmation link to{' '}
+              <span className="font-semibold text-[#191f1d]">{email.trim().toLowerCase()}</span>.
+              Open it to finish setting up {company.trim()}.
+            </p>
+            <div className="mt-4 rounded-xl bg-[var(--ds-accent-tint)] px-4 py-3">
+              <p className="text-[13px] text-[var(--ds-accent-ink)] leading-relaxed">
+                No email after a minute or two? Check spam, then try signing in.
+              </p>
+            </div>
+            <Link
+              to="/admin"
+              className="mt-5 block w-full rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white font-semibold py-2.5 text-sm text-center"
+            >
+              Go to sign in
+            </Link>
+          </div>
+        ) : (
+        <>
         <h1 className="text-lg font-bold text-[#191f1d]">Start your deal room</h1>
         <p className="text-sm text-[#7f8c85] mt-1">30 days free. No card required.</p>
 
@@ -92,6 +131,9 @@ export function SignupScreen() {
           {busy && <Loader2 className="w-4 h-4 animate-spin" />}
           Create account
         </button>
+
+        </>
+        )}
 
         {/* Terms bind a customer only if they were told at sign-up. Without this
             line the documents are decorative. */}
