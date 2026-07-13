@@ -7,13 +7,13 @@
 import { useEffect, useState } from 'react';
 import {
   Loader2, DollarSign, Plus, Download, RefreshCw, Search, Check, X, Shield,
-  ChevronUp, ChevronDown, Pencil,
+  ChevronUp, ChevronDown, Pencil, Mail, Link2 as LinkIcon,
 } from 'lucide-react';
 import { EditOrgDialog } from '../dealstudio/EditOrgDialog';
 import { PricingSetup } from '../dealstudio/PricingSetup';
 import {
   adminListOrgs, adminUpdateOrg, adminListTransactions, adminListPlans, savePlan,
-  adminActivateUser,
+  adminActivateUser, adminSetPasswordByEmail, sendPasswordReset, sendMagicLink,
   isPlatformAdmin, money, type AdminOrg, type Txn, type Plan,
 } from '../../lib/billing';
 
@@ -98,6 +98,7 @@ function UsersTab() {
   const [actBusy, setActBusy] = useState(false);
   const [actNote, setActNote] = useState('');
   const [actOk, setActOk] = useState(false);
+  const [actPassword, setActPassword] = useState('');
 
   const activate = async () => {
     setActBusy(true); setActNote('');
@@ -119,6 +120,37 @@ function UsersTab() {
     );
     setActEmail(''); setActCompany('');
     await load();
+  };
+
+  const doReset = async () => {
+    if (!actEmail.trim()) return;
+    setActBusy(true); setActNote('');
+    const r = await sendPasswordReset(actEmail);
+    setActBusy(false); setActOk(r.ok);
+    setActNote(r.ok
+      ? `Reset link sent to ${actEmail.trim()}. They choose their own password, so nobody else ever knows it.`
+      : (r.message || 'Could not send the reset email.'));
+  };
+
+  const doMagic = async () => {
+    if (!actEmail.trim()) return;
+    setActBusy(true); setActNote('');
+    const r = await sendMagicLink(actEmail);
+    setActBusy(false); setActOk(r.ok);
+    setActNote(r.ok
+      ? `Sign-in link sent to ${actEmail.trim()}.`
+      : (r.message || 'Could not send the link.'));
+  };
+
+  const doSetPassword = async () => {
+    if (!actEmail.trim() || !actPassword) return;
+    setActBusy(true); setActNote('');
+    const r = await adminSetPasswordByEmail(actEmail, actPassword);
+    setActBusy(false); setActOk(!!r.ok);
+    setActNote(r.ok
+      ? 'Password set, and the account is confirmed. Tell them what it is, and tell them to change it.'
+      : (r.message || 'Could not set the password.'));
+    if (r.ok) setActPassword('');
   };
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'created_at', dir: -1 });
 
@@ -193,6 +225,53 @@ function UsersTab() {
             Activate
           </button>
         </div>
+
+        {/* The email routes come first on purpose. They are the right answer
+            almost always: the customer sets their own password and nobody else
+            ever knows it. Setting one by hand is the break-glass option. */}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            onClick={() => void doReset()}
+            disabled={!actEmail.trim() || actBusy}
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-semibold text-[var(--ds-brand)] border border-[#e6e8ee] hover:bg-[#f5f6f8] disabled:opacity-50"
+          >
+            <Mail className="w-3.5 h-3.5" /> Send password reset
+          </button>
+          <button
+            onClick={() => void doMagic()}
+            disabled={!actEmail.trim() || actBusy}
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-semibold text-[var(--ds-brand)] border border-[#e6e8ee] hover:bg-[#f5f6f8] disabled:opacity-50"
+          >
+            <LinkIcon className="w-3.5 h-3.5" /> Resend sign-in link
+          </button>
+        </div>
+
+        <details className="mt-4 rounded-xl bg-[#f5f6f8] border border-[#edf0f3] p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-[#191f1d]">
+            Set a password directly
+          </summary>
+          <p className="text-xs text-[#7f8c85] mt-2 leading-relaxed">
+            Only when email is broken and they are locked out. You will know their
+            password, which is exactly why this is the last resort rather than the
+            first. Tell them to change it.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <input
+              type="text"
+              value={actPassword}
+              onChange={(e) => setActPassword(e.target.value)}
+              placeholder="New password (8+ characters)"
+              className="flex-1 min-w-[220px] rounded-xl bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+            />
+            <button
+              onClick={() => void doSetPassword()}
+              disabled={!actEmail.trim() || actPassword.length < 8 || actBusy}
+              className="inline-flex items-center gap-1.5 h-11 px-4 rounded-xl text-sm font-semibold text-white bg-[#191f1d] disabled:opacity-40"
+            >
+              <Shield className="w-4 h-4" /> Set password
+            </button>
+          </div>
+        </details>
 
         {actNote && (
           <p className={`mt-3 text-sm ${actOk ? 'text-[var(--ds-accent-ink)]' : 'text-red-600'}`}>

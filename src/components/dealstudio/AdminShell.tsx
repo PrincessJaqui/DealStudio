@@ -7,7 +7,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, CreditCard, Shield } from 'lucide-react';
+import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, CreditCard, Shield, Home } from 'lucide-react';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { useAdminAuth } from './AdminGate';
 import { isPlatformAdmin } from '../../lib/billing';
@@ -112,7 +112,27 @@ export function AdminShell({ children }: { children: ReactNode }) {
               {label}
             </NavLink>
           ))}
+
+          <a
+            href="/"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
+          >
+            <Home className="w-4 h-4" />
+            View home page
+          </a>
         </nav>
+
+        {/* Legal and the credit sit at the foot of the rail, out of the way of
+            the work but never more than one glance from it. */}
+        <div className="px-3 pb-2">
+          <div className="flex items-center gap-3 px-3 text-[11px] text-[#9ca3af]">
+            <a href="/terms" className="hover:text-[#191f1d]">Terms</a>
+            <a href="/privacy" className="hover:text-[#191f1d]">Privacy</a>
+          </div>
+          <p className="px-3 mt-1.5 text-[11px] text-[#c7cdd4]">
+            Powered by DealStudio&trade;
+          </p>
+        </div>
 
         <div className="p-3 border-t border-[#edf0f3]">
           <button
@@ -201,7 +221,25 @@ export function AdminShell({ children }: { children: ReactNode }) {
                   {label}
                 </NavLink>
               ))}
+
+              <a
+                href="/"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
+              >
+                <Home className="w-4 h-4" />
+                View home page
+              </a>
             </nav>
+
+            <div className="px-3 pb-2">
+              <div className="flex items-center gap-3 px-3 text-[11px] text-[#9ca3af]">
+                <a href="/terms" className="hover:text-[#191f1d]">Terms</a>
+                <a href="/privacy" className="hover:text-[#191f1d]">Privacy</a>
+              </div>
+              <p className="px-3 mt-1.5 text-[11px] text-[#c7cdd4]">
+                Powered by DealStudio&trade;
+              </p>
+            </div>
 
             {org && (
               <div className="p-3 border-t border-[#edf0f3]">

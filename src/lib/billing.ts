@@ -335,3 +335,43 @@ export async function adminActivateUser(
   if (error) return { ok: false, message: error.message };
   return (data ?? { ok: false }) as ActivateResult;
 }
+
+/* ── Master admin: credentials ─────────────────────────────────────────────── */
+
+/**
+ * Set a password for a user outright.
+ *
+ * The last resort, not the first. Prefer sending them a reset link: that way the
+ * password is theirs and nobody else ever knew it. This exists for the case where
+ * email is broken and a customer is locked out of their own raise.
+ */
+export async function adminSetPasswordByEmail(email: string, password: string): Promise<ActivateResult> {
+  const { data, error } = await supabase.rpc('admin_set_user_password', {
+    p_email: email.trim(),
+    p_password: password,
+  });
+  if (error) return { ok: false, message: error.message };
+  return (data ?? { ok: false }) as ActivateResult;
+}
+
+/**
+ * Email them a link that signs them in and lets them choose a password.
+ *
+ * No admin key needed: this is an ordinary auth call. It also re-confirms an
+ * unconfirmed address, so it doubles as "resend the confirmation email".
+ */
+export async function sendPasswordReset(email: string): Promise<{ ok: boolean; message?: string }> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+  return error ? { ok: false, message: error.message } : { ok: true };
+}
+
+/** A one-time sign-in link. Useful when someone never received the confirmation. */
+export async function sendMagicLink(email: string): Promise<{ ok: boolean; message?: string }> {
+  const { error } = await supabase.auth.signInWithOtp({
+    email: email.trim(),
+    options: { emailRedirectTo: `${window.location.origin}/admin` },
+  });
+  return error ? { ok: false, message: error.message } : { ok: true };
+}

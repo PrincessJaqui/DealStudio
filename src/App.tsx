@@ -19,6 +19,7 @@ import { SystemSettingsScreen } from './components/screens/SystemSettingsScreen'
 import { BillingScreen } from './components/screens/BillingScreen';
 import { MasterAdminScreen } from './components/screens/MasterAdminScreen';
 import { SignupScreen } from './components/screens/SignupScreen';
+import { ResetPasswordScreen } from './components/screens/ResetPasswordScreen';
 import { TermsScreen } from './components/screens/TermsScreen';
 import { PrivacyScreen } from './components/screens/PrivacyScreen';
 import { AdminGate } from './components/dealstudio/AdminGate';
@@ -43,6 +44,7 @@ export default function App() {
             out and the dashboard when signed in, so redirect rather than render a
             bare gate, which would be a blank page for anyone already signed in. */}
         <Route path="/login" element={<Navigate to="/admin" replace />} />
+        <Route path="/reset-password" element={<ResetPasswordScreen />} />
         <Route path="/terms" element={<TermsScreen />} />
         <Route path="/privacy" element={<PrivacyScreen />} />
 
