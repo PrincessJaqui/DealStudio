@@ -123,7 +123,7 @@ export function ValuePropEditor({
       <div className={card}>
         <div className="flex items-center gap-3 mb-1">
           <div>
-            <p className={labelCls}>Why you</p>
+            <p className={labelCls}>Value Proposition</p>
             <p className="text-xs text-[#9ca3af] mt-1">
               Two or three reasons this is defensible. Vague claims read as filler.
             </p>

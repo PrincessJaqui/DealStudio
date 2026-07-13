@@ -61,7 +61,7 @@ export function PublicHeader({
           onClick={() => nav('/')}
           className="flex items-center gap-2.5 font-bold text-[21px] tracking-tight text-[#0c1022] dark:text-[#eef1fa]"
         >
-          DealStudio
+          DealStudio&trade;
         </button>
 
         <div className="ml-auto flex items-center gap-3">
@@ -74,7 +74,7 @@ export function PublicHeader({
           </button>
 
           {variant === 'quiet' ? (
-            <span className="text-[13px] text-[#5b6478] dark:text-[#9aa4be]">Powered by DealStudio</span>
+            <span className="text-[13px] text-[#5b6478] dark:text-[#9aa4be]">Powered by DealStudio&trade;</span>
           ) : email ? (
             <>
               <button

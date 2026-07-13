@@ -28,6 +28,12 @@
   --ds-accent-ring-1: color-mix(in srgb, var(--ds-accent) 14%, white);
   --ds-accent-ring-2: color-mix(in srgb, var(--ds-accent) 32%, white);
   --ds-accent-ring-3: color-mix(in srgb, var(--ds-accent) 52%, white);
+  /* Filled teal panels. A bright teal cannot carry white text (2.2:1), so these
+     are the accent mixed halfway to the dark ink: still unmistakably teal, but
+     white on them passes AA (5.1:1 and 4.6:1). Derived, so a customer's accent
+     carries through. */
+  --ds-accent-panel-from: color-mix(in srgb, var(--ds-accent) 50%, var(--ds-on-accent));
+  --ds-accent-panel-to:   color-mix(in srgb, var(--ds-accent-to) 50%, var(--ds-on-accent));
   --ds-accent-to:   #00d6af;
   --ds-accent-ink:  #07818B;
   --ds-on-accent:   #04333A;
@@ -69,6 +75,17 @@ body {
   0%, 100% { transform: scale(1); }
   50%      { transform: scale(1.045); }
 }
+/* Wedges breathe so an investor knows they are clickable. Same restraint as the
+   market target: it must not nag while someone is reading. */
+@keyframes dsWedgePulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.028); }
+}
+.ds-wedge-pulse {
+  transform-origin: 150px 150px;
+  animation: dsWedgePulse 2.6s ease-in-out infinite;
+}
+
 @keyframes dsPulseScaleLoop {
   0%, 100% { transform: scale(1); }
   50%      { transform: scale(1.022); }
@@ -96,6 +113,7 @@ body {
   .ds-bar { transform: scaleX(1); }
   .ds-animate .ds-pulse, .ds-animate .ds-pulse-pie, .ds-animate .ds-bar, .ds-animate .ds-card { animation: none; }
   .ds-pulse-pie { transform: scale(1); }
+  .ds-wedge-pulse { animation: none; }
 }
 
 

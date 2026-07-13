@@ -71,7 +71,7 @@ export function LandingScreen() {
         <CustomLanding blocks={custom} />
         <footer className="border-t border-[#e6e8ee] dark:border-[#242c47] py-9">
           <div className="mx-auto max-w-6xl px-6 text-center text-[14px] text-[#5b6478] dark:text-[#9aa4be]">
-            &copy; {new Date().getFullYear()} DealStudio
+            &copy; {new Date().getFullYear()} DealStudio&trade;
           <span className="mx-2 text-[#c7cdd4]">&middot;</span>
           <a href="/terms" className="hover:text-[var(--ds-brand)]">Terms</a>
           <span className="mx-2 text-[#c7cdd4]">&middot;</span>
@@ -98,7 +98,7 @@ export function LandingScreen() {
       <header className="sticky top-0 z-30 border-b border-[#e6e8ee] dark:border-[#242c47] bg-[#f5f6f8]/85 dark:bg-[#0b0e1a]/85 backdrop-blur">
         <div className="mx-auto max-w-6xl px-6 h-[68px] flex items-center gap-7">
           <button onClick={() => nav('/')} className="flex items-center gap-2.5 font-bold text-[21px] tracking-tight">
-            DealStudio
+            DealStudio&trade;
           </button>
 
           <div className="ml-auto flex items-center gap-3">
@@ -250,7 +250,7 @@ export function LandingScreen() {
 
       <footer className="border-t border-[#e6e8ee] dark:border-[#242c47] py-9">
         <div className="mx-auto max-w-6xl px-6 text-center text-[14px] text-[#5b6478] dark:text-[#9aa4be]">
-          &copy; {new Date().getFullYear()} DealStudio
+          &copy; {new Date().getFullYear()} DealStudio&trade;
         </div>
       </footer>
     </div>

@@ -346,7 +346,11 @@ function ValuePropWheel({
                 onClick={() => setSel(sel === i ? null : i)}
                 onMouseEnter={() => setHover(i)}
                 onMouseLeave={() => setHover(null)}
-                className="cursor-pointer"
+                /* Pulses until something is picked, so an investor knows the
+                   wedges are live. Once they have clicked, the cue has done its
+                   job and it stops. */
+                className={`cursor-pointer ${sel === null && hover === null ? 'ds-wedge-pulse' : ''}`}
+                style={{ animationDelay: `${i * 180}ms` }}
                 style={{
                   opacity: dim ? 0.4 : 1,
                   transform: `translate(${hx}px, ${hy}px)`,
@@ -398,24 +402,35 @@ function ValuePropWheel({
         <circle cx={CX} cy={CY} r={R_IN - 6} fill="white" />
         <circle cx={CX} cy={CY} r={R_IN - 9} fill="url(#ds-hub)" />
 
-        <text
-          x={CX} y={CY - 5}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          className="fill-white font-bold"
-          style={{ fontSize: 11 }}
-        >
-          Value
-        </text>
-        <text
-          x={CX} y={CY + 7}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          className="fill-white/75 font-semibold"
-          style={{ fontSize: 8 }}
-        >
-          {sel === null ? `${n} pillars` : `${sel + 1} of ${n}`}
-        </text>
+        {sel === null ? (
+          <>
+            <text
+              x={CX} y={CY - 6}
+              textAnchor="middle" dominantBaseline="middle"
+              className="fill-white font-bold"
+              style={{ fontSize: 9.5 }}
+            >
+              Click wedges
+            </text>
+            <text
+              x={CX} y={CY + 6}
+              textAnchor="middle" dominantBaseline="middle"
+              className="fill-white/80 font-semibold"
+              style={{ fontSize: 9.5 }}
+            >
+              to explore
+            </text>
+          </>
+        ) : (
+          <text
+            x={CX} y={CY}
+            textAnchor="middle" dominantBaseline="middle"
+            className="fill-white font-bold"
+            style={{ fontSize: 11 }}
+          >
+            {sel + 1} of {n}
+          </text>
+        )}
       </svg>
 
       {/* The card for whatever is selected. */}

@@ -142,7 +142,7 @@ export function InvestorGate({ slug, companyName, requirePassword, requireEmail 
             </>
           )}
         </div>
-        <p className="text-center text-[11px] text-[#99a1af] mt-4">Powered by DealStudio</p>
+        <p className="text-center text-[11px] text-[#99a1af] mt-4">Powered by DealStudio&trade;</p>
       </div>
     </div>
     </div>
