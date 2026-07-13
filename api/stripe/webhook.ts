@@ -79,15 +79,66 @@ export default async function handler(req: any, res: any) {
       case 'customer.subscription.deleted': {
         const sub = event.data.object as Stripe.Subscription;
         const orgId = await resolveOrg(sub.customer as string, sub.metadata?.org_id);
-        if (orgId) {
-          await admin.from('organizations').update({
-            stripe_subscription_id: sub.id,
-            subscription_status: event.type === 'customer.subscription.deleted'
-              ? 'canceled'
-              : sub.status,
-            updated_at: new Date().toISOString(),
-          }).eq('id', orgId);
+        if (!orgId) break;
+
+        const deleted = event.type === 'customer.subscription.deleted';
+
+        await admin.from('organizations').update({
+          stripe_subscription_id: sub.id,
+          subscription_status: deleted ? 'canceled' : sub.status,
+          updated_at: new Date().toISOString(),
+        }).eq('id', orgId);
+
+        // Mirror the subscription's line items into org_addons.
+        //
+        // Stripe is the source of truth for what a company is paying for, so the
+        // entitlement follows the invoice rather than the other way round.
+        // Without this a customer could buy a seat and still be refused it, or
+        // cancel one and keep it forever. Both have happened to other people.
+        // A cancelled subscription drops everything they PAID for. Anything an
+        // admin comped is a gift, not a purchase, and survives.
+        if (deleted) {
+          await admin.from('org_addons').delete().eq('org_id', orgId).eq('comped', false);
+          break;
         }
+
+        const { data: catalog } = await admin
+          .from('plan_addons').select('id, stripe_price_id').not('stripe_price_id', 'is', null);
+
+        const byPrice = new Map<string, string>();
+        for (const a of catalog ?? []) {
+          if (a.stripe_price_id) byPrice.set(a.stripe_price_id as string, a.id as string);
+        }
+
+        const paidFor = new Map<string, number>();
+        for (const item of sub.items.data) {
+          const addonId = byPrice.get(item.price.id);
+          if (addonId) paidFor.set(addonId, item.quantity ?? 1);
+        }
+
+        // Anything they no longer pay for is no longer theirs. Comped extras are
+        // granted directly in the database with no Stripe price, so they are not
+        // in `catalog` and are never touched here.
+        const addonIds = [...byPrice.values()];
+        if (addonIds.length) {
+          const keep = [...paidFor.keys()];
+          let del = admin
+            .from('org_addons')
+            .delete()
+            .eq('org_id', orgId)
+            .eq('comped', false)          // never reclaim a comped grant
+            .in('addon_id', addonIds);
+          if (keep.length) del = del.not('addon_id', 'in', `(${keep.join(',')})`);
+          await del;
+        }
+
+        for (const [addonId, qty] of paidFor) {
+          await admin.from('org_addons').upsert(
+            { org_id: orgId, addon_id: addonId, quantity: qty, comped: false },
+            { onConflict: 'org_id,addon_id' },
+          );
+        }
+
         break;
       }
 

@@ -25,6 +25,9 @@ type Plan = {
   unit_type: UnitType;
   interval: Interval;
   is_public: boolean;
+  /** Not a secret. Sent to the browser on every checkout. The Stripe SECRET key
+   *  lives in Vercel's environment and never touches this code or the database. */
+  stripe_price_id: string | null;
 };
 
 const card =
@@ -245,6 +248,24 @@ export function PricingSetup() {
             className="w-full mb-4 min-h-[80px] resize-y rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30 placeholder:text-[#b6bcc4]"
           />
 
+          {/* Checkout refuses to run without this, and until now there was nowhere
+              to put it. A price ID is not a secret: it is sent to the browser on
+              every checkout. The Stripe SECRET key never comes near this app --
+              it lives in Vercel's environment and nowhere else. */}
+          <label className={lbl}>Stripe price ID</label>
+          <input
+            value={String(val(p, 'stripe_price_id') ?? '')}
+            onChange={(e) => edit(p.id, { stripe_price_id: e.target.value.trim() })}
+            placeholder="price_1AbCdEfGhIjKlMnO"
+            spellCheck={false}
+            className="w-full mb-1 rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm font-mono text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30 placeholder:text-[#b6bcc4]"
+          />
+          <p className="mb-4 text-xs text-[#9ca3af]">
+            {val(p, 'stripe_price_id')
+              ? 'Customers can be charged for this plan.'
+              : 'Without this, checkout will refuse to start. Stripe dashboard, Product, Pricing.'}
+          </p>
+
           {/* ── Pricing tier ── */}
           <div className={box}>
             <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--ds-brand)] mb-3">
@@ -339,6 +360,21 @@ export function PricingSetup() {
                         <option value="currency">Currency</option>
                         <option value="percentage">Percentage</option>
                       </select>
+                    </Field>
+
+                    {/* Seat and deal add-ons cannot be BOUGHT without this, which
+                        means the limits we enforce are dead ends until it is set. */}
+                    <Field label="Stripe price ID">
+                      <input
+                        defaultValue={a.stripe_price_id ?? ''}
+                        onBlur={(e) => {
+                          const v = e.target.value.trim();
+                          if (v !== (a.stripe_price_id ?? '')) void saveAddon(a, { stripe_price_id: v || null });
+                        }}
+                        placeholder="price_1AbCdEf"
+                        spellCheck={false}
+                        className={`${bare} font-mono`}
+                      />
                     </Field>
 
                     <Field label="Set Price">
