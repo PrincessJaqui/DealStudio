@@ -75,23 +75,29 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
               <button
                 onClick={() => setOpen(isOpen ? null : key)}
                 aria-expanded={isOpen}
-                className="w-full grid gap-4 md:grid-cols-[1fr_auto_1fr] items-center p-3.5 text-left hover:bg-[#fafbfc] transition-colors"
+                className="w-full grid gap-4 md:grid-cols-[1fr_auto_1fr] md:items-center p-3.5 text-left hover:bg-[#fafbfc] transition-colors"
               >
-                {/* Problem and solution each get their own card inside the group,
-                    so the pair reads as two things with something between them
-                    rather than one run-on row. */}
+                {/* Each body lives INSIDE its own card. It used to sit in a
+                    separate two-column row below both headers, which lines up on
+                    desktop but stacks on mobile as: problem title, arrow,
+                    solution title, problem body, solution body -- so the body was
+                    two cards away from the thing it described. */}
                 <span className="block min-w-0 rounded-xl border border-[#edf0f3] bg-[#fafbfc] p-3 text-center md:text-left">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-[#9ca3af] mb-0.5">
                     Problem
                   </span>
-                  <span className="block text-sm font-semibold text-[#191f1d] truncate">
+                  <span className="block text-sm font-semibold text-[#191f1d]">
                     {psHeader(p.problem, p.problem_title)}
                   </span>
+                  {isOpen && p.problem && (
+                    <span className="block mt-2 text-sm leading-relaxed text-[#4b5563] whitespace-pre-line">
+                      {p.problem}
+                    </span>
+                  )}
                 </span>
 
-                {/* The arrow is now the only affordance, so it carries the cue:
-                    it breathes until the pair is opened, then stops, on both
-                    mobile and desktop. */}
+                {/* The arrow carries the cue: it breathes until the pair is
+                    opened, then stops. Down on mobile, across on desktop. */}
                 <span
                   className={`mx-auto md:mx-2 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shrink-0 shadow-[0_2px_8px_-1px_rgba(12,16,34,0.35)] ${
                     isOpen ? '' : 'ds-ps-pulse'
@@ -105,27 +111,16 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-0.5">
                     Solution
                   </span>
-                  <span className="block text-sm font-semibold text-[#191f1d] truncate">
+                  <span className="block text-sm font-semibold text-[#191f1d]">
                     {psHeader(p.solution, p.solution_title)}
                   </span>
-                </span>
-
-              </button>
-
-              {isOpen && (
-                <div className="grid gap-3 md:grid-cols-2 px-3 pb-3">
-                  <div className="rounded-xl bg-[#f8f9fb] p-3.5">
-                    <p className="text-sm leading-relaxed text-[#4b5563] whitespace-pre-line">
-                      {p.problem}
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-[var(--ds-tint)] p-3.5">
-                    <p className="text-sm leading-relaxed text-[#4b5563] whitespace-pre-line">
+                  {isOpen && p.solution && (
+                    <span className="block mt-2 text-sm leading-relaxed text-[#4b5563] whitespace-pre-line">
                       {p.solution}
-                    </p>
-                  </div>
-                </div>
-              )}
+                    </span>
+                  )}
+                </span>
+              </button>
             </div>
           );
         })}
