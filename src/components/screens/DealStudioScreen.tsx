@@ -7,9 +7,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Presentation, Plus, ExternalLink, Copy, Check, Power, Users, FileText, Trash2, RefreshCw, UploadCloud, GripVertical, Globe, X, LogOut,
-} from 'lucide-react';
+import { Presentation, Plus, ExternalLink, Copy, Check, Power, Users, FileText, Trash2, RefreshCw, UploadCloud, GripVertical, Globe, X, LogOut, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { Switch } from '../ui/switch';
@@ -67,6 +65,7 @@ export function DealStudioScreen() {
   const [saving, setSaving] = useState(false);
   const [docModal, setDocModal] = useState<{ open: boolean; existing: DealDocument | null; deck?: boolean }>({ open: false, existing: null });
   const [sharedPw, setSharedPw] = useState('');
+  const [pwShown, setPwShown] = useState(false);
   // Whether the user has engaged the shared-password field this session. Until
   // they do, a field with an existing password shows a masked placeholder and
   // the Set button leaves it unchanged, so it can't be wiped by accident.
@@ -228,7 +227,7 @@ export function DealStudioScreen() {
     const r = await adminSetSharedPassword(room.slug, sharedPw || null);
     if (r.success) {
       toast.success(sharedPw ? 'Shared password set' : 'Shared password cleared');
-      setRoom(prev => prev ? { ...prev, shared_password_hash: sharedPw ? 'set' : null } : prev);
+      setRoom(prev => prev ? { ...prev, shared_password_hash: sharedPw ? 'set' : null, shared_password_plain: sharedPw || null } as any : prev);
       setSharedPw('');
       setPwTouched(false);
     }
@@ -548,26 +547,56 @@ export function DealStudioScreen() {
                 </div>
               </Card>
               <Card title="Shared room password">
-                <p className="text-xs text-[#7f8c85] mb-2">Optional single password any investor can use (in addition to per-investor approvals). Stored hashed.</p>
-                <div className={`flex items-center gap-2 mb-2 text-xs font-medium ${room.shared_password_hash ? 'text-[var(--ds-brand)]' : 'text-[#99a1af]'}`}>
+                <p className="text-xs text-[#7f8c85] mb-2">
+                  Optional single password any investor can use, alongside per-investor approvals.
+                </p>
+
+                <div className={`flex items-center gap-2 mb-2 text-xs font-medium ${room.shared_password_hash ? 'text-[var(--ds-accent-ink)]' : 'text-[#99a1af]'}`}>
                   {room.shared_password_hash ? <><Check className="w-4 h-4" /> Password is set</> : 'No password set'}
                 </div>
+
                 <div className="flex items-center gap-2">
-                  {(() => {
-                    const masked = !!room.shared_password_hash && !pwTouched;
-                    return (
-                      <input
-                        value={masked ? '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022' : sharedPw}
-                        onChange={e => setSharedPw(e.target.value)}
-                        onFocus={() => { if (masked) setPwTouched(true); }}
-                        readOnly={masked}
-                        type="text"
-                        placeholder={room.shared_password_hash ? 'Enter a new password (or leave blank to clear)' : 'Leave blank to clear'}
-                        className={`${inputCls} flex-1`}
-                      />
-                    );
-                  })()}
-                  <Button onClick={setShared} className="h-11 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]">Set</Button>
+                  <div className="relative flex-1">
+                    <input
+                      value={pwTouched ? sharedPw : ((room as any).shared_password_plain ?? '')}
+                      onChange={e => { setPwTouched(true); setSharedPw(e.target.value); }}
+                      onFocus={() => { if (!pwTouched) { setSharedPw((room as any).shared_password_plain ?? ''); setPwTouched(true); } }}
+                      type={pwShown ? 'text' : 'password'}
+                      placeholder="Leave blank to clear"
+                      className={`${inputCls} w-full pr-20`}
+                    />
+
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setPwShown(v => !v)}
+                        aria-label={pwShown ? 'Hide password' : 'Show password'}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-[#7f8c85] hover:text-[#191f1d] hover:bg-[#f5f6f8]"
+                      >
+                        {pwShown ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+
+                      {/* The point of a shared password is handing it to someone,
+                          so copying it should not mean selecting it by hand. */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const pw = pwTouched ? sharedPw : ((room as any).shared_password_plain ?? '');
+                          if (!pw) return;
+                          void navigator.clipboard.writeText(pw);
+                          toast.success('Password copied');
+                        }}
+                        aria-label="Copy password"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-[#7f8c85] hover:text-[#191f1d] hover:bg-[#f5f6f8]"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button onClick={setShared} className="h-11 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]">
+                    Set
+                  </Button>
                 </div>
               </Card>
               <Card title="Status">
