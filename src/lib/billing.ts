@@ -434,3 +434,16 @@ export async function adminPlatformStats(): Promise<PlatformStats | null> {
   if (error) return null;
   return (data as PlatformStats) ?? null;
 }
+
+/** Set a user's display name. Platform admins only, enforced in SQL. */
+export async function adminSetUserName(
+  userId: string,
+  name: string,
+): Promise<{ ok: boolean; name?: string | null; message?: string }> {
+  const { data, error } = await supabase.rpc('admin_set_user_name', {
+    p_user: userId,
+    p_name: name,
+  });
+  if (error) return { ok: false, message: error.message };
+  return (data ?? { ok: false }) as { ok: boolean; name?: string | null; message?: string };
+}

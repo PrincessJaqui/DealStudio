@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Loader2, DollarSign, Plus, Download, RefreshCw, Search, Check, X, Shield,
   ChevronUp, ChevronDown, Pencil, Mail, Link2 as LinkIcon, MoreVertical, Ban,
@@ -103,6 +104,28 @@ function UsersTab() {
   const [actPassword, setActPassword] = useState('');
   const [actName, setActName] = useState('');
   const [rowMenu, setRowMenu] = useState<string | null>(null);
+  const [menuAt, setMenuAt] = useState<{ top: number; right: number } | null>(null);
+
+  /** Open the row menu anchored to the button that was clicked.
+   *
+   *  The menu is rendered through a portal rather than inside the table. The
+   *  table scrolls horizontally, and CSS forces overflow-y to auto whenever
+   *  overflow-x is set -- so an absolutely-positioned menu inside it is CLIPPED
+   *  at the container's bottom edge. That is why the last row's menu could not
+   *  be seen. No amount of top/bottom tweaking fixes it; the menu has to leave
+   *  the container. */
+  const openRowMenu = (id: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    if (rowMenu === id) { setRowMenu(null); setMenuAt(null); return; }
+    const r = e.currentTarget.getBoundingClientRect();
+    const MENU_H = 210;
+    // Flip upward when there is not enough room below, so it never opens off-screen.
+    const below = window.innerHeight - r.bottom;
+    const top = below < MENU_H ? r.top - MENU_H - 4 : r.bottom + 6;
+    setMenuAt({ top: Math.max(8, top), right: window.innerWidth - r.right });
+    setRowMenu(id);
+  };
+
+  const closeRowMenu = () => { setRowMenu(null); setMenuAt(null); };
   const [newUserOpen, setNewUserOpen] = useState(false);
 
   /** Per-row credential actions. They act on the company's OWNER, which is the
@@ -319,7 +342,7 @@ function UsersTab() {
                             cutting a paying customer off mid-raise. It now lives
                             behind a deliberate menu. */}
                         <button
-                          onClick={() => setRowMenu(rowMenu === o.id ? null : o.id)}
+                          onClick={(e) => openRowMenu(o.id, e)}
                           aria-label={`Actions for ${o.name}`}
                           className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
                         >
@@ -328,12 +351,15 @@ function UsersTab() {
                             : <MoreVertical className="w-4 h-4" />}
                         </button>
 
-                        {rowMenu === o.id && (
+                        {rowMenu === o.id && menuAt && createPortal(
                           <>
-                            <div className="fixed inset-0 z-10" onClick={() => setRowMenu(null)} />
-                            <div className="absolute right-4 top-12 z-20 w-56 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.18)] p-1.5 text-left">
+                            <div className="fixed inset-0 z-[60]" onClick={closeRowMenu} />
+                            <div
+                              className="fixed z-[61] w-56 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.18)] p-1.5 text-left"
+                              style={{ top: menuAt.top, right: menuAt.right }}
+                            >
                               <button
-                                onClick={() => { setRowMenu(null); setEditing(o); }}
+                                onClick={() => { closeRowMenu(); setEditing(o); }}
                                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
                               >
                                 <Pencil className="w-4 h-4" /> Edit
@@ -341,7 +367,7 @@ function UsersTab() {
 
                               <button
                                 disabled={!o.owner_email}
-                                onClick={() => { setRowMenu(null); void rowReset(o); }}
+                                onClick={() => { closeRowMenu(); void rowReset(o); }}
                                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d] disabled:opacity-40"
                               >
                                 <Mail className="w-4 h-4" /> Send password reset
@@ -349,7 +375,7 @@ function UsersTab() {
 
                               <button
                                 disabled={!o.owner_email}
-                                onClick={() => { setRowMenu(null); void rowMagic(o); }}
+                                onClick={() => { closeRowMenu(); void rowMagic(o); }}
                                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d] disabled:opacity-40"
                               >
                                 <LinkIcon className="w-4 h-4" /> Resend sign-in link
@@ -358,7 +384,7 @@ function UsersTab() {
                               <div className="my-1 border-t border-[#edf0f3]" />
 
                               <button
-                                onClick={() => { setRowMenu(null); void act(o.id, { suspended: !o.suspended }); }}
+                                onClick={() => { closeRowMenu(); void act(o.id, { suspended: !o.suspended }); }}
                                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium ${
                                   o.suspended
                                     ? 'text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]'
@@ -369,7 +395,8 @@ function UsersTab() {
                                 {o.suspended ? 'Restore access' : 'Suspend'}
                               </button>
                             </div>
-                          </>
+                          </>,
+                          document.body,
                         )}
                       </td>
                     </tr>

@@ -68,7 +68,12 @@ export function PlatformDashboard() {
   if (!stats) {
     return (
       <div className={`${card} p-5`}>
-        <p className="text-sm text-[#7f8c85]">Could not load activity right now.</p>
+        <p className="font-bold text-[#191f1d]">Activity unavailable</p>
+        <p className="text-sm text-[#7f8c85] mt-1">
+          The platform stats function is not installed on the database. Run the
+          migration <span className="font-mono text-xs">0031_comped_and_dashboard.sql</span>{' '}
+          in the Supabase SQL editor and reload.
+        </p>
       </div>
     );
   }

@@ -10,7 +10,7 @@
 import { useState } from 'react';
 import { Loader2, X, Eye, EyeOff, Check } from 'lucide-react';
 import {
-  adminUpdateOrg, adminSetPassword, adminOrgAddons, adminSetOrgAddon, orgMonthlyTotal,
+  adminUpdateOrg, adminSetPassword, adminSetUserName, adminOrgAddons, adminSetOrgAddon, orgMonthlyTotal,
   type AdminOrg, type Plan, type OrgAddon,
 } from '../../lib/billing';
 import { useEffect } from 'react';
@@ -23,6 +23,20 @@ export function EditOrgDialog({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const [ownerName, setOwnerName] = useState(org.owner_name ?? '');
+  const [nameBusy, setNameBusy] = useState(false);
+  const [nameNote, setNameNote] = useState('');
+  const [nameOk, setNameOk] = useState(false);
+
+  const saveOwnerName = async () => {
+    if (!org.owner_id) return;
+    setNameBusy(true); setNameNote('');
+    const r = await adminSetUserName(org.owner_id, ownerName.trim());
+    setNameBusy(false);
+    setNameOk(r.ok);
+    setNameNote(r.ok ? 'Name saved to their account.' : (r.message || 'Could not save the name.'));
+  };
+
   const [suspended, setSuspended] = useState(org.suspended);
   const [comped, setComped] = useState(org.comped);
   const [planId, setPlanId] = useState(org.plan_id ?? '');
@@ -124,6 +138,34 @@ export function EditOrgDialog({
         <p className="text-sm text-[#7f8c85]">{org.owner_email ?? 'No owner'} · {org.deal_count} deal{org.deal_count === 1 ? '' : 's'}</p>
 
         <div className="mt-5 space-y-3">
+          {/* The owner's name, editable. A customer whose name is misspelled had
+              no way to fix it and neither did we -- nothing in the product could
+              write to it. This goes to their actual account, not a copy. */}
+          <div>
+            <label className={label}>Owner name</label>
+            <div className="flex gap-2">
+              <input
+                value={ownerName}
+                onChange={(e) => setOwnerName(e.target.value)}
+                placeholder={org.owner_email ? 'Their full name' : 'No owner on this company'}
+                disabled={!org.owner_id}
+                className={`${field} flex-1 disabled:opacity-50`}
+              />
+              <button
+                onClick={() => void saveOwnerName()}
+                disabled={!org.owner_id || nameBusy || ownerName.trim() === (org.owner_name ?? '')}
+                className="h-11 px-4 shrink-0 rounded-xl text-sm font-semibold text-white bg-[#191f1d] disabled:opacity-40"
+              >
+                Save
+              </button>
+            </div>
+            {nameNote && (
+              <p className={`mt-1.5 text-sm ${nameOk ? 'text-[var(--ds-accent-ink)]' : 'text-red-600'}`}>
+                {nameNote}
+              </p>
+            )}
+          </div>
+
           <div>
             <label className={label}>Plan</label>
             <select value={planId} onChange={(e) => setPlanId(e.target.value)} className={field}>

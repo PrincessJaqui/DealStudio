@@ -199,7 +199,7 @@ export function PricingSetup() {
       {error && <p className="text-sm text-red-600">{error}</p>}
       {note && <p className="text-sm text-[var(--ds-accent-ink)]">{note}</p>}
 
-      <div className="grid gap-4 xl:grid-cols-2 items-start">
+      <div className="grid gap-4 lg:grid-cols-2 items-start">
       {plans.map((p, i) => (
         <div key={p.id} className={card}>
           <div className="flex items-center gap-2 mb-4">
