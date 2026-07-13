@@ -1,28 +1,27 @@
 /**
- * CompetitionEditor — builds the comparison grid investors actually read.
+ * CompetitionEditor — the comparison card.
  *
- * Rows are the things being compared on; columns are the players. Exactly one
- * column can be marked as "you", and it is pinned first and highlighted, since
- * the entire point of the grid is the contrast against your own column.
+ * Everything is edited in place: click a label and type, click a cell to flip it
+ * between yes and no. There is no separate form, because the grid IS the form.
  *
- * The status-quo prompt is deliberate. A competitive grid that omits
- * spreadsheets, or doing nothing, reads as naive to anyone who has sat on the
- * other side of the table.
+ * Your own column is pinned first and filled with the brand gradient. The whole
+ * point of the card is the contrast against it, so it should not be possible to
+ * lose track of which column is yours.
  */
 
 import { useRef, useState } from 'react';
-import { Plus, Trash2, Check, X, Upload, Loader2, Star } from 'lucide-react';
+import { Plus, Trash2, Check, X, Pencil, Upload, Loader2 } from 'lucide-react';
 import {
   EMPTY_COMPETITION, newId,
   type DealCompetition, type DealCompetitor, type CompFeature,
 } from '../../lib/dealStudio';
 import { uploadOrgLogo } from '../../lib/org';
 
+const card =
+  'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]';
 const input =
   'w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm text-[#191f1d] placeholder:text-[#9ca3af] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
 const labelCls = 'text-xs font-semibold text-[#7f8c85] uppercase tracking-wider';
-const card =
-  'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
 
 export function CompetitionEditor({
   orgId,
@@ -37,11 +36,14 @@ export function CompetitionEditor({
   const features: CompFeature[] = Array.isArray(v.features) ? v.features : [];
   const rivals: DealCompetitor[] = Array.isArray(v.competitors) ? v.competitors : [];
   const [uploading, setUploading] = useState('');
-  const fileFor = useRef<string>('');
+  const nameRef = useRef<Record<string, HTMLInputElement | null>>({});
 
   const set = (patch: Partial<DealCompetition>) => onChange({ ...v, ...patch });
 
-  /* ── features (rows) ── */
+  // Your column first. Everything else keeps the order it was added in.
+  const cols = [...rivals].sort((a, b) => Number(!!b.is_you) - Number(!!a.is_you));
+
+  /* ── rows ── */
   const addFeature = () =>
     set({ features: [...features, { id: newId('f'), label: '' }] });
 
@@ -51,22 +53,26 @@ export function CompetitionEditor({
   const removeFeature = (id: string) =>
     set({
       features: features.filter(f => f.id !== id),
-      // Drop the marks for that row so they cannot linger as orphans.
       competitors: rivals.map(c => {
         const marks = { ...c.marks };
-        delete marks[id];
+        delete marks[id];   // do not leave orphan marks behind
         return { ...c, marks };
       }),
     });
 
-  /* ── competitors (columns) ── */
-  const addRival = (isYou = false) =>
+  /* ── columns ── */
+  const addRival = () => {
+    // The first column added is you, since a grid with no "you" has no point.
+    const isFirst = rivals.length === 0;
+    const id = newId('c');
     set({
       competitors: [
         ...rivals,
-        { id: newId('c'), name: isYou ? '' : '', segment: '', weakness: '', marks: {}, is_you: isYou },
+        { id, name: '', segment: '', weakness: '', marks: {}, is_you: isFirst },
       ],
     });
+    setTimeout(() => nameRef.current[id]?.focus(), 40);
+  };
 
   const setRival = (id: string, patch: Partial<DealCompetitor>) =>
     set({ competitors: rivals.map(c => (c.id === id ? { ...c, ...patch } : c)) });
@@ -74,7 +80,6 @@ export function CompetitionEditor({
   const removeRival = (id: string) =>
     set({ competitors: rivals.filter(c => c.id !== id) });
 
-  /** Only one column can be "you". */
   const markAsYou = (id: string) =>
     set({ competitors: rivals.map(c => ({ ...c, is_you: c.id === id })) });
 
@@ -88,10 +93,9 @@ export function CompetitionEditor({
     if (!file || !orgId) return;
     setUploading(rivalId);
     try {
-      const url = await uploadOrgLogo(orgId, file);
-      setRival(rivalId, { logo: url });
+      setRival(rivalId, { logo: await uploadOrgLogo(orgId, file) });
     } catch {
-      /* a failed logo must not block the grid */
+      /* a failed logo must never block the grid */
     } finally {
       setUploading('');
     }
@@ -99,7 +103,7 @@ export function CompetitionEditor({
 
   return (
     <div className="space-y-4">
-      <div className={card}>
+      <div className={`${card} p-5`}>
         <p className={labelCls}>Landscape</p>
         <textarea
           className={`${input} mt-2 min-h-[80px] resize-y`}
@@ -109,114 +113,110 @@ export function CompetitionEditor({
         />
       </div>
 
-      {/* ── The grid ── */}
-      <div className={card}>
-        <div className="flex items-center gap-3 mb-1">
-          <div>
-            <p className={labelCls}>Comparison grid</p>
-            <p className="text-xs text-[#9ca3af] mt-1">
-              Rows are what you compete on. Columns are the players. Include the status quo
-              (spreadsheets, doing nothing): leaving it out reads as naive.
+      {/* ── The comparison card ── */}
+      <div className={`${card} overflow-hidden`}>
+        <div className="flex items-center gap-3 p-5 pb-4">
+          <div className="min-w-0">
+            <h3 className="font-bold text-[#191f1d]">Competitive Analysis</h3>
+            <p className="text-sm text-[#7f8c85]">
+              Click any label to edit. Click a cell to switch it on or off.
             </p>
           </div>
-          <div className="ml-auto flex gap-2">
-            <button
-              onClick={addFeature}
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm font-medium text-[#191f1d] hover:bg-[#f5f6f8]"
-            >
-              <Plus className="w-4 h-4" /> Row
-            </button>
-            <button
-              onClick={() => addRival(rivals.length === 0)}
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]"
-            >
-              <Plus className="w-4 h-4" /> Player
-            </button>
-          </div>
+          <button
+            onClick={addRival}
+            className="ml-auto shrink-0 inline-flex items-center gap-1.5 h-10 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]"
+          >
+            <Plus className="w-4 h-4" /> Add New Competitor
+          </button>
         </div>
 
-        {rivals.length === 0 || features.length === 0 ? (
-          <div className="rounded-xl bg-[#f5f6f8] border border-[#edf0f3] p-8 text-center mt-4">
+        {cols.length === 0 ? (
+          <div className="px-5 pb-8 pt-2 text-center">
             <p className="text-sm text-[#9ca3af]">
-              Add at least one row and one player to build the grid.
+              Add a competitor to start. The first one you add is you.
             </p>
           </div>
         ) : (
-          <div className="mt-4 overflow-x-auto">
+          <div className="overflow-x-auto">
             <table className="w-full border-separate border-spacing-0 text-sm">
               <thead>
                 <tr>
-                  <th className="sticky left-0 z-10 bg-white text-left p-2 min-w-[180px]" />
-                  {rivals.map(c => (
-                    <th key={c.id} className="p-2 min-w-[150px] align-bottom">
-                      <div
-                        className={`rounded-xl p-3 ${
-                          c.is_you
-                            ? 'bg-[var(--ds-accent-tint)] border border-[var(--ds-accent)]'
-                            : 'bg-[#f5f6f8] border border-[#edf0f3]'
-                        }`}
-                      >
-                        <div className="flex items-start gap-1">
-                          <div className="h-9 w-9 shrink-0 rounded-full overflow-hidden bg-white border border-[#edf0f3] flex items-center justify-center">
-                            {c.logo
-                              ? <img src={c.logo} alt="" className="h-full w-full object-cover" />
-                              : <span className="text-[10px] font-bold text-[#c7cdd4]">
-                                  {(c.name || '?').slice(0, 2).toUpperCase()}
-                                </span>}
-                          </div>
+                  <th className="w-[220px] min-w-[190px] bg-[#f8f9fb] border-b border-[#edf0f3]" />
+
+                  {cols.map(c => (
+                    <th
+                      key={c.id}
+                      className={`min-w-[170px] p-4 align-top border-b border-[#edf0f3] ${
+                        c.is_you
+                          ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]'
+                          : 'bg-[#f8f9fb]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        {/* The logo is optional. The circle is the upload target. */}
+                        <label
+                          title="Upload logo"
+                          className={`h-7 w-7 shrink-0 rounded-full overflow-hidden flex items-center justify-center cursor-pointer ${
+                            c.is_you ? 'bg-white/20' : 'bg-white border border-[#edf0f3]'
+                          }`}
+                        >
+                          {uploading === c.id ? (
+                            <Loader2 className={`w-3 h-3 animate-spin ${c.is_you ? 'text-white' : 'text-[#9ca3af]'}`} />
+                          ) : c.logo ? (
+                            <img src={c.logo} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <Upload className={`w-3 h-3 ${c.is_you ? 'text-white/70' : 'text-[#c7cdd4]'}`} />
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => { void pickLogo(c.id, e.target.files?.[0]); e.currentTarget.value = ''; }}
+                          />
+                        </label>
+
+                        <input
+                          ref={(el) => { nameRef.current[c.id] = el; }}
+                          value={c.name}
+                          onChange={(e) => setRival(c.id, { name: e.target.value })}
+                          placeholder="Competitor"
+                          className={`min-w-0 flex-1 bg-transparent text-center text-[15px] font-bold outline-none rounded-lg px-1 py-0.5 ${
+                            c.is_you
+                              ? 'text-white placeholder:text-white/50 focus:bg-white/15'
+                              : 'text-[#191f1d] placeholder:text-[#c7cdd4] focus:bg-white'
+                          }`}
+                        />
+
+                        {!c.is_you && (
                           <button
                             onClick={() => removeRival(c.id)}
-                            aria-label="Remove player"
-                            className="ml-auto w-7 h-7 rounded-lg flex items-center justify-center text-[#7f8c85] hover:text-red-600 hover:bg-red-50"
+                            aria-label="Remove competitor"
+                            className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center text-[#c7cdd4] hover:text-red-600 hover:bg-red-50"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                        </div>
-
-                        <input
-                          className="w-full mt-2 bg-white rounded-lg px-2 py-1.5 text-sm font-semibold text-[#191f1d] outline-none"
-                          value={c.name}
-                          onChange={(e) => setRival(c.id, { name: e.target.value })}
-                          placeholder="Name"
-                        />
-                        <input
-                          className="w-full mt-1 bg-white rounded-lg px-2 py-1 text-xs text-[#191f1d] outline-none"
-                          value={c.url ?? ''}
-                          onChange={(e) => setRival(c.id, { url: e.target.value.trim() })}
-                          placeholder="Website (optional)"
-                        />
-
-                        <div className="flex items-center gap-1 mt-1.5">
-                          <label
-                            className={`flex-1 inline-flex items-center justify-center gap-1 h-7 rounded-lg bg-white border border-[#edf0f3] text-[11px] font-medium text-[#7f8c85] ${
-                              uploading === c.id ? 'opacity-60' : 'cursor-pointer hover:bg-[#f5f6f8]'
-                            }`}
-                          >
-                            {uploading === c.id
-                              ? <Loader2 className="w-3 h-3 animate-spin" />
-                              : <Upload className="w-3 h-3" />}
-                            Logo
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => { void pickLogo(c.id, e.target.files?.[0]); e.currentTarget.value = ''; }}
-                            />
-                          </label>
-
-                          <button
-                            onClick={() => markAsYou(c.id)}
-                            title="This is us"
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center border ${
-                              c.is_you
-                                ? 'bg-[var(--ds-accent)] border-[var(--ds-accent)] text-[var(--ds-on-accent)]'
-                                : 'bg-white border-[#edf0f3] text-[#c7cdd4] hover:text-[var(--ds-accent-ink)]'
-                            }`}
-                          >
-                            <Star className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                        )}
                       </div>
+
+                      <input
+                        value={c.url ?? ''}
+                        onChange={(e) => setRival(c.id, { url: e.target.value.trim() })}
+                        placeholder="www.website.com"
+                        className={`w-full mt-2 rounded-lg px-2 py-1.5 text-xs text-center outline-none ${
+                          c.is_you
+                            ? 'bg-transparent text-white/90 placeholder:text-white/50 focus:bg-white/15'
+                            : 'bg-white border border-[#edf0f3] text-[#191f1d] placeholder:text-[#c7cdd4]'
+                        }`}
+                      />
+
+                      {!c.is_you && (
+                        <button
+                          onClick={() => markAsYou(c.id)}
+                          className="mt-1.5 w-full text-[11px] font-semibold text-[#9ca3af] hover:text-[var(--ds-accent-ink)]"
+                        >
+                          This is us
+                        </button>
+                      )}
                     </th>
                   ))}
                 </tr>
@@ -224,36 +224,43 @@ export function CompetitionEditor({
 
               <tbody>
                 {features.map((f, i) => (
-                  <tr key={f.id} className={i % 2 ? 'bg-[#fafbfc]' : ''}>
-                    <td className="sticky left-0 z-10 bg-inherit p-2">
-                      <div className="flex items-center gap-1">
+                  <tr key={f.id} className={i % 2 ? 'bg-[#f8f9fb]' : 'bg-white'}>
+                    <td className="p-3 pl-5 border-b border-[#f2f4f6]">
+                      <div className="group flex items-center gap-1">
                         <input
-                          className="flex-1 bg-[#f5f6f8] rounded-lg px-2 py-1.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
                           value={f.label}
                           onChange={(e) => setFeature(f.id, e.target.value)}
-                          placeholder="What you compete on"
+                          placeholder={`Feature ${i + 1}`}
+                          className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[#191f1d] placeholder:text-[#c7cdd4] outline-none rounded-lg px-1.5 py-1 focus:bg-white focus:ring-2 focus:ring-[var(--ds-brand)]/25"
                         />
+                        <Pencil className="w-3.5 h-3.5 shrink-0 text-[#c7cdd4]" />
                         <button
                           onClick={() => removeFeature(f.id)}
-                          aria-label="Remove row"
-                          className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-[#7f8c85] hover:text-red-600 hover:bg-red-50"
+                          aria-label="Remove feature"
+                          className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center text-transparent group-hover:text-[#c7cdd4] hover:bg-red-50"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
 
-                    {rivals.map(c => {
+                    {cols.map(c => {
                       const on = !!c.marks?.[f.id];
                       return (
-                        <td key={c.id} className="p-2 text-center">
+                        <td
+                          key={c.id}
+                          className={`p-3 text-center border-b border-[#f2f4f6] ${
+                            c.is_you ? 'bg-[var(--ds-accent-tint)]' : ''
+                          }`}
+                        >
                           <button
                             onClick={() => toggleMark(c.id, f.id)}
-                            aria-label={on ? 'Has it' : 'Does not have it'}
-                            className={`w-8 h-8 rounded-full inline-flex items-center justify-center transition ${
+                            aria-label={on ? 'Yes' : 'No'}
+                            title={on ? 'Yes. Click to switch off.' : 'No. Click to switch on.'}
+                            className={`w-8 h-8 rounded-full inline-flex items-center justify-center transition hover:scale-110 ${
                               on
-                                ? 'bg-[var(--ds-accent)] text-[var(--ds-on-accent)]'
-                                : 'bg-[#eef0f3] text-[#9ca3af] hover:bg-[#e4e7eb]'
+                                ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shadow-sm'
+                                : 'bg-[#fdeaea] text-[#e05252]'
                             }`}
                           >
                             {on ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
@@ -265,11 +272,18 @@ export function CompetitionEditor({
                 ))}
               </tbody>
             </table>
+
+            <button
+              onClick={addFeature}
+              className="inline-flex items-center gap-1.5 m-4 text-sm font-semibold text-[var(--ds-brand)] hover:underline"
+            >
+              <Plus className="w-4 h-4" /> Add more features
+            </button>
           </div>
         )}
       </div>
 
-      <div className={card}>
+      <div className={`${card} p-5`}>
         <p className={labelCls}>Your edge</p>
         <p className="text-xs text-[#9ca3af] mt-1 mb-2">
           Why you win, stated plainly. Investors discount claims they cannot check.

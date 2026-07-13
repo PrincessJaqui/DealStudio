@@ -145,8 +145,8 @@ export function CompetitionSection({ value }: { value: DealCompetition }) {
                       <div
                         className={`rounded-xl px-3 py-3 ${
                           c.is_you
-                            ? 'bg-[var(--ds-accent-tint)] border border-[var(--ds-accent)]'
-                            : 'border border-transparent'
+                            ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]'
+                            : 'bg-[#f8f9fb]'
                         }`}
                       >
                         <div className="h-10 w-10 mx-auto rounded-full overflow-hidden bg-[#f5f6f8] border border-[#edf0f3] flex items-center justify-center">
@@ -157,13 +157,13 @@ export function CompetitionSection({ value }: { value: DealCompetition }) {
                               </span>}
                         </div>
 
-                        <p className="mt-2 text-sm font-bold text-[#191f1d] leading-tight">
+                        <p className={`mt-2 text-sm font-bold leading-tight ${c.is_you ? 'text-white' : 'text-[#191f1d]'}`}>
                           {c.url ? (
                             <a
                               href={/^https?:\/\//i.test(c.url) ? c.url : `https://${c.url}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 hover:text-[var(--ds-accent-ink)]"
+                              className={`inline-flex items-center gap-1 ${c.is_you ? 'hover:text-white/80' : 'hover:text-[var(--ds-accent-ink)]'}`}
                             >
                               {c.name}
                               <ExternalLink className="w-3 h-3 shrink-0" />
@@ -172,7 +172,9 @@ export function CompetitionSection({ value }: { value: DealCompetition }) {
                         </p>
 
                         {c.segment && (
-                          <p className="text-[11px] text-[#9ca3af] mt-0.5">{c.segment}</p>
+                          <p className={`text-[11px] mt-0.5 ${c.is_you ? 'text-white/70' : 'text-[#9ca3af]'}`}>
+                            {c.segment}
+                          </p>
                         )}
                       </div>
                     </th>
@@ -182,17 +184,20 @@ export function CompetitionSection({ value }: { value: DealCompetition }) {
 
               <tbody>
                 {features.map((f, i) => (
-                  <tr key={f.id} className={i % 2 ? 'bg-[#fafbfc]' : ''}>
+                  <tr key={f.id} className={i % 2 ? 'bg-[#f8f9fb]' : ''}>
                     <td className="p-3 font-medium text-[#191f1d] align-middle">{f.label}</td>
                     {cols.map(c => {
                       const on = !!c.marks?.[f.id];
                       return (
-                        <td key={c.id} className="p-3 text-center align-middle">
+                        <td
+                          key={c.id}
+                          className={`p-3 text-center align-middle ${c.is_you ? 'bg-[var(--ds-accent-tint)]' : ''}`}
+                        >
                           <span
-                            className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${
+                            className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${
                               on
-                                ? 'bg-[var(--ds-accent)] text-[var(--ds-on-accent)]'
-                                : 'bg-[#eef0f3] text-[#b6bcc4]'
+                                ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'
+                                : 'bg-[#fdeaea] text-[#e05252]'
                             }`}
                           >
                             {on ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
