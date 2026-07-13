@@ -69,12 +69,16 @@ body {
   0%, 100% { transform: scale(1); }
   50%      { transform: scale(1.045); }
 }
+@keyframes dsPulseScaleLoop {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.022); }
+}
 @keyframes dsBarGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 .ds-pulse { outline: 2px solid rgba(var(--ds-pulse-rgb),0); }
 .ds-animate .ds-pulse { animation: dsPulseRing 1.5s ease-in-out 2; }
 .ds-pulse-pie { transform-origin: center; }
-.ds-animate .ds-pulse-pie { animation: dsPulseScale 1.4s ease-in-out 2; }
+.ds-animate .ds-pulse-pie { animation: dsPulseScaleLoop 2.6s ease-in-out infinite; }
 .ds-bar { transform-origin: left center; transform: scaleX(0); }
 .ds-animate .ds-bar { animation: dsBarGrow 0.9s ease-out forwards; }
 .ds-card { transition: transform 0.18s ease, box-shadow 0.18s ease; }
@@ -91,6 +95,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .ds-bar { transform: scaleX(1); }
   .ds-animate .ds-pulse, .ds-animate .ds-pulse-pie, .ds-animate .ds-bar, .ds-animate .ds-card { animation: none; }
+  .ds-pulse-pie { transform: scale(1); }
 }
 
 

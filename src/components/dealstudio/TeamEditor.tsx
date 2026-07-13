@@ -9,6 +9,7 @@ import { Plus, Trash2, ArrowUp, ArrowDown, UploadCloud, Image as ImageIcon, File
 import { RichTextEditor } from '../RichTextEditor';
 import { toast } from 'sonner@2.0.3';
 import { uploadDealFile } from '../../lib/dealStudio';
+import { LogoCropper } from './LogoCropper';
 import type { DealTeamMember, DealSource } from '../../lib/dealStudio';
 
 const card = 'rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
@@ -89,6 +90,10 @@ function LinkList({ links, onChange }: { links: DealSource[]; onChange: (l: Deal
 export function TeamEditor({ value, onChange }: { value: DealTeamMember[] | null | undefined; onChange: (t: DealTeamMember[]) => void }) {
   const team: DealTeamMember[] = Array.isArray(value) ? value.map(x => ({ ...EMPTY_MEMBER, ...x })) : [];
   const [uploading, setUploading] = useState<Record<number, boolean>>({});
+  // A picked photo is cropped to a square before it is uploaded. Head-and-
+  // shoulders photos arrive at every aspect ratio, and an un-cropped one makes
+  // the team row look broken.
+  const [crop, setCrop] = useState<{ index: number; file: File } | null>(null);
   const [resumeUploading, setResumeUploading] = useState<Record<number, boolean>>({});
   const setMember = (i: number, patch: Partial<DealTeamMember>) => onChange(team.map((mm, j) => j === i ? { ...mm, ...patch } : mm));
   const move = (i: number, dir: -1 | 1) => {
@@ -97,7 +102,8 @@ export function TeamEditor({ value, onChange }: { value: DealTeamMember[] | null
   };
 
   return (
-    <div className="space-y-4">
+    <>
+      <div className="space-y-4">
       <div className={card}>
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-[#191f1d]">Team members</span>
@@ -132,13 +138,7 @@ export function TeamEditor({ value, onChange }: { value: DealTeamMember[] | null
             <PhotoField
               url={m.photo_url}
               uploading={!!uploading[i]}
-              onPick={async (file) => {
-                setUploading(u => ({ ...u, [i]: true }));
-                const r = await uploadDealFile(file);
-                setUploading(u => ({ ...u, [i]: false }));
-                if (r) setMember(i, { photo_url: r.url });
-                else toast.error('Photo upload failed');
-              }}
+              onPick={(file) => setCrop({ index: i, file })}
               onClear={() => setMember(i, { photo_url: '' })}
             />
             <div><label className={labelCls}>Bio</label><div className="mt-1"><RichTextEditor value={m.bio} onChange={(html) => setMember(i, { bio: html })} placeholder="Short bio." /></div></div>
@@ -160,6 +160,24 @@ export function TeamEditor({ value, onChange }: { value: DealTeamMember[] | null
           </div>
         </div>
       ))}
-    </div>
+      </div>
+
+      {crop && (
+        <LogoCropper
+          file={crop.file}
+          onCancel={() => setCrop(null)}
+          onCropped={async (blob) => {
+            const i = crop.index;
+            setCrop(null);
+            setUploading(u => ({ ...u, [i]: true }));
+            const file = new File([blob], 'photo.png', { type: 'image/png' });
+            const r = await uploadDealFile(file);
+            setUploading(u => ({ ...u, [i]: false }));
+            if (r) setMember(i, { photo_url: r.url });
+            else toast.error('Photo upload failed');
+          }}
+        />
+      )}
+    </>
   );
 }
