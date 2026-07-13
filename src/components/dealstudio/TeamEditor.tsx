@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { Plus, Trash2, ArrowUp, ArrowDown, UploadCloud, Image as ImageIcon, FileText } from 'lucide-react';
 import { RichTextEditor } from '../RichTextEditor';
 import { toast } from 'sonner@2.0.3';
-import { uploadDealFile } from '../../lib/dealStudio';
+import { uploadDealFile, PHOTO_RATIO } from '../../lib/dealStudio';
 import { LogoCropper } from './LogoCropper';
 import type { DealTeamMember, DealSource } from '../../lib/dealStudio';
 
@@ -141,6 +141,39 @@ export function TeamEditor({ value, onChange }: { value: DealTeamMember[] | null
               onPick={(file) => setCrop({ index: i, file })}
               onClear={() => setMember(i, { photo_url: '' })}
             />
+
+            {/* Shape. The width in the investor view never changes -- the ratio
+                changes the height -- so a row of cards keeps a straight edge
+                whatever each founder picks. */}
+            <div>
+              <label className={labelCls}>Photo shape</label>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                {(['1x1', '2x3', '9x16'] as const).map(r => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setMember(i, { photo_ratio: r })}
+                    className={`h-8 px-3 rounded-lg text-xs font-semibold border transition ${
+                      (m.photo_ratio ?? '1x1') === r
+                        ? 'bg-[var(--ds-tint)] text-[var(--ds-brand)] border-[var(--ds-brand)]/30'
+                        : 'bg-white text-[#7f8c85] border-[#edf0f3] hover:text-[#191f1d]'
+                    }`}
+                  >
+                    {PHOTO_RATIO[r].label}
+                  </button>
+                ))}
+
+                <label className="ml-auto inline-flex items-center gap-2 text-xs font-semibold text-[#7f8c85] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={m.photo_ring !== false}
+                    onChange={(e) => setMember(i, { photo_ring: e.target.checked })}
+                    className="accent-[var(--ds-brand)]"
+                  />
+                  Ring and shadow
+                </label>
+              </div>
+            </div>
             <div><label className={labelCls}>Bio</label><div className="mt-1"><RichTextEditor value={m.bio} onChange={(html) => setMember(i, { bio: html })} placeholder="Short bio." /></div></div>
             <ResumeField
               url={m.resume_url || ''}

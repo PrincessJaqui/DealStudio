@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { EditOrgDialog } from '../dealstudio/EditOrgDialog';
 import { PlatformDashboard } from '../dealstudio/PlatformDashboard';
+import { PillTabs } from '../dealstudio/PillTabs';
 import { PricingSetup } from '../dealstudio/PricingSetup';
 import {
   adminListOrgs, adminUpdateOrg, adminListTransactions, adminListPlans, savePlan,
@@ -62,21 +63,12 @@ export function MasterAdminScreen() {
         <p className="text-sm text-[#7f8c85]">Master Admin</p>
       </div>
 
-      <div className={`${card} !rounded-full p-1.5 inline-flex gap-1 mb-5`}>
-        {(['users', 'plans', 'transactions'] as const).map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-6 py-1.5 rounded-full text-sm font-medium capitalize transition ${
-              tab === t
-                ? 'bg-gradient-to-r from-[var(--ds-accent)] to-[var(--ds-accent-to)] text-[var(--ds-on-accent)]'
-                : 'text-[#7f8c85] hover:text-[#191f1d]'
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+      <PillTabs
+        tabs={[['users', 'Users'], ['plans', 'Plans'], ['transactions', 'Transactions']] as const}
+        value={tab}
+        onChange={setTab}
+        hintKey="master"
+      />
 
       {tab === 'users' ? <UsersTab />
         : tab === 'plans' ? <PricingSetup />

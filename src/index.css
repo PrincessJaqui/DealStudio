@@ -212,3 +212,10 @@ input[type='number'] {
 @media (min-width: 430px) {
   .ds-two-col-early { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Horizontal scroll rail: quiet, and no scrollbar eating the pill bar's height. */
+.ds-scroll-x {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.ds-scroll-x::-webkit-scrollbar { display: none; }

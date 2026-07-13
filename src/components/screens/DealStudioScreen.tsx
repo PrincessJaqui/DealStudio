@@ -27,6 +27,7 @@ import dsMark from '../../assets/dealstudio-mark.png';
 import { DealDocViewer } from '../dealstudio/DealDocViewer';
 import { DealFlow } from '../dealstudio/DealFlow';
 import { DealPeople } from '../dealstudio/DealPeople';
+import { PillTabs } from '../dealstudio/PillTabs';
 import { MarketEditor } from '../dealstudio/MarketEditor';
 import { ValuePropEditor } from '../dealstudio/ValuePropEditor';
 import { ProblemSolutionEditor } from '../dealstudio/ProblemSolutionEditor';
@@ -519,24 +520,25 @@ export function DealStudioScreen() {
         {/* Left: tabs + content */}
         <div className="min-w-0">
           <Tabs value={tab} onValueChange={setTab}>
-            <div className="mb-4 max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <TabsList className="bg-[#f5f7f9] border border-[#edf0f3] rounded-2xl p-1 gap-1 inline-flex">
-                {(() => {
-                  // One list drives the tabs and the investor room, so the admin
-                  // can never show a different order from the one investors read.
-                  const mid = resolveSectionOrder((room as any).section_order)
-                    .map(k => [k, SECTION_LABELS[k]] as [string, string]);
-                  return [
-                    ['details', 'Details'] as [string, string],
-                    ...mid,
-                    ['dealflow', 'Deal Flow'] as [string, string],
-                    ['settings', 'Settings'] as [string, string],
-                  ];
-                })().map(([t, label]) => (
-                  <TabsTrigger key={t} value={t} className="shrink-0 whitespace-nowrap rounded-xl px-4 py-1.5 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--ds-accent)] data-[state=active]:to-[var(--ds-accent-to)] data-[state=active]:text-[var(--ds-on-accent)] text-[#7f8c85]">{label}</TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
+            {/* Deal Studio has more tabs than fit on a phone, and nothing said the
+                bar scrolls. PillTabs nudges it once, on the first visit. */}
+            <PillTabs
+              tabs={(() => {
+                // One list drives the tabs and the investor room, so the admin
+                // can never show a different order from the one investors read.
+                const mid = resolveSectionOrder((room as any).section_order)
+                  .map(k => [k, SECTION_LABELS[k]] as [string, string]);
+                return [
+                  ['details', 'Details'] as [string, string],
+                  ...mid,
+                  ['dealflow', 'Deal Flow'] as [string, string],
+                  ['settings', 'Settings'] as [string, string],
+                ];
+              })()}
+              value={tab}
+              onChange={setTab}
+              hintKey="dealstudio"
+            />
 
             {/* MARKET */}
             <TabsContent value="articles" className="space-y-4">

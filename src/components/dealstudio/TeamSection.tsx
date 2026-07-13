@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { ArrowUpRight, FileText } from 'lucide-react';
 import { RichTextRenderer } from '../RichTextEditor';
-import type { DealTeamMember } from '../../lib/dealStudio';
+import { PHOTO_RATIO, type DealTeamMember } from '../../lib/dealStudio';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 
 function initials(name: string) {
@@ -18,10 +18,21 @@ function MemberCard({ m }: { m: DealTeamMember }) {
   const longBio = (m.bio || '').length > 120;
   return (
     <div className="ds-pulse ds-card flex items-stretch gap-4 rounded-xl border border-[#edf0f3] bg-white p-4">
-      {/* Circle, fixed size. Self-stretch let the bio's length drive the height,
-          which made the box tall and narrow and cropped the subject's head.
-          Avatars are circles throughout the app. */}
-      <div className="h-28 w-28 shrink-0 self-start overflow-hidden rounded-full bg-[#f5f6f8] flex items-center justify-center">
+      {/* Fixed WIDTH, ratio drives the height. Keeping the width constant means a
+          row of cards still lines up down the left edge whatever ratio each
+          founder picked; letting the width vary would stagger the whole column.
+          The ring matches the logo treatment and can be turned off. */}
+      <div
+        className={`w-28 shrink-0 self-start overflow-hidden bg-[#f5f6f8] flex items-center justify-center ${
+          PHOTO_RATIO[m.photo_ratio ?? '1x1'].cls
+        } ${
+          (m.photo_ratio ?? '1x1') === '1x1' ? 'rounded-full' : 'rounded-2xl'
+        } ${
+          m.photo_ring === false
+            ? ''
+            : 'ring-2 ring-white shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)]'
+        }`}
+      >
         {m.photo_url
           ? <img
               src={m.photo_url}

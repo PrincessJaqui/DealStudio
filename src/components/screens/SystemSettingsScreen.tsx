@@ -10,7 +10,8 @@ import { Loader2, Check, Upload, Trash2, Image as ImageIcon, Eye, EyeOff } from 
 import { supabase } from '../../lib/supabase';
 import { useAdminAuth } from '../dealstudio/AdminGate';
 import { TeamMembers } from '../dealstudio/TeamMembers';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
+import { Tabs, TabsContent } from '../ui/tabs';
+import { PillTabs } from '../dealstudio/PillTabs';
 import { LogoCropper } from '../dealstudio/LogoCropper';
 import { saveOrgBranding, uploadOrgLogo, renameOrg, setOrgHandle } from '../../lib/org';
 
@@ -185,12 +186,14 @@ export function SystemSettingsScreen() {
       {/* Settings split into tabs. It was one long scroll where a password field
           sat below team management below the company name, and nothing told you
           the page had more on it. */}
+      <PillTabs
+        tabs={[['identity', 'Identity'], ['team', 'Team'], ['security', 'Security']] as const}
+        value={tab}
+        onChange={setTab}
+        hintKey="settings"
+      />
+
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="mb-5">
-          <TabsTrigger value="identity">Identity</TabsTrigger>
-          <TabsTrigger value="team">Team</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-        </TabsList>
 
         <TabsContent value="identity" className="space-y-5">
         <div className={card}>

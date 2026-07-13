@@ -172,7 +172,25 @@ export interface DealMarket {
   articlesTextOnly?: boolean;
   businessModel?: DealBusinessModel;
 }
-export interface DealTeamMember { name: string; role: string; bio: string; photo_url: string; links: DealSource[]; resume_url?: string; resume_name?: string; }
+/** How a team photo is framed. Width stays fixed in the investor view; the
+ *  ratio changes the HEIGHT, so a row of cards keeps a straight left edge. */
+export type PhotoRatio = '1x1' | '2x3' | '9x16';
+
+export interface DealTeamMember {
+  name: string; role: string; bio: string; photo_url: string;
+  links: DealSource[]; resume_url?: string; resume_name?: string;
+  /** Default 1x1. */
+  photo_ratio?: PhotoRatio;
+  /** The white ring and shadow, matching the logo treatment. On by default;
+   *  a square headshot on a dark background can look better without it. */
+  photo_ring?: boolean;
+}
+
+export const PHOTO_RATIO: Record<PhotoRatio, { label: string; cls: string }> = {
+  '1x1':  { label: '1 : 1',  cls: 'aspect-square' },
+  '2x3':  { label: '2 : 3',  cls: 'aspect-[2/3]' },
+  '9x16': { label: '9 : 16', cls: 'aspect-[9/16]' },
+};
 
 export const EMPTY_BUSINESS_MODEL: DealBusinessModel = { revenues: [], annualGrowthRate: 0 };
 
