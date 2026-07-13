@@ -30,7 +30,7 @@ function MemberCard({ m }: { m: DealTeamMember }) {
         } ${
           m.photo_ring === false
             ? ''
-            : 'ring-4 ring-white shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)]'
+            : 'ring-8 ring-white shadow-[0_6px_18px_-3px_rgba(12,16,34,0.26)]'
         }`}
       >
         {m.photo_url
