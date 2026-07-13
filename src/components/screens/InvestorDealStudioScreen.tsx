@@ -113,6 +113,39 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
 
   const SLUG = resolvedSlug ?? '';
 
+  /**
+   * The sticky sidebar's height, measured rather than guessed.
+   *
+   * Every hard-coded version of this was wrong, and had to be: the panel's real
+   * top depends on whether the draft banner is showing, and on whether you have
+   * scrolled far enough for the header to be the only thing above it. A height of
+   * calc(100vh - 92px) is correct in exactly one of those situations and hangs
+   * off the bottom of the screen in the rest, taking the calendar with it.
+   *
+   * So: measure where the panel actually starts, and make it exactly as tall as
+   * the space left below it. It ends at the bottom of the screen every time.
+   */
+  const sideRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sideRef.current;
+    if (!el) return;
+
+    const fit = () => {
+      // Below lg the sidebar is not sticky and must keep its natural height.
+      if (window.innerWidth < 1024) { el.style.height = ''; return; }
+      const top = el.getBoundingClientRect().top;
+      el.style.height = `${Math.max(280, window.innerHeight - top - 16)}px`;
+    };
+
+    fit();
+    window.addEventListener('scroll', fit, { passive: true });
+    window.addEventListener('resize', fit);
+    return () => {
+      window.removeEventListener('scroll', fit);
+      window.removeEventListener('resize', fit);
+    };
+  }, []);
+
   // The live committed total. Null unless the founder chose to show it.
   const [committed, setCommitted] = useState<number | null>(null);
   useEffect(() => {
@@ -497,32 +530,17 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
 
         </div>
 
-        {/* Right rail (flattens into the grid on mobile via display:contents) */}
-        {/* The side column scrolls on its own, under the header.
- 
-            top-[68px], NOT top-6. PublicHeader is `sticky top-0` and exactly 68px
-            tall, so anything pinned higher than that slides UNDERNEATH it and the
-            top of the sidebar becomes unreachable. The number is the header's
-            height; if the header ever changes height, this changes with it.
- 
-            h-[calc(100vh-68px)], not max-h. max-h only caps a column that is
-            already tall, so a short sidebar never reached the bottom of the
-            screen. A fixed height fills exactly the space below the header.
- 
-            overflow-y-auto gives it its own scroll container: sticky alone pins
-            the sidebar and leaves anything past the fold unreachable.
-            overscroll-contain stops the page lurching when it hits its end.
- 
-            On mobile all of this is off: the column flattens into the single
-            stack via display:contents. */}
-        {/* The numbers have to agree, and they did not. The header is 68px and the
-            grid adds 24px of padding, so the sidebar's natural top is 92px -- but
-            it was given calc(100vh - 68px) of height, which put its bottom 24px
-            BELOW the fold. The calendar was hanging off the screen.
+        {/* Right rail. Flattens into the grid on mobile via display:contents.
 
-            top and height now use the same 92px, so the panel ends exactly at the
-            bottom of the screen whether it is stuck or not. */}
-        <div className="contents lg:block lg:self-start lg:space-y-6 lg:sticky lg:top-[92px] lg:h-[calc(100vh-92px)] lg:overflow-y-auto lg:overscroll-contain ds-scroll-y">
+            The height is set in JS, not here. Every hard-coded calc() was wrong
+            for at least one state: the panel's real top moves depending on the
+            draft banner and on how far you have scrolled, so a single fixed
+            number always overhung the fold somewhere and cut off the calendar.
+            See the fit() effect above. */}
+        <div
+          ref={sideRef}
+          className="contents lg:block lg:self-start lg:space-y-6 lg:sticky lg:top-[84px] lg:overflow-y-auto lg:overscroll-contain ds-scroll-y"
+        >
           <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 text-center">
             {/* A white ring plus a soft shadow, so the mark sits ON the card
                 rather than flat against it. The hairline border alone left it

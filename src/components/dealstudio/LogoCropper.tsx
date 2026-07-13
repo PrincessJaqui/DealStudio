@@ -47,6 +47,40 @@ export function LogoCropper({
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
+  /**
+   * Keep the square covered.
+   *
+   * The image's left edge can never be right of the frame's left edge, and its
+   * right edge can never be left of the frame's right edge. Clamping here rather
+   * than at each call site means there is no path -- drag, zoom, reset -- that can
+   * leave a gap in the corner.
+   */
+  const clamp = (x: number, y: number, z: number) => {
+    if (!img) return { x, y };
+    const w = img.width * z;
+    const h = img.height * z;
+    return {
+      // min is negative (image is larger than the frame), max is 0.
+      x: Math.min(0, Math.max(SIZE - w, x)),
+      y: Math.min(0, Math.max(SIZE - h, y)),
+    };
+  };
+
+  /**
+   * Zoom about the centre of the frame, not its top-left corner.
+   *
+   * Scaling from the origin walks whatever you were looking at off toward the
+   * corner: you zoom in on a face and the face slides away. Anchoring the frame's
+   * midpoint keeps the subject where you put it.
+   */
+  const zoomTo = (next: number) => {
+    const c = SIZE / 2;
+    const k = next / zoom;
+    const p = clamp(c - (c - pos.x) * k, c - (c - pos.y) * k, next);
+    setZoom(next);
+    setPos(p);
+  };
+
   // Paint the preview.
   useEffect(() => {
     const c = canvasRef.current;
@@ -63,10 +97,11 @@ export function LogoCropper({
   };
   const onMove = (e: React.MouseEvent) => {
     if (!drag.current) return;
-    setPos({
-      x: drag.current.ox + (e.clientX - drag.current.x),
-      y: drag.current.oy + (e.clientY - drag.current.y),
-    });
+    setPos(clamp(
+      drag.current.ox + (e.clientX - drag.current.x),
+      drag.current.oy + (e.clientY - drag.current.y),
+      zoom,
+    ));
   };
   const onUp = () => { drag.current = null; };
 
@@ -102,7 +137,10 @@ export function LogoCropper({
     );
   };
 
-  const minZoom = img ? Math.max(SIZE / img.width, SIZE / img.height) * 0.5 : 0.1;
+  // Cover, exactly. It used to be cover * 0.5, which let the image shrink
+  // smaller than the frame -- at which point no clamp can prevent a gap, because
+  // the image is simply not big enough to fill it.
+  const minZoom = img ? Math.max(SIZE / img.width, SIZE / img.height) : 0.1;
   const maxZoom = img ? Math.max(SIZE / img.width, SIZE / img.height) * 4 : 4;
 
   return (
@@ -156,7 +194,7 @@ export function LogoCropper({
             max={maxZoom}
             step={0.01}
             value={zoom}
-            onChange={(e) => setZoom(parseFloat(e.target.value))}
+            onChange={(e) => zoomTo(parseFloat(e.target.value))}
             className="flex-1 accent-[var(--ds-brand)]"
           />
           <button
