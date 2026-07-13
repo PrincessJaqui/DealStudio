@@ -630,25 +630,54 @@ export function DealStudioScreen() {
             {(() => {
               const v = funnel?.totalVisitors ?? 0;
               if (v === 0) return <p className="text-sm text-[#99a1af] py-1">No activity yet.</p>;
+
+              // Views is the raw total, so it sits apart from the funnel. The
+              // three stages below all count PEOPLE, and their percentages are
+              // of Visitors, which makes them comparable to each other.
+              const totalViews = funnel?.views ?? 0;
+
               const stages = [
-                { label: 'Visitors', value: v },
-                { label: 'Viewed deck', value: funnel?.deckViews ?? 0 },
-                { label: 'Repeat visits', value: funnel?.repeatVisits ?? 0 },
+                { label: 'Visitors', value: v, hint: 'unique emails' },
+                { label: 'Viewed deck', value: funnel?.deckViewers ?? 0, hint: 'unique emails' },
+                { label: 'Repeat visitors', value: funnel?.repeatVisitors ?? 0, hint: 'came back' },
               ];
-              const top = Math.max(1, ...stages.map(s => s.value));
-              return stages.map((s, i) => {
-                const widthPct = Math.round((s.value / top) * 100);
-                const ofTop = v ? Math.round((s.value / v) * 100) : 0;
-                return (
-                  <div key={s.label} className="mb-3">
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-[#7f8c85]">{s.label}</span>
-                      <span className="font-semibold text-[#191f1d]">{s.value}{i > 0 && <span className="text-[#99a1af] font-normal ml-1">({ofTop}%)</span>}</span>
+
+              return (
+                <>
+                  <div className="mb-4 pb-3 border-b border-[#f2f4f6] flex items-baseline justify-between">
+                    <div>
+                      <span className="text-sm text-[#7f8c85]">Views</span>
+                      <span className="block text-[11px] text-[#b6bcc4]">every page view, repeats included</span>
                     </div>
-                    <div className="h-2.5 rounded-full bg-[var(--ds-tint)] overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]" style={{ width: `${Math.max(4, widthPct)}%` }} /></div>
+                    <span className="text-2xl font-bold text-[var(--ds-accent-ink)]">{totalViews}</span>
                   </div>
-                );
-              });
+
+                  {stages.map((s) => {
+                    const widthPct = v ? Math.round((s.value / v) * 100) : 0;
+                    const ofVisitors = v ? Math.round((s.value / v) * 100) : 0;
+                    return (
+                      <div key={s.label} className="mb-3">
+                        <div className="flex items-center justify-between text-sm mb-1">
+                          <span className="text-[#7f8c85]">
+                            {s.label}
+                            <span className="block text-[11px] text-[#b6bcc4]">{s.hint}</span>
+                          </span>
+                          <span className="font-semibold text-[#191f1d]">
+                            {s.value}
+                            <span className="text-[#99a1af] font-normal ml-1">({ofVisitors}%)</span>
+                          </span>
+                        </div>
+                        <div className="h-2.5 rounded-full bg-[var(--ds-tint)] overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]"
+                            style={{ width: `${Math.max(4, widthPct)}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              );
             })()}
           </div>
 

@@ -80,3 +80,52 @@ export async function uploadSiteImage(file: File): Promise<string> {
   if (error) throw error;
   return supabase.storage.from('site-assets').getPublicUrl(path).data.publicUrl;
 }
+
+
+/**
+ * The page that ships with the app, as editable blocks.
+ *
+ * The editor used to open on a blank canvas, so changing one word of the
+ * headline meant rebuilding the whole page. This is the same copy the built-in
+ * page renders, so "Load current page" gives you the live page to edit.
+ */
+export const DEFAULT_LANDING: LandingBlock[] = [
+  {
+    id: 'b_hero',
+    type: 'hero',
+    eyebrow: '',
+    title: 'Your Studio, Your Raise.',
+    body: 'Build your deal, upload your deck, and manage investor access from a single command center.',
+    ctaLabel: 'Start free for 30 days',
+    ctaHref: '/signup',
+  },
+  {
+    id: 'b_features',
+    type: 'features',
+    title: 'The Professional Command Center for Your Raise',
+    body: '',
+    items: [
+      {
+        title: 'Gated access',
+        body: 'Password, invite-only, or a private share link. Revoke anytime. You decide who sees what, per investor.',
+      },
+      {
+        title: 'Live business model',
+        body: 'An interactive revenue model and market funnel investors can explore. Edit once, everyone sees the latest.',
+      },
+      {
+        title: 'Investor analytics',
+        body: 'See who opened the deck, what they read, and how long. Follow up on the ones leaning in.',
+      },
+    ],
+  },
+  {
+    id: 'b_cta',
+    type: 'cta',
+    dark: true,
+    title: 'Ready to open your deal room?',
+    body: 'Publish a private, always-current investor page in minutes.',
+    ctaLabel: 'Start free for 30 days',
+    ctaHref: '/signup',
+  },
+];

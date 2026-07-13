@@ -11,7 +11,7 @@ import {
   Loader2, Plus, Trash2, ChevronUp, ChevronDown, Upload, Eye, Check,
 } from 'lucide-react';
 import {
-  fetchLanding, saveLanding, uploadSiteImage, blankBlock, BLOCK_LABELS,
+  fetchLanding, saveLanding, uploadSiteImage, blankBlock, BLOCK_LABELS, DEFAULT_LANDING,
   type LandingBlock, type BlockType, type LandingItem,
 } from '../../lib/siteContent';
 
@@ -298,7 +298,16 @@ export function LandingEditor() {
       {blocks.length === 0 && (
         <div className={`${card} p-10 text-center`}>
           <p className="text-sm text-[#7f8c85]">
-            No blocks yet. Add one above to start building, or leave it empty to keep the built-in page.
+            Nothing published yet, so visitors are seeing the built-in page.
+          </p>
+          <button
+            onClick={() => setBlocks(DEFAULT_LANDING.map(b => ({ ...b })))}
+            className="mt-4 inline-flex items-center gap-1.5 h-10 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]"
+          >
+            Load current page to edit
+          </button>
+          <p className="text-xs text-[#9ca3af] mt-3">
+            Loads the live copy as blocks so you can edit it, rather than starting from scratch.
           </p>
         </div>
       )}

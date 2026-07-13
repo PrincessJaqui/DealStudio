@@ -663,38 +663,67 @@ export async function adminFetchVisits(roomId: string): Promise<DealVisitRow[]> 
   return (data || []) as DealVisitRow[];
 }
 
-export interface DealFunnel { pageViews: number; deckViews: number; repeatVisits: number; totalVisitors: number; active: number; pending: number; passed: number; conversion: number; }
+export interface DealFunnel {
+  /** Every page view, counting repeats. One person refreshing five times is 5. */
+  views: number;
+  /** Distinct people. One person is 1, however often they come back. */
+  totalVisitors: number;
+  /** Distinct people who opened the deck at least once. */
+  deckViewers: number;
+  /** Distinct people who came back after their first visit. */
+  repeatVisitors: number;
+  /** Total deck opens, counting repeats. Kept for the per-person views. */
+  deckViews: number;
+  active: number; pending: number; passed: number; conversion: number;
+}
 
 export async function adminFetchFunnel(roomId: string): Promise<DealFunnel> {
-  const empty: DealFunnel = { pageViews: 0, deckViews: 0, repeatVisits: 0, totalVisitors: 0, active: 0, pending: 0, passed: 0, conversion: 0 };
+  const empty: DealFunnel = {
+    views: 0, totalVisitors: 0, deckViewers: 0, repeatVisitors: 0,
+    deckViews: 0, active: 0, pending: 0, passed: 0, conversion: 0,
+  };
   try {
     const [{ data: visits }, { data: access }] = await Promise.all([
-      supabase.from('dealstudio_visits').select('id,email,session_token,page_views,deck_views').eq('dealstudio_id', roomId),
+      supabase.from('dealstudio_visits')
+        .select('id,email,session_token,page_views,deck_views')
+        .eq('dealstudio_id', roomId),
       supabase.from('dealstudio_access').select('status').eq('dealstudio_id', roomId),
     ]);
     const v = visits || [];
     const a = access || [];
-    const pageViews = v.reduce((s: number, r: any) => s + (r.page_views || 0), 0);
-    const deckViews = v.reduce((s: number, r: any) => s + (r.deck_views || 0), 0);
-    // Count a person once, not once per login/session. Identify by email when
-    // present, otherwise by anonymous session token, otherwise the row itself.
+
+    // Count a person once, not once per session. Identify by email where we have
+    // one, otherwise by anonymous session token.
     const identity = (r: any) =>
       r.email ? `e:${String(r.email).toLowerCase().trim()}`
       : r.session_token ? `s:${r.session_token}`
       : `id:${r.id}`;
-    const pvByPerson: Record<string, number> = {};
+
+    const byPerson: Record<string, { pv: number; dv: number }> = {};
     for (const r of v) {
       const k = identity(r);
-      pvByPerson[k] = (pvByPerson[k] || 0) + (r.page_views || 0);
+      const cur = byPerson[k] || { pv: 0, dv: 0 };
+      cur.pv += r.page_views || 0;
+      cur.dv += r.deck_views || 0;
+      byPerson[k] = cur;
     }
-    const totalVisitors = Object.keys(pvByPerson).length;
-    // A repeat visitor is one person with more than one page view across visits.
-    const repeatVisits = Object.values(pvByPerson).filter((n) => n > 1).length;
-    const active = a.filter((r: any) => r.status === 'approved').length;
+    const people = Object.values(byPerson);
+
+    // Views is the raw total, including repeats. Everything below it counts
+    // PEOPLE, which is why deck views are not simply summed: one investor
+    // opening the deck five times is one person who viewed the deck, not five.
+    const views          = people.reduce((s, p) => s + p.pv, 0);
+    const deckViews      = people.reduce((s, p) => s + p.dv, 0);
+    const totalVisitors  = people.length;
+    const deckViewers    = people.filter(p => p.dv > 0).length;
+    const repeatVisitors = people.filter(p => p.pv > 1).length;
+
+    const active  = a.filter((r: any) => r.status === 'approved').length;
     const pending = a.filter((r: any) => r.status === 'pending').length;
-    const passed = a.filter((r: any) => r.status === 'passed').length;
+    const passed  = a.filter((r: any) => r.status === 'passed').length;
     const conversion = totalVisitors ? Math.round((active / totalVisitors) * 100) : 0;
-    return { pageViews, deckViews, repeatVisits, totalVisitors, active, pending, passed, conversion };
+
+    return { views, totalVisitors, deckViewers, repeatVisitors, deckViews, active, pending, passed, conversion };
   } catch {
     return empty;
   }

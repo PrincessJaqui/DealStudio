@@ -10,7 +10,6 @@ import {
   ChevronUp, ChevronDown, Pencil,
 } from 'lucide-react';
 import { EditOrgDialog } from '../dealstudio/EditOrgDialog';
-import { LandingEditor } from './LandingEditor';
 import { AddonsCard } from '../dealstudio/AddonsCard';
 import {
   adminListOrgs, adminUpdateOrg, adminListTransactions, adminListPlans, savePlan,
@@ -35,7 +34,7 @@ function StatusPill({ s }: { s: string }) {
 
 export function MasterAdminScreen() {
   const [allowed, setAllowed] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<'users' | 'plans' | 'landing' | 'transactions'>('users');
+  const [tab, setTab] = useState<'users' | 'plans' | 'transactions'>('users');
 
   useEffect(() => { void isPlatformAdmin().then(setAllowed); }, []);
 
@@ -60,7 +59,7 @@ export function MasterAdminScreen() {
       </div>
 
       <div className={`${card} !rounded-full p-1.5 inline-flex gap-1 mb-5`}>
-        {(['users', 'plans', 'landing', 'transactions'] as const).map(t => (
+        {(['users', 'plans', 'transactions'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -77,7 +76,6 @@ export function MasterAdminScreen() {
 
       {tab === 'users' ? <UsersTab />
         : tab === 'plans' ? <><PlansCard /><AddonsCard /></>
-        : tab === 'landing' ? <LandingEditor />
         : <TransactionsTab />}
     </div>
   );

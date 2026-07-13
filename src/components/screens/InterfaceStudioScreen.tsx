@@ -9,6 +9,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Loader2, UploadCloud, RotateCcw, Check } from 'lucide-react';
 import { useAdminAuth } from '../dealstudio/AdminGate';
 import { LogoCropper } from '../dealstudio/LogoCropper';
+import { LandingEditor } from './LandingEditor';
+import { isPlatformAdmin } from '../../lib/billing';
 import {
   applyOrgTheme, saveOrgBranding, uploadOrgLogo, DEFAULT_THEME,
   type OrgTheme,
@@ -51,6 +53,13 @@ export function InterfaceStudioScreen() {
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const [cropFile, setCropFile] = useState<File | null>(null);
+  const [tab, setTab] = useState<'branding' | 'landing'>('branding');
+
+  // The landing page is DealStudio's own marketing site, not the customer's.
+  // The tab only exists for platform admins; the server rejects anyone else
+  // regardless, but a tab a customer cannot use should not be shown at all.
+  const [isMaster, setIsMaster] = useState(false);
+  useEffect(() => { void isPlatformAdmin().then(setIsMaster); }, []);
 
   useEffect(() => {
     if (!org) return;
@@ -136,9 +145,13 @@ export function InterfaceStudioScreen() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#191f1d] leading-tight">Interface Studio</h1>
-          <p className="text-sm text-[#7f8c85]">Make DealStudio look like your company. Changes preview instantly.</p>
+          <p className="text-sm text-[#7f8c85]">
+            {tab === 'landing'
+              ? 'Edit the public marketing page. Changes go live when you publish.'
+              : 'Make DealStudio look like your company. Changes preview instantly.'}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className={`flex items-center gap-2 ${tab === 'landing' ? 'hidden' : ''}`}>
           {savedAt && (
             <span className="hidden sm:inline-flex items-center h-9 px-2.5 rounded-xl text-xs font-medium bg-[var(--ds-tint)] text-[var(--ds-brand)]">
               Saved {savedAt}
@@ -161,9 +174,29 @@ export function InterfaceStudioScreen() {
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+      {isMaster && (
+        <div className="inline-flex bg-white border border-[#edf0f3] rounded-full p-1.5 gap-1 mb-5 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]">
+          {([['branding', 'Branding'], ['landing', 'Landing Page']] as const).map(([t, label]) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-6 py-1.5 rounded-full text-sm font-medium transition ${
+                tab === t
+                  ? 'bg-gradient-to-br from-[var(--ds-accent)] to-[var(--ds-accent-to)] text-[var(--ds-on-accent)]'
+                  : 'text-[#7f8c85] hover:text-[#191f1d]'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      {error && tab === 'branding' && <p className="text-sm text-red-600 mb-4">{error}</p>}
+
+      {isMaster && tab === 'landing' && <LandingEditor />}
+
+      <div className={`grid gap-5 lg:grid-cols-2 ${tab === 'landing' ? 'hidden' : ''}`}>
         {/* Controls */}
         <div className="space-y-5">
           <div className={card}>
