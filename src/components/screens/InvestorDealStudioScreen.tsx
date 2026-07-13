@@ -98,7 +98,10 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const shareDeal = () => {
-    const link = `${window.location.origin}${window.location.pathname}?share=1`;
+    // Anchor to the deal's own slug rather than the current path. On the legacy
+    // /dealstudio route the pathname carries no slug, so a copied link would
+    // fall through to the default room instead of this one.
+    const link = `${window.location.origin}/d/${SLUG}?share=1`;
     navigator.clipboard?.writeText(link);
     setShareCopied(true);
     setTimeout(() => setShareCopied(false), 1800);

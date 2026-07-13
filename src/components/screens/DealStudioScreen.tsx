@@ -40,7 +40,6 @@ import {
   scheduleDates, committedTotal, EMPTY_MARKET,
 } from '../../lib/dealStudio';
 
-const PUBLIC_URL = 'https://www.dealstudio.io/dealstudio';
 const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function StatTile({ label, value }: { label: string; value: string }) {
@@ -190,8 +189,20 @@ export function DealStudioScreen() {
     toast.success(next ? 'DealStudio activated' : 'DealStudio deactivated');
   };
 
-  const copyLink = () => { navigator.clipboard?.writeText(PUBLIC_URL); setCopied(true); setTimeout(() => setCopied(false), 1500); };
-  const copyShareLink = () => { navigator.clipboard?.writeText(`${PUBLIC_URL}?share=1`); setShareCopied(true); setTimeout(() => setShareCopied(false), 1500); };
+  /**
+   * The public URL for THIS deal.
+   *
+   * Was hard-coded to https://www.dealstudio.io/dealstudio, which had two
+   * problems: www has no DNS record (so the link simply did not resolve), and
+   * the path carried no slug, so it fell through to DEFAULT_SLUG. Every
+   * customer's share link therefore pointed at the demo room instead of their
+   * own deal.
+   */
+  const publicUrl = () =>
+    room ? `${window.location.origin}/d/${room.slug}` : '';
+
+  const copyLink = () => { navigator.clipboard?.writeText(publicUrl()); setCopied(true); setTimeout(() => setCopied(false), 1500); };
+  const copyShareLink = () => { navigator.clipboard?.writeText(`${publicUrl()}?share=1`); setShareCopied(true); setTimeout(() => setShareCopied(false), 1500); };
 
   const deleteDoc = async (doc: DealDocument) => {
     if (!window.confirm(`Delete "${doc.title}"?`)) return;
@@ -533,7 +544,7 @@ export function DealStudioScreen() {
                 <div className="mt-3">
                   <p className="text-xs font-semibold text-[#191f1d] mb-1">Standard link</p>
                   <div className="flex items-center gap-2">
-                    <input readOnly value={PUBLIC_URL} className={`${inputCls} flex-1`} />
+                    <input readOnly value={publicUrl()} className={`${inputCls} flex-1`} />
                     <button onClick={copyLink} className="h-11 px-3 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:brightness-110 flex items-center gap-1.5 text-sm">{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}{copied ? 'Copied' : 'Copy'}</button>
                   </div>
                 </div>
@@ -541,7 +552,7 @@ export function DealStudioScreen() {
                   <p className="text-xs font-semibold text-[#191f1d] mb-1">Share link (no password)</p>
                   <p className="text-xs text-[#7f8c85] mb-1.5">Investors skip the password but still enter their email, so you keep their analytics.</p>
                   <div className="flex items-center gap-2">
-                    <input readOnly value={`${PUBLIC_URL}?share=1`} className={`${inputCls} flex-1`} />
+                    <input readOnly value={`${publicUrl()}?share=1`} className={`${inputCls} flex-1`} />
                     <button onClick={copyShareLink} className="h-11 px-3 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)] flex items-center gap-1.5 text-sm">{shareCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}{shareCopied ? 'Copied' : 'Copy'}</button>
                   </div>
                 </div>
