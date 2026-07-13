@@ -857,7 +857,7 @@ export async function captureDemoLead(slug: string, email: string, name?: string
  *  Settings are admin-only and never appear here. */
 export type SectionKey =
   | 'documents' | 'problem' | 'valueprop' | 'market' | 'competition'
-  | 'businessmodel' | 'team';
+  | 'businessmodel' | 'team' | 'articles';
 
 export const SECTION_LABELS: Record<SectionKey, string> = {
   documents: 'Documents',
@@ -867,10 +867,19 @@ export const SECTION_LABELS: Record<SectionKey, string> = {
   competition: 'Competition',
   businessmodel: 'Business Model',
   team: 'Team',
+  articles: 'Industry Reading',
 };
 
+/**
+ * Documents and articles sit at the BOTTOM by default.
+ *
+ * They are reference material: an investor reaches for them after the argument
+ * has landed, not before it. Leading with a pile of files asks someone to do
+ * homework before you have given them a reason to.
+ */
 export const DEFAULT_SECTION_ORDER: SectionKey[] = [
-  'documents', 'problem', 'valueprop', 'market', 'competition', 'businessmodel', 'team',
+  'problem', 'valueprop', 'team', 'market', 'businessmodel', 'competition',
+  'documents', 'articles',
 ];
 
 /**

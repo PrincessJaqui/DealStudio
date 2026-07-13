@@ -31,12 +31,41 @@ export type OrgDeal = {
 };
 
 /** The org the current user belongs to, or null if they have none yet. */
+/**
+ * The organization the signed-in user BELONGS to.
+ *
+ * This used to be `select * from organizations limit 1`, leaning entirely on RLS
+ * to narrow the result. That works for a normal customer, who can only see their
+ * own company. It fails badly for a platform admin, who can see EVERY company:
+ * with no filter and no order, Postgres returns whichever row it likes, so a
+ * master admin would get dropped into a random customer's account.
+ *
+ * Membership is now stated explicitly instead of being implied by RLS.
+ */
 export async function fetchMyOrg(): Promise<Organization | null> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth?.user?.id;
+  if (!uid) return null;
+
+  const { data: member, error: memberErr } = await supabase
+    .from('org_members')
+    .select('org_id')
+    .eq('auth_user_id', uid)
+    .limit(1)
+    .maybeSingle();
+
+  if (memberErr) {
+    console.warn('[org] membership lookup failed', memberErr);
+    return null;
+  }
+  if (!member?.org_id) return null;
+
   const { data, error } = await supabase
     .from('organizations')
     .select('*')
-    .limit(1)
+    .eq('id', member.org_id)
     .maybeSingle();
+
   if (error) {
     console.warn('[org] fetch failed', error);
     return null;

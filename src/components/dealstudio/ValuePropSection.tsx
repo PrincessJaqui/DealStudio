@@ -73,13 +73,13 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
               <button
                 onClick={() => setOpen(isOpen ? null : key)}
                 aria-expanded={isOpen}
-                className="w-full grid gap-2 md:grid-cols-[1fr_auto_1fr] items-center p-3 text-left hover:bg-[#fafbfc] transition-colors"
+                className="w-full grid gap-3 md:grid-cols-[1fr_auto_1fr_auto] items-center p-3.5 text-left hover:bg-[#fafbfc] transition-colors"
               >
-                <span className="flex items-center gap-2 min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#9ca3af] shrink-0">
+                <span className="block min-w-0">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-[#9ca3af] mb-0.5">
                     Problem
                   </span>
-                  <span className="text-sm font-semibold text-[#191f1d] truncate">
+                  <span className="block text-sm font-semibold text-[#191f1d] truncate">
                     {psHeader(p.problem, p.problem_title)}
                   </span>
                 </span>
@@ -88,15 +88,25 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                   <ArrowRight className="w-3.5 h-3.5" />
                 </span>
 
-                <span className="flex items-center gap-2 min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] shrink-0">
+                <span className="block min-w-0">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-0.5">
                     Solution
                   </span>
-                  <span className="text-sm font-semibold text-[#191f1d] truncate">
+                  <span className="block text-sm font-semibold text-[#191f1d] truncate">
                     {psHeader(p.solution, p.solution_title)}
                   </span>
+                </span>
+
+                {/* The chevron is a circle and pulses until it is opened, the
+                    same cue the wheel uses, so an investor knows there is more
+                    behind it. Once opened, the cue has done its job. */}
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e6e8ee] bg-white text-[var(--ds-accent-ink)] ${
+                    isOpen ? '' : 'ds-pulse-pie'
+                  }`}
+                >
                   <ChevronDown
-                    className={`ml-auto w-4 h-4 shrink-0 text-[#c7cdd4] transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                   />
                 </span>
               </button>

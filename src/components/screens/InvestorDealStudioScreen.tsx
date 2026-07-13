@@ -410,6 +410,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
               competition: competition ? <CompetitionSection value={competition} /> : null,
               businessmodel: market?.businessModel ? <BusinessModelSection model={market.businessModel} /> : null,
               team: team ? <TeamSection team={team} /> : null,
+              articles: market ? <IndustryReadingSection market={market} /> : null,
             };
 
             return resolveSectionOrder((room as any).section_order).map((k, i) => {
@@ -423,7 +424,6 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             });
           })()}
 
-          {market && <div className="order-10 lg:order-none"><IndustryReadingSection market={market} /></div>}
         </div>
 
         {/* Right rail (flattens into the grid on mobile via display:contents) */}
