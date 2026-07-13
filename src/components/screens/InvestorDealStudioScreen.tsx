@@ -489,7 +489,19 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
           {mapSrc && (
             <div data-section="hq" className="order-11 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2">Headquartered</p>
-              <iframe src={mapSrc} title="Headquarters" className="w-full h-56 rounded-xl border-0" loading="lazy" />
+              {/* The radius goes on a wrapper, not the iframe: iOS Safari does not
+                  clip an iframe's own content to its border-radius, so the map
+                  spilled past the rounded corners. `block` also kills the inline
+                  baseline gap that left a sliver under it. Height scales with the
+                  viewport rather than sitting at a fixed 224px on a narrow phone. */}
+              <div className="overflow-hidden rounded-xl">
+                <iframe
+                  src={mapSrc}
+                  title="Headquarters"
+                  loading="lazy"
+                  className="block w-full h-44 sm:h-56 border-0"
+                />
+              </div>
             </div>
           )}
 

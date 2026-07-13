@@ -67,7 +67,9 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
           return (
             <div
               key={key}
-              className="ds-card rounded-2xl border border-[#edf0f3] bg-white overflow-hidden"
+              className={`ds-card rounded-2xl border bg-white overflow-hidden transition-colors ${
+                isOpen ? 'border-[var(--ds-accent)]' : 'border-[#edf0f3]'
+              }`}
               style={{ animationDelay: `${i * 60}ms` }}
             >
               <button
@@ -102,7 +104,11 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                     same cue the wheel uses, so an investor knows there is more
                     behind it. Once opened, the cue has done its job. */}
                 <span
-                  className={`mx-auto md:mx-0 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e6e8ee] bg-white text-[var(--ds-accent-ink)] ${
+                  /* Desktop only. Stacked on a phone this became a second arrow
+                     under the solution, competing with the one that carries the
+                     meaning. The whole row is a button, so the card still opens on
+                     tap without it. */
+                  className={`hidden md:flex mx-auto md:mx-0 h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e6e8ee] bg-white text-[var(--ds-accent-ink)] ${
                     isOpen ? '' : 'ds-pulse-pie'
                   }`}
                 >
