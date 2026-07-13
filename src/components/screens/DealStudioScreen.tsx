@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Presentation, Plus, ExternalLink, Copy, Check, Power, Users, FileText, Trash2, RefreshCw, UploadCloud, GripVertical, Globe, X, LogOut, Eye, EyeOff } from 'lucide-react';
+import { Presentation, Plus, ExternalLink, Copy, Check, Power, CheckCircle2, Users, FileText, Trash2, RefreshCw, UploadCloud, GripVertical, Globe, X, LogOut, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { Switch } from '../ui/switch';
@@ -18,9 +18,10 @@ import { DealDocumentCard } from '../dealstudio/DealDocumentCard';
 import { DealDocumentModal } from '../dealstudio/DealDocumentModal';
 import { AvailabilityModal } from '../dealstudio/AvailabilityModal';
 import { PdfDeckViewer } from '../dealstudio/PdfDeckViewer';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAdminAuth } from '../dealstudio/AdminGate';
-import { dealUrl } from '../../lib/org';
+import { dealUrl, createDeal } from '../../lib/org';
+import { isDealLimitError } from '../../lib/billing';
 import { DealSwitcher } from '../dealstudio/DealSwitcher';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { DealDocViewer } from '../dealstudio/DealDocViewer';
@@ -31,6 +32,8 @@ import { ProblemSolutionEditor } from '../dealstudio/ProblemSolutionEditor';
 import { IndustryReadingEditor } from '../dealstudio/IndustryReadingEditor';
 import { CompetitionEditor } from '../dealstudio/CompetitionEditor';
 import { DealThemeEditor } from '../dealstudio/DealThemeEditor';
+import { DeleteDealDialog } from '../dealstudio/DeleteDealDialog';
+import type { OrgDeal } from '../../lib/org';
 import { StatSlotField } from '../dealstudio/StatSlotField';
 import {
   DEFAULT_STAT_SLOTS, resolveSectionOrder, SECTION_LABELS,
@@ -67,8 +70,51 @@ function fmtSlot(t: string): string {
 }
 
 export function DealStudioScreen() {
+  const nav = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
   const { org } = useAdminAuth();
+
+  const [newDeal, setNewDeal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [ndName, setNdName] = useState('');
+  const [ndBusy, setNdBusy] = useState(false);
+  const [ndErr, setNdErr] = useState('');
+
+  // Branding starts as the company's current colours, so a new room looks like
+  // the rest of the company on the first render rather than defaulting to ours.
+  const [ndFrom, setNdFrom] = useState('');
+  const [ndTo, setNdTo] = useState('');
+  const [ndAccent, setNdAccent] = useState('');
+
+  useEffect(() => {
+    if (!newDeal || !org) return;
+    setNdName('');
+    setNdErr('');
+    setNdFrom(org.brand_from);
+    setNdTo(org.brand_to);
+    setNdAccent(org.brand_accent);
+  }, [newDeal, org]);
+
+  const createNewDeal = async () => {
+    if (!org || !ndName.trim()) return;
+    setNdBusy(true); setNdErr('');
+    try {
+      const { deal_id, slug } = await createDeal(org.id, ndName.trim());
+      await adminSaveDealStudio(deal_id, {
+        brand_from: ndFrom, brand_to: ndTo, brand_accent: ndAccent,
+      });
+      setNewDeal(false);
+      nav(`/admin/d/${slug}`);
+    } catch (e) {
+      // A deal limit is a real, expected answer here, not a crash.
+      const msg = e instanceof Error ? e.message : String(e);
+      setNdErr(isDealLimitError(msg)
+        ? 'You have used every deal room on your plan. Add another in Billing.'
+        : 'Could not create the deal.');
+    } finally {
+      setNdBusy(false);
+    }
+  };
   const [room, setRoom] = useState<DealStudio | null>(null);
   const [docs, setDocs] = useState<DealDocument[]>([]);
   const [access, setAccess] = useState<DealAccessRow[]>([]);
@@ -437,9 +483,39 @@ export function DealStudioScreen() {
         </div>
         <div className="flex items-center gap-2 flex-wrap sm:justify-end shrink-0">
           {savedAt && <span className="hidden sm:inline-flex items-center h-9 text-xs font-medium px-2.5 rounded-xl bg-[var(--ds-tint)] text-[var(--ds-brand)]">{saving ? 'Saving…' : `Saved ${savedAt}`}</span>}
-          <a href={`/d/${room.slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm text-[#191f1d] hover:bg-[#f5f7f9]"><ExternalLink className="w-4 h-4" /> View</a>
-          <button onClick={toggleActive} className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-sm font-medium ${room.is_active ? 'bg-[var(--ds-tint)] text-[var(--ds-brand)]' : 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'}`}>
-            <Power className="w-4 h-4" /> {room.is_active ? 'Deactivate' : 'Activate'}
+          {/* The public link now uses the company handle, not the legacy /d/ path. */}
+          <a href={dealUrl(org?.handle ?? null, room.slug)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm text-[#191f1d] hover:bg-[#f5f7f9]"><ExternalLink className="w-4 h-4" /> View</a>
+
+          {/* Shows the STATE, not the action. A room that is live reads "Active"
+              with a tick; clicking it still toggles. "Deactivate" next to a live
+              room read like a warning about what had happened, not a button. */}
+          <button
+            onClick={toggleActive}
+            title={room.is_active ? 'Live. Click to take it offline.' : 'Draft. Click to publish.'}
+            className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-sm font-medium ${room.is_active ? 'bg-[var(--ds-accent-tint)] text-[var(--ds-accent-ink)]' : 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'}`}
+          >
+            {room.is_active
+              ? <><CheckCircle2 className="w-4 h-4" /> Active</>
+              : <><Power className="w-4 h-4" /> Activate</>}
+          </button>
+
+          <button
+            onClick={() => setNewDeal(true)}
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] hover:brightness-110"
+          >
+            <Plus className="w-4 h-4" /> New deal
+          </button>
+
+          {/* Deleting a deal used to live only on the Deal Manager page. That page
+              is gone, so it moves here -- otherwise removing the page would have
+              silently removed the only way to delete a deal. */}
+          <button
+            onClick={() => setDeleting(true)}
+            aria-label="Delete this deal"
+            title="Delete this deal"
+            className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-[#edf0f3] text-[#c7cdd4] hover:text-red-600 hover:bg-red-50 hover:border-red-100"
+          >
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -580,20 +656,6 @@ export function DealStudioScreen() {
                 </div>
                 <EditableLabelField value={(room.field_labels as any)?.one_liner ?? ''} fallback="Company One-Liner" onChange={v => update({ field_labels: { ...((room.field_labels as any) || {}), one_liner: v } } as any)}><input value={room.one_liner} onChange={e => update({ one_liner: e.target.value })} className={inputCls} placeholder="The marketplace for court sports" /></EditableLabelField>
                 <Field label="Tags (comma separated)"><input value={room.tags?.join(', ') || ''} onChange={e => update({ tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} className={inputCls} placeholder="Marketplace, Sports, B2B2C" /></Field>
-
-                {/* Headquarters lives here, not in a stat slot. It is the source
-                    of truth for company location: the map reads it, and the
-                    Headquarters stat tile just mirrors it. Editing it inside a
-                    slot meant that pointing both slots elsewhere left no way to
-                    set the location at all. */}
-                <Field label="Headquarters">
-                  <input
-                    value={room.headquarters || ''}
-                    onChange={e => update({ headquarters: e.target.value })}
-                    className={inputCls}
-                    placeholder="Kansas City, MO"
-                  />
-                </Field>
               </Card>
 
               <Card title="Company Summary">
@@ -856,6 +918,89 @@ export function DealStudioScreen() {
           </div>
         </div>
       )}
+
+      {/* New deal. Branding is pre-filled with the company's current colours so a
+          new room looks like the company from the first render. */}
+      {newDeal && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setNewDeal(false)} />
+          <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
+            <div className="w-full max-w-md mt-20 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_24px_60px_-16px_rgba(12,16,34,0.35)]">
+              <div className="flex items-center gap-3 p-5 border-b border-[#edf0f3]">
+                <h2 className="font-bold text-[#191f1d]">New deal</h2>
+                <button
+                  onClick={() => setNewDeal(false)}
+                  aria-label="Close"
+                  className="ml-auto w-8 h-8 rounded-lg flex items-center justify-center text-[#9ca3af] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-5">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1.5">
+                  Deal name
+                </label>
+                <input
+                  value={ndName}
+                  onChange={(e) => setNdName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && ndName.trim()) void createNewDeal(); }}
+                  placeholder="Series A"
+                  autoFocus
+                  className="w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+                />
+
+                <p className="mt-5 text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85]">
+                  Deal branding
+                </p>
+                <p className="text-xs text-[#9ca3af] mt-0.5 mb-3">
+                  Starts from your company colours. You can change it later.
+                </p>
+
+                <div className="grid grid-cols-3 gap-3">
+                  {([
+                    ['Brand from', ndFrom, setNdFrom],
+                    ['Brand to',   ndTo,   setNdTo],
+                    ['Accent',     ndAccent, setNdAccent],
+                  ] as const).map(([lab, val, set]) => (
+                    <div key={lab}>
+                      <label className="block text-[11px] text-[#7f8c85] mb-1">{lab}</label>
+                      <div className="flex items-center gap-1.5 rounded-xl bg-[#f5f6f8] px-2 py-1.5">
+                        <input
+                          type="color"
+                          value={val || '#0030CD'}
+                          onChange={(e) => set(e.target.value)}
+                          className="w-7 h-7 rounded-md border-0 bg-transparent cursor-pointer shrink-0"
+                        />
+                        <span className="text-xs font-mono text-[#7f8c85] truncate">{val}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {ndErr && <p className="mt-4 text-sm text-red-600">{ndErr}</p>}
+
+                <button
+                  onClick={() => void createNewDeal()}
+                  disabled={!ndName.trim() || ndBusy}
+                  className="mt-5 w-full inline-flex items-center justify-center gap-1.5 h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
+                >
+                  {ndBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  Create deal
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {deleting && room && (
+        <DeleteDealDialog
+          deal={{ id: room.id, slug: room.slug, company_name: room.company_name } as OrgDeal}
+          onClose={() => setDeleting(false)}
+          onDeleted={() => { setDeleting(false); nav('/admin'); }}
+        />
+      )}
     </div>
   );
 }
@@ -915,6 +1060,7 @@ function IndustryEditor({ value, onChange }: { value: DealIndustry[]; onChange: 
         </div>
       ))}
       <button onClick={() => onChange([...value, { name: '', description: '' }])} className="text-sm text-[var(--ds-brand)] hover:underline">+ Add another industry</button>
+
     </div>
   );
 }

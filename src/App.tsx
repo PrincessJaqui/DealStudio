@@ -5,7 +5,6 @@
  *   /dealstudio    legacy alias for the default deal
  *   /investors     legacy alias for the default deal
  *   /admin         the editor for the company's default deal
- *   /admin/deals   Deal Manager: every deal the company owns
  *   /admin/d/:slug the editor for a specific deal
  */
 import { Routes, Route, Navigate } from 'react-router-dom';
@@ -13,7 +12,6 @@ import { Toaster } from 'sonner@2.0.3';
 import { LandingScreen } from './components/screens/LandingScreen';
 import { InvestorDealStudioScreen } from './components/screens/InvestorDealStudioScreen';
 import { DealStudioScreen } from './components/screens/DealStudioScreen';
-import { DealManagerScreen } from './components/screens/DealManagerScreen';
 import { InterfaceStudioScreen } from './components/screens/InterfaceStudioScreen';
 import { SystemSettingsScreen } from './components/screens/SystemSettingsScreen';
 import { BillingScreen } from './components/screens/BillingScreen';
@@ -53,7 +51,6 @@ export default function App() {
         <Route path="/investors" element={<InvestorDealStudioScreen />} />
 
         <Route path="/admin" element={<Admin><DealStudioScreen /></Admin>} />
-        <Route path="/admin/deals" element={<Admin><DealManagerScreen /></Admin>} />
         <Route path="/admin/d/:slug" element={<Admin><DealStudioScreen /></Admin>} />
         <Route path="/admin/interface" element={<Admin><InterfaceStudioScreen /></Admin>} />
         <Route path="/admin/settings" element={<Admin><SystemSettingsScreen /></Admin>} />
@@ -62,7 +59,7 @@ export default function App() {
 
         {/* The company handle route: dealstudio.io/{handle}/{deck}.
             It sits last on purpose. React Router ranks static segments above
-            dynamic ones, so /admin/deals still wins over /:handle/:deck, and the
+            dynamic ones, so /admin/settings still wins over /:handle/:deck, and the
             reserved-word list in SQL means no company can take a handle that
             would shadow a real route anyway. Belt and braces, because getting
             this wrong locks someone out of /admin. */}

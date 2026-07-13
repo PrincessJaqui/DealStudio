@@ -79,7 +79,7 @@ export function DealSwitcher() {
           </div>
 
           <button
-            onClick={() => { setOpen(false); nav('/admin/deals'); }}
+            onClick={() => { setOpen(false); nav('/admin'); }}
             className="w-full flex items-center gap-2 px-3 py-2 mt-1 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d] border-t border-[#edf0f3]"
           >
             <Plus className="w-4 h-4" /> New deal

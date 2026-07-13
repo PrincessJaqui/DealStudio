@@ -14,7 +14,6 @@ import { isPlatformAdmin } from '../../lib/billing';
 
 const DEAL_NAV = [
   { to: '/admin', label: 'Deal Studio', Icon: Presentation, end: true },
-  { to: '/admin/deals', label: 'Deal Manager', Icon: LayoutGrid, end: false },
   { to: '/admin/interface', label: 'Interface Studio', Icon: Palette, end: false },
 ];
 const BILLING_NAV  = { to: '/admin/billing', label: 'Billing', Icon: CreditCard, end: false };

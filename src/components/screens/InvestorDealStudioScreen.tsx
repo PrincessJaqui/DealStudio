@@ -481,16 +481,24 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
         </div>
 
         {/* Right rail (flattens into the grid on mobile via display:contents) */}
-        {/* The side column scrolls on its own.
-            Sticky alone was not enough: once the sidebar grew taller than the
-            viewport it pinned in place and the bottom of it became unreachable,
-            because it had no scroll container of its own. Capping the height to
-            the viewport and letting it scroll means an investor can work through
-            the deal terms and documents without dragging the whole page.
-            overscroll-contain stops the page lurching when the sidebar hits its
-            end. On mobile this is all off: the column flattens into the single
+        {/* The side column scrolls on its own, under the header.
+ 
+            top-[68px], NOT top-6. PublicHeader is `sticky top-0` and exactly 68px
+            tall, so anything pinned higher than that slides UNDERNEATH it and the
+            top of the sidebar becomes unreachable. The number is the header's
+            height; if the header ever changes height, this changes with it.
+ 
+            h-[calc(100vh-68px)], not max-h. max-h only caps a column that is
+            already tall, so a short sidebar never reached the bottom of the
+            screen. A fixed height fills exactly the space below the header.
+ 
+            overflow-y-auto gives it its own scroll container: sticky alone pins
+            the sidebar and leaves anything past the fold unreachable.
+            overscroll-contain stops the page lurching when it hits its end.
+ 
+            On mobile all of this is off: the column flattens into the single
             stack via display:contents. */}
-        <div className="contents lg:block lg:space-y-6 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:overscroll-contain ds-scroll-y">
+        <div className="contents lg:block lg:space-y-6 lg:sticky lg:top-[68px] lg:h-[calc(100vh-68px)] lg:overflow-y-auto lg:overscroll-contain lg:pt-6 lg:pb-6 ds-scroll-y">
           <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 text-center">
             {/* A white ring plus a soft shadow, so the mark sits ON the card
                 rather than flat against it. The hairline border alone left it
