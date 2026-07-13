@@ -136,7 +136,12 @@ export type Addon = {
   name: string;
   description: string;
   price_cents: number;
+  /** What is being counted: seat, each, month. */
   unit: string;
+  /** Whether the price is a currency amount or a share. */
+  unit_type: 'currency' | 'percentage';
+  /** How often it recurs. */
+  interval: 'month' | 'year';
   is_active: boolean;
 };
 
@@ -200,4 +205,60 @@ export async function orgMonthlyTotal(orgId: string): Promise<number> {
   const { data, error } = await supabase.rpc('org_monthly_total', { p_org: orgId });
   if (error) throw error;
   return (data as number) ?? 0;
+}
+
+
+/* ── Pricing setup ─────────────────────────────────────────────────────────── */
+
+export type UnitType = 'currency' | 'percentage';
+export type Interval = 'month' | 'year';
+
+export async function adminSavePlan(p: {
+  id?: string | null;
+  name: string;
+  description?: string;
+  price_cents: number;
+  unit_type?: UnitType;
+  interval?: Interval;
+  is_public?: boolean;
+}) {
+  const { error } = await supabase.rpc('admin_save_plan', {
+    p_id: p.id ?? null,
+    p_name: p.name,
+    p_desc: p.description ?? '',
+    p_price: p.price_cents,
+    p_unit_type: p.unit_type ?? 'currency',
+    p_interval: p.interval ?? 'month',
+    p_public: p.is_public ?? true,
+  });
+  if (error) throw error;
+}
+
+/** Refuses if any account is on the plan, rather than orphaning them. */
+export async function adminDeletePlan(id: string) {
+  const { error } = await supabase.rpc('admin_delete_plan', { p_id: id });
+  if (error) throw error;
+}
+
+export async function adminSaveAddonFull(a: {
+  id?: string | null;
+  plan_id?: string | null;
+  name: string;
+  description?: string;
+  price_cents: number;
+  unit?: string;
+  unit_type?: UnitType;
+  interval?: Interval;
+}) {
+  const { error } = await supabase.rpc('admin_save_addon', {
+    p_id: a.id ?? null,
+    p_plan: a.plan_id ?? null,
+    p_name: a.name,
+    p_desc: a.description ?? '',
+    p_price: a.price_cents,
+    p_unit: a.unit ?? 'each',
+    p_unit_type: a.unit_type ?? 'currency',
+    p_interval: a.interval ?? 'month',
+  });
+  if (error) throw error;
 }

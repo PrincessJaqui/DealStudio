@@ -10,7 +10,7 @@ import {
   ChevronUp, ChevronDown, Pencil,
 } from 'lucide-react';
 import { EditOrgDialog } from '../dealstudio/EditOrgDialog';
-import { AddonsCard } from '../dealstudio/AddonsCard';
+import { PricingSetup } from '../dealstudio/PricingSetup';
 import {
   adminListOrgs, adminUpdateOrg, adminListTransactions, adminListPlans, savePlan,
   isPlatformAdmin, money, type AdminOrg, type Txn, type Plan,
@@ -75,7 +75,7 @@ export function MasterAdminScreen() {
       </div>
 
       {tab === 'users' ? <UsersTab />
-        : tab === 'plans' ? <><PlansCard /><AddonsCard /></>
+        : tab === 'plans' ? <PricingSetup />
         : <TransactionsTab />}
     </div>
   );
