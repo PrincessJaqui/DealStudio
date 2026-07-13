@@ -281,9 +281,15 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
     { label: lbl('raise_amount', 'Amount'), value: room.raise_amount || '\u2014' },
     ...slots.map(sl => statSlotValue(sl, room)),
   ];
-  const mapSrc = room.hq_lat && room.hq_lng
-    ? `https://maps.google.com/maps?q=${room.hq_lat},${room.hq_lng}&z=12&output=embed`
-    : room.headquarters ? `https://maps.google.com/maps?q=${encodeURIComponent(room.headquarters)}&z=12&output=embed` : '';
+  // The Headquarters field is the source of truth for company location, so it
+  // wins. Coordinates are only a fallback for a deal that has them but never had
+  // the text: otherwise a founder could edit Headquarters and watch the map sit
+  // stubbornly on an old pin.
+  const mapSrc = room.headquarters
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(room.headquarters)}&z=12&output=embed`
+    : room.hq_lat && room.hq_lng
+      ? `https://maps.google.com/maps?q=${room.hq_lat},${room.hq_lng}&z=12&output=embed`
+      : '';
 
   return (
     <div className="min-h-screen bg-[#f5f6f8]">

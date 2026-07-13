@@ -5,6 +5,10 @@
  * investor looks for first. These two slots let the founder surface whatever
  * else matters for their raise.
  *
+ * team_size reads its column directly. Headquarters is READ-ONLY here: it is
+ * owned by the Headquarters field under Tags, so there is exactly one place to
+ * set the company's location and the map can never disagree with the tile.
+ *
  * team_size and headquarters read the columns that already exist rather than
  * duplicating them, so switching a slot away and back does not lose the value.
  */
@@ -30,14 +34,12 @@ export function StatSlotField({
   headquarters,
   onSlot,
   onTeamSize,
-  onHeadquarters,
 }: {
   slot: StatSlot;
   teamSize: number;
   headquarters: string;
   onSlot: (next: StatSlot) => void;
   onTeamSize: (n: number) => void;
-  onHeadquarters: (s: string) => void;
 }) {
   const kind = slot.kind;
 
@@ -74,12 +76,17 @@ export function StatSlotField({
           placeholder={PLACEHOLDER.team_size}
         />
       ) : kind === 'headquarters' ? (
-        <input
-          value={headquarters}
-          onChange={(e) => onHeadquarters(e.target.value)}
-          className={input}
-          placeholder={PLACEHOLDER.headquarters}
-        />
+        <div>
+          <input
+            value={headquarters}
+            readOnly
+            className={`${input} bg-[#f5f6f8] text-[#7f8c85] cursor-not-allowed`}
+            placeholder={PLACEHOLDER.headquarters}
+          />
+          <p className="text-[11px] text-[#9ca3af] mt-1">
+            Set in Headquarters, below Tags.
+          </p>
+        </div>
       ) : (
         <input
           value={slot.value ?? ''}

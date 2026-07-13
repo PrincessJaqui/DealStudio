@@ -430,7 +430,6 @@ export function DealStudioScreen() {
                             headquarters={room.headquarters || ''}
                             onSlot={(next) => setSlot(i, next)}
                             onTeamSize={(n) => update({ team_size: n })}
-                            onHeadquarters={(v) => update({ headquarters: v })}
                           />
                         ))}
                       </>
@@ -439,6 +438,20 @@ export function DealStudioScreen() {
                 </div>
                 <EditableLabelField value={(room.field_labels as any)?.one_liner ?? ''} fallback="Company One-Liner" onChange={v => update({ field_labels: { ...((room.field_labels as any) || {}), one_liner: v } } as any)}><input value={room.one_liner} onChange={e => update({ one_liner: e.target.value })} className={inputCls} placeholder="The marketplace for court sports" /></EditableLabelField>
                 <Field label="Tags (comma separated)"><input value={room.tags?.join(', ') || ''} onChange={e => update({ tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} className={inputCls} placeholder="Marketplace, Sports, B2B2C" /></Field>
+
+                {/* Headquarters lives here, not in a stat slot. It is the source
+                    of truth for company location: the map reads it, and the
+                    Headquarters stat tile just mirrors it. Editing it inside a
+                    slot meant that pointing both slots elsewhere left no way to
+                    set the location at all. */}
+                <Field label="Headquarters">
+                  <input
+                    value={room.headquarters || ''}
+                    onChange={e => update({ headquarters: e.target.value })}
+                    className={inputCls}
+                    placeholder="Kansas City, MO"
+                  />
+                </Field>
               </Card>
 
               <Card title="Company Summary">
