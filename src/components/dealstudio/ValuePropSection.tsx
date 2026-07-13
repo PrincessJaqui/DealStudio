@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { Check, X, ExternalLink, ArrowRight, ChevronDown } from 'lucide-react';
+import { Check, X, ExternalLink, ArrowRight, ArrowDown, ChevronDown } from 'lucide-react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 import { psHeader } from '../../lib/dealStudio';
 import type { DealValueProp, DealCompetition, ProblemSolution } from '../../lib/dealStudio';
@@ -75,7 +75,7 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                 aria-expanded={isOpen}
                 className="w-full grid gap-3 md:grid-cols-[1fr_auto_1fr_auto] items-center p-3.5 text-left hover:bg-[#fafbfc] transition-colors"
               >
-                <span className="block min-w-0">
+                <span className="block min-w-0 text-center md:text-left">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-[#9ca3af] mb-0.5">
                     Problem
                   </span>
@@ -84,11 +84,12 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                   </span>
                 </span>
 
-                <span className="hidden md:flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shrink-0">
-                  <ArrowRight className="w-3.5 h-3.5" />
+                <span className="mx-auto md:mx-0 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shrink-0">
+                  <ArrowRight className="hidden md:block w-3.5 h-3.5" />
+                  <ArrowDown className="md:hidden w-3.5 h-3.5" />
                 </span>
 
-                <span className="block min-w-0">
+                <span className="block min-w-0 text-center md:text-left">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-0.5">
                     Solution
                   </span>
@@ -101,7 +102,7 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                     same cue the wheel uses, so an investor knows there is more
                     behind it. Once opened, the cue has done its job. */}
                 <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e6e8ee] bg-white text-[var(--ds-accent-ink)] ${
+                  className={`mx-auto md:mx-0 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e6e8ee] bg-white text-[var(--ds-accent-ink)] ${
                     isOpen ? '' : 'ds-pulse-pie'
                   }`}
                 >
