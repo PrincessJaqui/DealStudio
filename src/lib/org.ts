@@ -9,6 +9,8 @@ export type Organization = {
   id: string;
   name: string;
   slug: string | null;
+  /** The company's public URL segment: dealstudio.io/{handle}/{deck} */
+  handle: string | null;
   logo_url: string | null;
   brand_from: string;
   brand_to: string;
@@ -302,4 +304,41 @@ export async function myPendingInvite(): Promise<string | null> {
   const { data, error } = await supabase.rpc('my_pending_invite');
   if (error) return null;
   return (data as string) || null;
+}
+
+/* ── Company handle ────────────────────────────────────────────────────────── */
+
+/** Turn a company's public URL into its deal slug. Null when there is no such
+ *  room, which is also what a wrong handle returns: no cross-company peeking. */
+export async function resolveDealSlug(handle: string, deck: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc('resolve_deal_slug', {
+    p_handle: handle,
+    p_slug: deck,
+  });
+  if (error) return null;
+  return (data as string) || null;
+}
+
+export async function setOrgHandle(
+  orgId: string,
+  handle: string,
+): Promise<{ ok: boolean; handle?: string; message?: string }> {
+  const { data, error } = await supabase.rpc('set_org_handle', {
+    p_org: orgId,
+    p_handle: handle,
+  });
+  if (error) return { ok: false, message: error.message };
+  return (data ?? { ok: false }) as { ok: boolean; handle?: string; message?: string };
+}
+
+/**
+ * The public URL for a deal room.
+ *
+ * Prefers the company handle. Falls back to the legacy /d/{slug} when a company
+ * has not set one, so a room is never unreachable just because a handle is
+ * missing.
+ */
+export function dealUrl(handle: string | null | undefined, slug: string): string {
+  const origin = window.location.origin;
+  return handle ? `${origin}/${handle}/${slug}` : `${origin}/d/${slug}`;
 }

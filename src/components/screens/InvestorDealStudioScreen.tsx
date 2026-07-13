@@ -7,7 +7,7 @@
 
 import { useParams } from 'react-router-dom';
 import { PublicHeader } from '../dealstudio/PublicHeader';
-import { applyDealTheme } from '../../lib/org';
+import { applyDealTheme, resolveDealSlug } from '../../lib/org';
 import { statSlotValue } from '../dealstudio/StatSlotField';
 import { DEFAULT_STAT_SLOTS, resolveSectionOrder, scheduleSlots, type StatSlot, type SectionKey } from '../../lib/dealStudio';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -80,8 +80,36 @@ function splitHtmlParagraphs(html: string, maxParas: number): { preview: string;
 }
 
 export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAdmin?: boolean }) {
-  const { slug: routeSlug } = useParams<{ slug?: string }>();
-  const SLUG = routeSlug || DEFAULT_SLUG;
+  // Three shapes reach this screen:
+  //   /{handle}/{deck}  the canonical URL
+  //   /d/{slug}         the legacy link investors may already be holding
+  //   /investors        the demo alias
+  // The handle route needs a lookup before we know the slug, so the slug is
+  // state rather than a straight read of the params.
+  const { slug: routeSlug, handle: routeHandle, deck: routeDeck } =
+    useParams<{ slug?: string; handle?: string; deck?: string }>();
+
+  const [resolvedSlug, setResolvedSlug] = useState<string | null>(
+    routeHandle && routeDeck ? null : (routeSlug || DEFAULT_SLUG)
+  );
+  const [slugMissing, setSlugMissing] = useState(false);
+
+  useEffect(() => {
+    if (!routeHandle || !routeDeck) {
+      setResolvedSlug(routeSlug || DEFAULT_SLUG);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const s = await resolveDealSlug(routeHandle, routeDeck);
+      if (cancelled) return;
+      if (s) setResolvedSlug(s);
+      else setSlugMissing(true);
+    })();
+    return () => { cancelled = true; };
+  }, [routeHandle, routeDeck, routeSlug]);
+
+  const SLUG = resolvedSlug ?? '';
   const docsView = useInViewOnce<HTMLDivElement>();
   const [room, setRoom] = useState<DealStudioPublic | null>(null);
   const [fieldLabels, setFieldLabels] = useState<Record<string, string>>({});
@@ -102,7 +130,13 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
     // Anchor to the deal's own slug rather than the current path. On the legacy
     // /dealstudio route the pathname carries no slug, so a copied link would
     // fall through to the default room instead of this one.
-    const link = `${window.location.origin}/d/${SLUG}?share=1`;
+    // Share the URL they actually arrived on. This screen has no org, so it
+    // cannot look the handle up -- but if they came in on a handle URL, that is
+    // the link worth passing along.
+    const base = routeHandle && routeDeck
+      ? `${window.location.origin}/${routeHandle}/${routeDeck}`
+      : `${window.location.origin}/d/${SLUG}`;
+    const link = `${base}?share=1`;
     navigator.clipboard?.writeText(link);
     setShareCopied(true);
     setTimeout(() => setShareCopied(false), 1800);
@@ -121,6 +155,10 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   const docOpenRef = useRef<{ id: string; at: number } | null>(null);
 
   useEffect(() => {
+    // The slug is not known yet on a /{handle}/{deck} URL. Firing the fetch with
+    // an empty slug would flash "not found" before the real room arrives.
+    if (!SLUG) return;
+
     let alive = true;
     (async () => {
       if (isMasterAdmin) {
@@ -243,6 +281,21 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   if (loading) {
     return <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center"><div className="w-8 h-8 border-2 border-[var(--ds-brand)] border-t-transparent rounded-full animate-spin" /></div>;
   }
+  // A handle URL that matched no room. Distinct from "still loading", which
+  // would otherwise spin forever on a typo'd link.
+  if (slugMissing) {
+    return (
+      <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center p-6 text-center">
+        <div>
+          <h1 className="text-2xl font-bold text-[#191f1d]">Deal room not found</h1>
+          <p className="text-sm text-[#7f8c85] mt-2">
+            Check the link, or ask whoever shared it for a new one.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!room) {
     return (
       <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center p-6 text-center">

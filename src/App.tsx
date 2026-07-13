@@ -60,6 +60,14 @@ export default function App() {
         <Route path="/admin/billing" element={<Admin><BillingScreen /></Admin>} />
         <Route path="/admin/master" element={<Admin><MasterAdminScreen /></Admin>} />
 
+        {/* The company handle route: dealstudio.io/{handle}/{deck}.
+            It sits last on purpose. React Router ranks static segments above
+            dynamic ones, so /admin/deals still wins over /:handle/:deck, and the
+            reserved-word list in SQL means no company can take a handle that
+            would shadow a real route anyway. Belt and braces, because getting
+            this wrong locks someone out of /admin. */}
+        <Route path="/:handle/:deck" element={<InvestorDealStudioScreen />} />
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toaster position="top-center" richColors />

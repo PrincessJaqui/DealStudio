@@ -8,11 +8,30 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, ExternalLink, Copy, Check, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { useAdminAuth } from '../dealstudio/AdminGate';
-import { fetchOrgDeals, createDeal, type OrgDeal } from '../../lib/org';
+import { fetchOrgDeals, createDeal, dealUrl, setOrgHandle, type OrgDeal } from '../../lib/org';
 import { DeleteDealDialog } from '../dealstudio/DeleteDealDialog';
 
 export function DealManagerScreen() {
-  const { org } = useAdminAuth();
+  const { org, refreshOrg } = useAdminAuth();
+
+  const [handleDraft, setHandleDraft] = useState(org?.handle ?? '');
+  const [handleBusy, setHandleBusy] = useState(false);
+  const [handleNote, setHandleNote] = useState('');
+  const [handleOk, setHandleOk] = useState(false);
+
+  useEffect(() => { setHandleDraft(org?.handle ?? ''); }, [org?.handle]);
+
+  const saveHandle = async () => {
+    if (!org) return;
+    setHandleBusy(true); setHandleNote('');
+    const r = await setOrgHandle(org.id, handleDraft.trim());
+    setHandleBusy(false);
+    setHandleOk(r.ok);
+    setHandleNote(r.ok
+      ? `Saved. Your rooms are now at dealstudio.io/${r.handle}/deal-name`
+      : (r.message || 'Could not save that handle.'));
+    if (r.ok) await refreshOrg();
+  };
   const nav = useNavigate();
 
   const [deals, setDeals] = useState<OrgDeal[] | null>(null);
@@ -44,7 +63,8 @@ export function DealManagerScreen() {
   };
 
   const copyLink = async (slug: string) => {
-    const url = `${window.location.origin}/d/${slug}`;
+    // Prefers the company handle, falls back to /d/{slug} when none is set.
+    const url = dealUrl(org?.handle ?? null, slug);
     try {
       await navigator.clipboard.writeText(url);
       setCopied(slug);
@@ -67,8 +87,48 @@ export function DealManagerScreen() {
         </button>
       </div>
 
+      {/* The company handle. Every deal room hangs off it, so changing it
+          changes every link at once. The old /d/{slug} links keep working
+          regardless, which is the only reason changing this is safe at all. */}
+      <div className="mb-6 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5">
+        <p className="text-sm font-bold text-[#191f1d]">Your company handle</p>
+        <p className="text-xs text-[#7f8c85] mt-0.5">
+          Deal rooms live at dealstudio.io/<span className="font-semibold">{org?.handle || 'your-handle'}</span>/deal-name
+        </p>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <div className="flex-1 min-w-[240px] flex items-center rounded-xl bg-[#f5f6f8] px-3">
+            <span className="text-sm text-[#9ca3af] shrink-0">dealstudio.io/</span>
+            <input
+              value={handleDraft}
+              onChange={(e) => setHandleDraft(e.target.value.toLowerCase())}
+              placeholder="your-company"
+              className="flex-1 bg-transparent py-2.5 text-sm text-[#191f1d] outline-none min-w-0"
+            />
+          </div>
+          <button
+            onClick={() => void saveHandle()}
+            disabled={handleBusy || !handleDraft.trim() || handleDraft.trim() === org?.handle}
+            className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-xl text-sm font-semibold text-white bg-[#191f1d] disabled:opacity-40"
+          >
+            {handleBusy && <Loader2 className="w-4 h-4 animate-spin" />}
+            Save handle
+          </button>
+        </div>
+
+        {handleNote && (
+          <p className={`mt-2 text-sm ${handleOk ? 'text-[var(--ds-accent-ink)]' : 'text-red-600'}`}>
+            {handleNote}
+          </p>
+        )}
+
+        <p className="mt-2 text-xs text-[#9ca3af]">
+          Lowercase letters, numbers and dashes. Links you have already shared keep working.
+        </p>
+      </div>
+
       {creating && (
-        <div className="mb-5 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
+        <div className="mb-5 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5">
           <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-1.5">Deal name</label>
           <div className="flex flex-col sm:flex-row gap-2">
             <input
@@ -105,7 +165,7 @@ export function DealManagerScreen() {
           {deals.map((d) => (
             <div
               key={d.id}
-              className="ds-card rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5 flex flex-col"
+              className="ds-card rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 flex flex-col"
             >
               <div className="flex items-start gap-2">
                 <h2 className="font-bold text-[#191f1d] leading-snug truncate">{d.company_name || d.slug}</h2>

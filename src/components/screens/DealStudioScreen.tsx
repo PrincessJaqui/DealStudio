@@ -20,6 +20,7 @@ import { AvailabilityModal } from '../dealstudio/AvailabilityModal';
 import { PdfDeckViewer } from '../dealstudio/PdfDeckViewer';
 import { useParams } from 'react-router-dom';
 import { useAdminAuth } from '../dealstudio/AdminGate';
+import { dealUrl } from '../../lib/org';
 import { DealSwitcher } from '../dealstudio/DealSwitcher';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { DealDocViewer } from '../dealstudio/DealDocViewer';
@@ -214,7 +215,7 @@ export function DealStudioScreen() {
    * own deal.
    */
   const publicUrl = () =>
-    room ? `${window.location.origin}/d/${room.slug}` : '';
+    room ? dealUrl(org?.handle ?? null, room.slug) : '';
 
   const copyLink = () => { navigator.clipboard?.writeText(publicUrl()); setCopied(true); setTimeout(() => setCopied(false), 1500); };
   const copyShareLink = () => { navigator.clipboard?.writeText(`${publicUrl()}?share=1`); setShareCopied(true); setTimeout(() => setShareCopied(false), 1500); };
