@@ -539,7 +539,10 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             See the fit() effect above. */}
         <div
           ref={sideRef}
-          className="contents lg:block lg:self-start lg:space-y-6 lg:sticky lg:top-[84px] lg:overflow-y-auto lg:overscroll-contain ds-scroll-y"
+          // overscroll-contain is gone on purpose: with it, reaching the bottom of
+          // the sidebar stops the wheel dead instead of handing the scroll back to
+          // the page, which is its own way of feeling stuck.
+          className="contents lg:block lg:self-start lg:space-y-6 lg:sticky lg:top-[84px] lg:overflow-y-auto ds-scroll-y"
         >
           <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 text-center">
             {/* A white ring plus a soft shadow, so the mark sits ON the card
@@ -629,10 +632,15 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
                       {label}
                     </p>
 
+                    {/* The slot grid has no max-height and no overflow. It used to be
+                        its own 160px scroller nested inside the sidebar's scroller:
+                        two scroll containers competing for one wheel gesture, which
+                        made the slots below the fold effectively unreachable. The
+                        sidebar is the single scroll container now. */}
                     {slots.length === 0 ? (
                       <p className="text-sm text-[#99a1af]">No times available on this day.</p>
                     ) : (
-                      <div className="grid grid-cols-3 gap-1.5 max-h-40 overflow-y-auto ds-scroll-y">
+                      <div className="grid grid-cols-3 gap-1.5">
                         {slots.map(t => (
                           <button
                             key={t}
