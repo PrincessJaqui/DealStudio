@@ -10,7 +10,7 @@
  */
 
 import { useRef } from 'react';
-import { Plus, Trash2, Check, X, Pencil } from 'lucide-react';
+import { Plus, Trash2, Check, X, Pencil, ChevronUp, ChevronDown } from 'lucide-react';
 import {
   EMPTY_COMPETITION, newId,
   type DealCompetition, type DealCompetitor, type CompFeature,
@@ -47,6 +47,15 @@ export function CompetitionEditor({
 
   const setFeature = (id: string, label: string) =>
     set({ features: features.map(f => (f.id === id ? { ...f, label } : f)) });
+
+  /** Rows are read top to bottom, so their order is part of the argument. */
+  const moveFeature = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= features.length) return;
+    const next = [...features];
+    [next[i], next[j]] = [next[j], next[i]];
+    set({ features: next });
+  };
 
   const removeFeature = (id: string) =>
     set({
@@ -198,14 +207,33 @@ export function CompetitionEditor({
                           placeholder={`Feature ${i + 1}`}
                           className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-[#191f1d] placeholder:text-[#c7cdd4] outline-none rounded-lg px-1.5 py-1 focus:bg-white focus:ring-2 focus:ring-[var(--ds-brand)]/25"
                         />
-                        <Pencil className="w-3.5 h-3.5 shrink-0 text-[#c7cdd4]" />
-                        <button
-                          onClick={() => removeFeature(f.id)}
-                          aria-label="Remove feature"
-                          className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center text-transparent group-hover:text-[#c7cdd4] hover:bg-red-50"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <Pencil className="w-3.5 h-3.5 shrink-0 text-[#c7cdd4] group-hover:hidden" />
+
+                        <span className="hidden group-hover:flex items-center shrink-0">
+                          <button
+                            onClick={() => moveFeature(i, -1)}
+                            disabled={i === 0}
+                            aria-label="Move up"
+                            className="w-5 h-5 rounded flex items-center justify-center text-[#c7cdd4] hover:text-[#191f1d] hover:bg-white disabled:opacity-25 disabled:hover:bg-transparent"
+                          >
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => moveFeature(i, 1)}
+                            disabled={i === features.length - 1}
+                            aria-label="Move down"
+                            className="w-5 h-5 rounded flex items-center justify-center text-[#c7cdd4] hover:text-[#191f1d] hover:bg-white disabled:opacity-25 disabled:hover:bg-transparent"
+                          >
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => removeFeature(f.id)}
+                            aria-label="Remove feature"
+                            className="w-5 h-5 rounded flex items-center justify-center text-[#c7cdd4] hover:text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </span>
                       </div>
                     </td>
 
