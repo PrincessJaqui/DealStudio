@@ -5,23 +5,14 @@
  * never shows a hollow heading.
  */
 
-import { Target, Swords, Check, X, ExternalLink } from 'lucide-react';
+import { Check, X, ExternalLink } from 'lucide-react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 import type { DealValueProp, DealCompetition } from '../../lib/dealStudio';
 
 const card =
   'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]';
 
-function Heading({ icon: Icon, title }: { icon: typeof Target; title: string }) {
-  return (
-    <div className="flex items-center gap-2.5 mb-4">
-      <span className="w-9 h-9 rounded-xl flex items-center justify-center text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]">
-        <Icon className="w-[18px] h-[18px]" />
-      </span>
-      <h2 className="text-lg font-bold text-[#191f1d]">{title}</h2>
-    </div>
-  );
-}
+
 
 /* ── Value Proposition ─────────────────────────────────────────────────────── */
 
@@ -33,10 +24,10 @@ export function ValuePropSection({ value }: { value: DealValueProp }) {
   if (!hasBody) return null;
 
   return (
-    <div ref={ref} className={inView ? 'ac-in' : 'ac-out'}>
-      <Heading icon={Target} title="Value Proposition" />
+    <div ref={ref} className={`${card} p-5 ${inView ? 'ac-in' : 'ac-out'}`}>
+      <h2 className="text-sm font-bold text-[#191f1d] mb-3">Value Proposition</h2>
 
-      <div className={`${card} p-6`}>
+      <div>
         {value.headline && (
           <p className="text-xl font-bold text-[#191f1d] leading-snug text-center max-w-3xl mx-auto">
             {value.headline}
@@ -124,10 +115,10 @@ export function CompetitionSection({ value }: { value: DealCompetition }) {
   if (!hasBody) return null;
 
   return (
-    <div ref={ref} className={inView ? 'ac-in' : 'ac-out'}>
-      <Heading icon={Swords} title="Competition" />
+    <div ref={ref} className={`${card} p-5 ${inView ? 'ac-in' : 'ac-out'}`}>
+      <h2 className="text-sm font-bold text-[#191f1d] mb-3">Competitive Landscape</h2>
 
-      <div className={`${card} p-6`}>
+      <div>
         {value.overview && (
           <p className="text-sm text-[#4b5563] leading-relaxed whitespace-pre-line">
             {value.overview}
@@ -143,21 +134,19 @@ export function CompetitionSection({ value }: { value: DealCompetition }) {
                   {cols.map(c => (
                     <th key={c.id} className="p-3 text-center min-w-[130px]">
                       <div
-                        className={`rounded-xl px-3 py-3 ${
+                        className={`rounded-t-2xl px-3 py-3 ${
                           c.is_you
                             ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]'
-                            : 'bg-[#f8f9fb]'
+                            : 'bg-[#f1f3f7]'
                         }`}
                       >
-                        <div className="h-10 w-10 mx-auto rounded-full overflow-hidden bg-[#f5f6f8] border border-[#edf0f3] flex items-center justify-center">
-                          {c.logo
-                            ? <img src={c.logo} alt="" className="h-full w-full object-cover" />
-                            : <span className="text-[11px] font-bold text-[#9ca3af]">
-                                {c.name.slice(0, 2).toUpperCase()}
-                              </span>}
-                        </div>
+                        {c.logo && (
+                          <div className="h-9 w-9 mx-auto mb-1 rounded-full overflow-hidden bg-white border border-[#edf0f3]">
+                            <img src={c.logo} alt="" className="h-full w-full object-cover" />
+                          </div>
+                        )}
 
-                        <p className={`mt-2 text-sm font-bold leading-tight ${c.is_you ? 'text-white' : 'text-[#191f1d]'}`}>
+                        <p className={`text-sm font-bold leading-tight ${c.is_you ? 'text-white' : 'text-[#191f1d]'}`}>
                           {c.url ? (
                             <a
                               href={/^https?:\/\//i.test(c.url) ? c.url : `https://${c.url}`}

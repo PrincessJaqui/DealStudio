@@ -9,13 +9,12 @@
  * lose track of which column is yours.
  */
 
-import { useRef, useState } from 'react';
-import { Plus, Trash2, Check, X, Pencil, Upload, Loader2 } from 'lucide-react';
+import { useRef } from 'react';
+import { Plus, Trash2, Check, X, Pencil } from 'lucide-react';
 import {
   EMPTY_COMPETITION, newId,
   type DealCompetition, type DealCompetitor, type CompFeature,
 } from '../../lib/dealStudio';
-import { uploadOrgLogo } from '../../lib/org';
 
 const card =
   'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]';
@@ -35,7 +34,6 @@ export function CompetitionEditor({
   const v: DealCompetition = { ...EMPTY_COMPETITION, ...(value ?? {}) };
   const features: CompFeature[] = Array.isArray(v.features) ? v.features : [];
   const rivals: DealCompetitor[] = Array.isArray(v.competitors) ? v.competitors : [];
-  const [uploading, setUploading] = useState('');
   const nameRef = useRef<Record<string, HTMLInputElement | null>>({});
 
   const set = (patch: Partial<DealCompetition>) => onChange({ ...v, ...patch });
@@ -89,17 +87,6 @@ export function CompetitionEditor({
     setRival(rivalId, { marks: { ...c.marks, [featureId]: !c.marks?.[featureId] } });
   };
 
-  const pickLogo = async (rivalId: string, file?: File) => {
-    if (!file || !orgId) return;
-    setUploading(rivalId);
-    try {
-      setRival(rivalId, { logo: await uploadOrgLogo(orgId, file) });
-    } catch {
-      /* a failed logo must never block the grid */
-    } finally {
-      setUploading('');
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -141,46 +128,24 @@ export function CompetitionEditor({
             <table className="w-full border-separate border-spacing-0 text-sm">
               <thead>
                 <tr>
-                  <th className="w-[220px] min-w-[190px] bg-[#f8f9fb] border-b border-[#edf0f3]" />
+                  <th className="w-[160px] min-w-[150px] bg-transparent" />
 
                   {cols.map(c => (
                     <th
                       key={c.id}
-                      className={`min-w-[170px] p-4 align-top border-b border-[#edf0f3] ${
+                      className={`min-w-[130px] p-3 align-top rounded-t-2xl ${
                         c.is_you
                           ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]'
-                          : 'bg-[#f8f9fb]'
+                          : 'bg-[#f1f3f7]'
                       }`}
                     >
                       <div className="flex items-center justify-center gap-1">
-                        {/* The logo is optional. The circle is the upload target. */}
-                        <label
-                          title="Upload logo"
-                          className={`h-7 w-7 shrink-0 rounded-full overflow-hidden flex items-center justify-center cursor-pointer ${
-                            c.is_you ? 'bg-white/20' : 'bg-white border border-[#edf0f3]'
-                          }`}
-                        >
-                          {uploading === c.id ? (
-                            <Loader2 className={`w-3 h-3 animate-spin ${c.is_you ? 'text-white' : 'text-[#9ca3af]'}`} />
-                          ) : c.logo ? (
-                            <img src={c.logo} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                            <Upload className={`w-3 h-3 ${c.is_you ? 'text-white/70' : 'text-[#c7cdd4]'}`} />
-                          )}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => { void pickLogo(c.id, e.target.files?.[0]); e.currentTarget.value = ''; }}
-                          />
-                        </label>
-
                         <input
                           ref={(el) => { nameRef.current[c.id] = el; }}
                           value={c.name}
                           onChange={(e) => setRival(c.id, { name: e.target.value })}
                           placeholder="Competitor"
-                          className={`min-w-0 flex-1 bg-transparent text-center text-[15px] font-bold outline-none rounded-lg px-1 py-0.5 ${
+                          className={`min-w-0 flex-1 bg-transparent text-center text-sm font-bold outline-none rounded-lg px-1 py-0.5 ${
                             c.is_you
                               ? 'text-white placeholder:text-white/50 focus:bg-white/15'
                               : 'text-[#191f1d] placeholder:text-[#c7cdd4] focus:bg-white'
@@ -225,13 +190,13 @@ export function CompetitionEditor({
               <tbody>
                 {features.map((f, i) => (
                   <tr key={f.id} className={i % 2 ? 'bg-[#f8f9fb]' : 'bg-white'}>
-                    <td className="p-3 pl-5 border-b border-[#f2f4f6]">
+                    <td className="p-2.5 pl-1 border-b border-[#f2f4f6]">
                       <div className="group flex items-center gap-1">
                         <input
                           value={f.label}
                           onChange={(e) => setFeature(f.id, e.target.value)}
                           placeholder={`Feature ${i + 1}`}
-                          className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[#191f1d] placeholder:text-[#c7cdd4] outline-none rounded-lg px-1.5 py-1 focus:bg-white focus:ring-2 focus:ring-[var(--ds-brand)]/25"
+                          className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-[#191f1d] placeholder:text-[#c7cdd4] outline-none rounded-lg px-1.5 py-1 focus:bg-white focus:ring-2 focus:ring-[var(--ds-brand)]/25"
                         />
                         <Pencil className="w-3.5 h-3.5 shrink-0 text-[#c7cdd4]" />
                         <button

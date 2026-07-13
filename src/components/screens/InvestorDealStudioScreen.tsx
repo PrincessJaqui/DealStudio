@@ -371,13 +371,13 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
 
           {team && <div className="order-6 lg:order-none"><TeamSection team={team} /></div>}
 
-          {valueProp && <div className="order-6 lg:order-none"><ValuePropSection value={valueProp} /></div>}
-
           {market && <div className="order-7 lg:order-none"><MarketSection market={market} /></div>}
 
-          {competition && <div className="order-7 lg:order-none"><CompetitionSection value={competition} /></div>}
-
           {market?.businessModel && <div className="order-8 lg:order-none"><BusinessModelSection model={market.businessModel} /></div>}
+
+          {valueProp && <div className="order-9 lg:order-none"><ValuePropSection value={valueProp} /></div>}
+
+          {competition && <div className="order-9 lg:order-none"><CompetitionSection value={competition} /></div>}
 
           {/* Documents */}
           <div ref={docsView.ref} data-section="documents" className={`order-9 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5 ${docsView.inView ? 'ds-animate' : ''}`}>
