@@ -1,7 +1,8 @@
 /**
  * DeleteDealDialog — a deliberate speed bump. Deleting a deal cascades to its
  * documents, investor list, visit history and meetings, so the dialog states
- * exactly what will be destroyed and requires the deal's slug to be typed.
+ * exactly what will be destroyed and requires the word DELETE to be typed.
+ * The SQL checks it too, so a stray client call cannot delete a deal.
  * The server re-checks that slug, so the guard is not merely cosmetic.
  */
 
@@ -18,6 +19,10 @@ export function DeleteDealDialog({
 }) {
   const [preview, setPreview] = useState<Awaited<ReturnType<typeof previewDeleteDeal>>>(null);
   const [typed, setTyped] = useState('');
+
+  // Case-insensitive: nobody should be blocked by caps lock while trying to
+  // delete their own deal. The SQL accepts either case too.
+  const confirmed = typed.trim().toUpperCase() === 'DELETE';
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,7 +33,7 @@ export function DeleteDealDialog({
   }, [deal.id]);
 
   const confirm = async () => {
-    if (typed !== deal.slug) return;
+    if (!confirmed) return;
     setBusy(true);
     setError('');
     try {
@@ -71,7 +76,8 @@ export function DeleteDealDialog({
           Delete "{deal.company_name || deal.slug}"?
         </h2>
         <p className="text-sm text-[#7f8c85] mt-1">
-          This cannot be undone, and the share link <span className="font-mono">/d/{deal.slug}</span> will stop working.
+          This cannot be undone. Every link to this deal room stops working, and
+          its documents, analytics and investor list go with it.
         </p>
 
         {preview === null && !error ? (
@@ -94,16 +100,16 @@ export function DeleteDealDialog({
         ) : null}
 
         <label className="block text-xs font-semibold text-[#7f8c85] mt-4 mb-1.5">
-          Type <span className="font-mono text-[#191f1d]">{deal.slug}</span> to confirm
+          Type <span className="font-mono text-[#191f1d]">DELETE</span> to confirm
         </label>
         <input
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter' && typed === deal.slug) void confirm(); }}
+          onKeyDown={(e) => { if (e.key === 'Enter' && confirmed) void confirm(); }}
           autoFocus
           spellCheck={false}
           className="w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm font-mono text-[#191f1d] outline-none focus:ring-2 focus:ring-red-500/30"
-          placeholder={deal.slug}
+          placeholder="DELETE"
         />
 
         {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
@@ -118,7 +124,7 @@ export function DeleteDealDialog({
           </button>
           <button
             onClick={() => void confirm()}
-            disabled={busy || typed !== deal.slug}
+            disabled={busy || !confirmed}
             className="flex-1 h-10 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-40 inline-flex items-center justify-center gap-2"
           >
             {busy && <Loader2 className="w-4 h-4 animate-spin" />}
