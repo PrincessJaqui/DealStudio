@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchLanding, type LandingBlock } from '../../lib/siteContent';
 import { CustomLanding } from './CustomLanding';
 import { PublicHeader } from '../dealstudio/PublicHeader';
-import { BarChart3, Eye, Moon, Sun, ArrowRight } from 'lucide-react';
+import { Lock, BarChart3, Eye, Moon, Sun, ArrowRight } from 'lucide-react';
 import { HeroMockup } from '../dealstudio/HeroMockup';
 import { supabase } from '../../lib/supabase';
 import { useInViewOnce } from '../../lib/useInViewOnce';

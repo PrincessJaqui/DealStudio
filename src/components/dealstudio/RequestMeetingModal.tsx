@@ -13,19 +13,23 @@ interface Props {
   slug: string;
   schedule: DealSchedule;
   defaultEmail?: string | null;
+  /** Preselected from the calendar, so an investor who already picked a time is
+   *  not made to pick it again. */
+  defaultDate?: string | null;
+  defaultSlot?: string | null;
   onClose: () => void;
   onSubmitted?: () => void;
 }
 
 const fmtDate = (key: string) => new Date(key + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 
-export function RequestMeetingModal({ slug, schedule, defaultEmail, onClose, onSubmitted }: Props) {
+export function RequestMeetingModal({ slug, schedule, defaultEmail, defaultDate, defaultSlot, onClose, onSubmitted }: Props) {
   const [mode, setMode] = useState<'available' | 'custom'>('available');
   const [name, setName] = useState('');
   const [email, setEmail] = useState(defaultEmail || '');
   const [note, setNote] = useState('');
-  const [date, setDate] = useState('');
-  const [slot, setSlot] = useState('');
+  const [date, setDate] = useState(defaultDate || '');
+  const [slot, setSlot] = useState(defaultSlot || '');
   const [customDate, setCustomDate] = useState('');
   const [customTime, setCustomTime] = useState('');
   const [busy, setBusy] = useState(false);

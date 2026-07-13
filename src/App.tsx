@@ -39,6 +39,10 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
+        {/* People type /login. /admin already shows the sign-in form when signed
+            out and the dashboard when signed in, so redirect rather than render a
+            bare gate, which would be a blank page for anyone already signed in. */}
+        <Route path="/login" element={<Navigate to="/admin" replace />} />
         <Route path="/terms" element={<TermsScreen />} />
         <Route path="/privacy" element={<PrivacyScreen />} />
 
