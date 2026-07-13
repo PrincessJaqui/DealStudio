@@ -7,7 +7,8 @@
 import { useEffect, useState } from 'react';
 import {
   Loader2, DollarSign, Plus, Download, RefreshCw, Search, Check, X, Shield,
-  ChevronUp, ChevronDown, Pencil, Mail, Link2 as LinkIcon,
+  ChevronUp, ChevronDown, Pencil, Mail, Link2 as LinkIcon, MoreVertical, Ban,
+  UserPlus,
 } from 'lucide-react';
 import { EditOrgDialog } from '../dealstudio/EditOrgDialog';
 import { PlatformDashboard } from '../dealstudio/PlatformDashboard';
@@ -101,6 +102,30 @@ function UsersTab() {
   const [actOk, setActOk] = useState(false);
   const [actPassword, setActPassword] = useState('');
   const [actName, setActName] = useState('');
+  const [rowMenu, setRowMenu] = useState<string | null>(null);
+  const [newUserOpen, setNewUserOpen] = useState(false);
+
+  /** Per-row credential actions. They act on the company's OWNER, which is the
+   *  person who is actually locked out when something goes wrong. */
+  const rowReset = async (o: AdminOrg) => {
+    if (!o.owner_email) return;
+    setActOk(false); setActNote('');
+    const r = await sendPasswordReset(o.owner_email);
+    setActOk(r.ok);
+    setActNote(r.ok
+      ? `Reset link sent to ${o.owner_email}.`
+      : (r.message || 'Could not send the reset email.'));
+  };
+
+  const rowMagic = async (o: AdminOrg) => {
+    if (!o.owner_email) return;
+    setActOk(false); setActNote('');
+    const r = await sendMagicLink(o.owner_email);
+    setActOk(r.ok);
+    setActNote(r.ok
+      ? `Sign-in link sent to ${o.owner_email}.`
+      : (r.message || 'Could not send the link.'));
+  };
 
   const activate = async () => {
     setActBusy(true); setActNote('');
@@ -210,139 +235,28 @@ function UsersTab() {
         <PlatformDashboard />
       </div>
 
-      {/* Activation. Email confirmation is on, so a customer whose confirmation
-          mail bounced, expired, or landed in spam is stuck outside with no way
-          in. This is the way in. It cannot CREATE an account: the person must
-          sign up first, because forging an auth user in SQL corrupts the
-          identities table and 500s their next login. */}
-      <div className={`${card} p-5 mb-5`}>
-        <h2 className="font-bold text-[#191f1d]">Users</h2>
-        <p className="text-sm text-[#7f8c85] mt-0.5">
-          Create an account and send them a link to set a password, or unstick
-          someone whose confirmation email never arrived.
-        </p>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <input
-            value={actEmail}
-            onChange={(e) => setActEmail(e.target.value)}
-            placeholder="their@email.com"
-            className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
-          />
-          <input
-            value={actName}
-            onChange={(e) => setActName(e.target.value)}
-            placeholder="Their name (optional)"
-            className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
-          />
-        </div>
-
-        <button
-          onClick={() => void doCreate()}
-          disabled={!actEmail.trim() || actBusy}
-          className="mt-3 w-full sm:w-auto inline-flex items-center justify-center gap-1.5 h-11 px-5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
-        >
-          {actBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-          Create account and send setup link
-        </button>
-
-        <p className="mt-2 text-xs text-[#9ca3af] leading-relaxed">
-          They set their own password from the link, then name their own company on
-          first sign-in. No company needed here.
-        </p>
-
-        {/* Everything below is for accounts that ALREADY exist and are stuck. */}
-        <div className="mt-5 pt-4 border-t border-[#edf0f3]">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#7f8c85]">
-            Already signed up but locked out
-          </p>
-
-          <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
-            <input
-              value={actCompany}
-              onChange={(e) => setActCompany(e.target.value)}
-              placeholder="Company to put them in (optional)"
-              className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
-            />
-            <button
-              onClick={() => void activate()}
-              disabled={!actEmail.trim() || actBusy}
-              className="inline-flex items-center justify-center gap-1.5 h-11 px-5 rounded-xl text-sm font-semibold text-[var(--ds-brand)] border border-[#e6e8ee] hover:bg-[#f5f6f8] disabled:opacity-50"
-            >
-              <Check className="w-4 h-4" />
-              Confirm email
-            </button>
-          </div>
-        </div>
-
-        {/* The email routes come first on purpose. They are the right answer
-            almost always: the customer sets their own password and nobody else
-            ever knows it. Setting one by hand is the break-glass option. */}
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            onClick={() => void doReset()}
-            disabled={!actEmail.trim() || actBusy}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-semibold text-[var(--ds-brand)] border border-[#e6e8ee] hover:bg-[#f5f6f8] disabled:opacity-50"
-          >
-            <Mail className="w-3.5 h-3.5" /> Send password reset
-          </button>
-          <button
-            onClick={() => void doMagic()}
-            disabled={!actEmail.trim() || actBusy}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-semibold text-[var(--ds-brand)] border border-[#e6e8ee] hover:bg-[#f5f6f8] disabled:opacity-50"
-          >
-            <LinkIcon className="w-3.5 h-3.5" /> Resend sign-in link
-          </button>
-        </div>
-
-        <details className="mt-4 rounded-xl bg-[#f5f6f8] border border-[#edf0f3] p-4">
-          <summary className="cursor-pointer text-sm font-semibold text-[#191f1d]">
-            Set a password directly
-          </summary>
-          <p className="text-xs text-[#7f8c85] mt-2 leading-relaxed">
-            Only when email is broken and they are locked out. You will know their
-            password, which is exactly why this is the last resort rather than the
-            first. Tell them to change it.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <input
-              type="text"
-              value={actPassword}
-              onChange={(e) => setActPassword(e.target.value)}
-              placeholder="New password (8+ characters)"
-              className="flex-1 min-w-[220px] rounded-xl bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
-            />
-            <button
-              onClick={() => void doSetPassword()}
-              disabled={!actEmail.trim() || actPassword.length < 8 || actBusy}
-              className="inline-flex items-center gap-1.5 h-11 px-4 rounded-xl text-sm font-semibold text-white bg-[#191f1d] disabled:opacity-40"
-            >
-              <Shield className="w-4 h-4" /> Set password
-            </button>
-          </div>
-        </details>
-
-        {actNote && (
-          <p className={`mt-3 text-sm ${actOk ? 'text-[var(--ds-accent-ink)]' : 'text-red-600'}`}>
-            {actNote}
-          </p>
-        )}
-      </div>
-
       <div className={card}>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-5 border-b border-[#edf0f3]">
           <div>
             <h2 className="font-bold text-[#191f1d]">Companies</h2>
             <p className="text-sm text-[#7f8c85]">Every organization on the platform.</p>
           </div>
-          <div className="sm:ml-auto relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#99a1af]" />
-            <input
-              value={q}
-              onChange={e => setQ(e.target.value)}
-              placeholder="Search company or email"
-              className="w-full sm:w-72 bg-[#f5f6f8] rounded-xl pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
-            />
+          <div className="sm:ml-auto flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#99a1af]" />
+              <input
+                value={q}
+                onChange={e => setQ(e.target.value)}
+                placeholder="Search company or email"
+                className="w-full sm:w-64 bg-[#f5f6f8] rounded-xl pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+              />
+            </div>
+            <button
+              onClick={() => { setActNote(''); setNewUserOpen(true); }}
+              className="inline-flex items-center gap-1.5 h-9 px-4 shrink-0 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] hover:brightness-110 transition whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" /> New user
+            </button>
           </div>
         </div>
 
@@ -358,11 +272,13 @@ function UsersTab() {
               <thead>
                 <tr className="text-left text-[#7f8c85] border-b border-[#edf0f3]">
                   <SortTh label="Company" k="name" />
-                  <SortTh label="Owner" k="owner_email" />
+                  <SortTh label="Owner" k="owner_name" />
+                  <SortTh label="Email" k="owner_email" />
                   <SortTh label="Status" k="subscription_status" />
                   <SortTh label="Deals" k="deal_count" />
                   <SortTh label="Joined" k="created_at" />
-                  <th className="font-semibold px-5 py-3 whitespace-nowrap">Actions</th>
+                  {/* No "Actions" header: the three-dot button says what it is. */}
+                  <th className="px-5 py-3" />
                 </tr>
               </thead>
               <tbody>
@@ -371,7 +287,21 @@ function UsersTab() {
                     && o.subscription_status !== 'active';
                   return (
                     <tr key={o.id} className="border-b border-[#f2f4f6] last:border-0">
-                      <td className="px-5 py-3 font-semibold text-[#191f1d] whitespace-nowrap">{o.name}</td>
+                      <td className="px-5 py-3 font-semibold text-[#191f1d] whitespace-nowrap">
+                        <span className="flex items-center gap-2.5">
+                          <span className="w-7 h-7 shrink-0 rounded-full overflow-hidden border border-[#edf0f3] bg-white flex items-center justify-center">
+                            {o.logo_url
+                              ? <img src={o.logo_url} alt="" className="w-full h-full object-cover" />
+                              : <span className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white text-[11px] font-semibold">
+                                  {(o.name || '?').trim().charAt(0).toUpperCase()}
+                                </span>}
+                          </span>
+                          {o.name}
+                        </span>
+                      </td>
+                      {/* Someone who signed up themselves never gave a name, so this
+                          is often empty. An em dash, not the word "null". */}
+                      <td className="px-5 py-3 text-[#191f1d] whitespace-nowrap">{o.owner_name ?? '—'}</td>
                       <td className="px-5 py-3 text-[#7f8c85] whitespace-nowrap">{o.owner_email ?? '—'}</td>
                       <td className="px-5 py-3 whitespace-nowrap">
                         {o.suspended ? <StatusPill s="failed" />
@@ -383,27 +313,64 @@ function UsersTab() {
                       <td className="px-5 py-3 text-[#7f8c85] whitespace-nowrap">
                         {new Date(o.created_at).toLocaleDateString()}
                       </td>
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => setEditing(o)}
-                            className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-[#edf0f3] text-xs font-medium text-[#191f1d] hover:bg-[#f5f6f8] whitespace-nowrap"
-                          >
-                            <Pencil className="w-3.5 h-3.5" /> Edit
-                          </button>
-                          <button
-                            disabled={busy === o.id}
-                            onClick={() => void act(o.id, { suspended: !o.suspended })}
-                            className={`h-8 px-2.5 rounded-lg text-xs font-medium whitespace-nowrap ${
-                              o.suspended
-                                ? 'border border-[#edf0f3] text-[#7f8c85] hover:text-[#191f1d]'
-                                : 'bg-red-50 text-red-600 hover:bg-red-100'
-                            }`}
-                          >
-                            {o.suspended ? 'Restore' : 'Suspend'}
-                          </button>
-                          {busy === o.id && <Loader2 className="w-4 h-4 animate-spin text-[#7f8c85]" />}
-                        </div>
+                      <td className="px-5 py-3 text-right relative">
+                        {/* One menu instead of two loose buttons. Suspend was a
+                            red button sitting in every row, one stray click from
+                            cutting a paying customer off mid-raise. It now lives
+                            behind a deliberate menu. */}
+                        <button
+                          onClick={() => setRowMenu(rowMenu === o.id ? null : o.id)}
+                          aria-label={`Actions for ${o.name}`}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
+                        >
+                          {busy === o.id
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <MoreVertical className="w-4 h-4" />}
+                        </button>
+
+                        {rowMenu === o.id && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setRowMenu(null)} />
+                            <div className="absolute right-4 top-12 z-20 w-56 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.18)] p-1.5 text-left">
+                              <button
+                                onClick={() => { setRowMenu(null); setEditing(o); }}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
+                              >
+                                <Pencil className="w-4 h-4" /> Edit
+                              </button>
+
+                              <button
+                                disabled={!o.owner_email}
+                                onClick={() => { setRowMenu(null); void rowReset(o); }}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d] disabled:opacity-40"
+                              >
+                                <Mail className="w-4 h-4" /> Send password reset
+                              </button>
+
+                              <button
+                                disabled={!o.owner_email}
+                                onClick={() => { setRowMenu(null); void rowMagic(o); }}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d] disabled:opacity-40"
+                              >
+                                <LinkIcon className="w-4 h-4" /> Resend sign-in link
+                              </button>
+
+                              <div className="my-1 border-t border-[#edf0f3]" />
+
+                              <button
+                                onClick={() => { setRowMenu(null); void act(o.id, { suspended: !o.suspended }); }}
+                                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium ${
+                                  o.suspended
+                                    ? 'text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]'
+                                    : 'text-red-600 hover:bg-red-50'
+                                }`}
+                              >
+                                <Ban className="w-4 h-4" />
+                                {o.suspended ? 'Restore access' : 'Suspend'}
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </td>
                     </tr>
                   );
@@ -413,6 +380,134 @@ function UsersTab() {
           </div>
         )}
       </div>
+
+      {/* New user. Creating an account and unsticking a locked-out one are the
+          same job from the master admin's point of view, so they live together
+          rather than as a permanent panel cluttering the page. */}
+      {newUserOpen && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setNewUserOpen(false)} />
+          <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
+            <div className="w-full max-w-lg mt-16 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_24px_60px_-16px_rgba(12,16,34,0.35)]">
+              <div className="flex items-center gap-3 p-5 border-b border-[#edf0f3]">
+                <UserPlus className="w-5 h-5 text-[var(--ds-brand)]" />
+                <div>
+                  <h2 className="font-bold text-[#191f1d]">New user</h2>
+                  <p className="text-sm text-[#7f8c85]">
+                    They set their own password and name their own company.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setNewUserOpen(false)}
+                  aria-label="Close"
+                  className="ml-auto w-8 h-8 rounded-lg flex items-center justify-center text-[#9ca3af] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-5">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input
+                    value={actEmail}
+                    onChange={(e) => setActEmail(e.target.value)}
+                    placeholder="their@email.com"
+                    autoFocus
+                    className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+                  />
+                  <input
+                    value={actName}
+                    onChange={(e) => setActName(e.target.value)}
+                    placeholder="Their name (optional)"
+                    className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+                  />
+                </div>
+
+                <button
+                  onClick={() => void doCreate()}
+                  disabled={!actEmail.trim() || actBusy}
+                  className="mt-3 w-full inline-flex items-center justify-center gap-1.5 h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
+                >
+                  {actBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  Create account and send setup link
+                </button>
+
+                <div className="mt-5 pt-4 border-t border-[#edf0f3]">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#7f8c85]">
+                    Already signed up but locked out
+                  </p>
+
+                  <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+                    <input
+                      value={actCompany}
+                      onChange={(e) => setActCompany(e.target.value)}
+                      placeholder="Company to put them in (optional)"
+                      className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+                    />
+                    <button
+                      onClick={() => void activate()}
+                      disabled={!actEmail.trim() || actBusy}
+                      className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-xl text-sm font-semibold text-[var(--ds-brand)] border border-[#e6e8ee] hover:bg-[#f5f6f8] disabled:opacity-50"
+                    >
+                      <Check className="w-4 h-4" /> Confirm email
+                    </button>
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => void doReset()}
+                      disabled={!actEmail.trim() || actBusy}
+                      className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-semibold text-[var(--ds-brand)] border border-[#e6e8ee] hover:bg-[#f5f6f8] disabled:opacity-50"
+                    >
+                      <Mail className="w-3.5 h-3.5" /> Send password reset
+                    </button>
+                    <button
+                      onClick={() => void doMagic()}
+                      disabled={!actEmail.trim() || actBusy}
+                      className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-semibold text-[var(--ds-brand)] border border-[#e6e8ee] hover:bg-[#f5f6f8] disabled:opacity-50"
+                    >
+                      <LinkIcon className="w-3.5 h-3.5" /> Resend sign-in link
+                    </button>
+                  </div>
+
+                  <details className="mt-3 rounded-xl bg-[#f5f6f8] border border-[#edf0f3] p-4">
+                    <summary className="cursor-pointer text-sm font-semibold text-[#191f1d]">
+                      Set a password directly
+                    </summary>
+                    <p className="text-xs text-[#7f8c85] mt-2 leading-relaxed">
+                      Only when email is broken and they are locked out. You will know
+                      their password, which is why this is the last resort. Tell them
+                      to change it.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <input
+                        type="text"
+                        value={actPassword}
+                        onChange={(e) => setActPassword(e.target.value)}
+                        placeholder="New password (8+ characters)"
+                        className="flex-1 min-w-[200px] rounded-xl bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+                      />
+                      <button
+                        onClick={() => void doSetPassword()}
+                        disabled={!actEmail.trim() || actPassword.length < 8 || actBusy}
+                        className="inline-flex items-center gap-1.5 h-11 px-4 rounded-xl text-sm font-semibold text-white bg-[#191f1d] disabled:opacity-40"
+                      >
+                        <Shield className="w-4 h-4" /> Set password
+                      </button>
+                    </div>
+                  </details>
+                </div>
+
+                {actNote && (
+                  <p className={`mt-4 text-sm ${actOk ? 'text-[var(--ds-accent-ink)]' : 'text-red-600'}`}>
+                    {actNote}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {editing && (
         <EditOrgDialog
