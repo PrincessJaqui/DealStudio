@@ -6,12 +6,13 @@
  */
 
 import { useState } from 'react';
-import { Plus, Trash2, X, Eye, Clock, Mail, Building2, BarChart3, Linkedin, Phone } from 'lucide-react';
+import { Plus, Trash2, X, Eye, Clock, Mail, Building2, BarChart3, Linkedin, Phone, Ban, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { Button } from '../ui/button';
 import {
   DealAccessRow, DealVisitRow, DealDocument, STAGES,
   adminCreateInvestor, adminUpdateInvestor, adminDeleteInvestor, adminApproveAccess, committedTotal, formatDuration,
+  adminDeleteVisit, adminResetVisit, adminBlockViewer,
 } from '../../lib/dealStudio';
 import { DealViewerAnalytics } from './DealViewerAnalytics';
 import { DeckPageBars } from './DeckPageBars';
@@ -37,6 +38,9 @@ function timeAgo(iso: string | null): string {
 }
 
 const fmtMoney = (n: number) => `$${(n || 0).toLocaleString()}`;
+
+/** Counts with thousand separators. 1200 deck views should not read as "1200". */
+const num = (n: number | null | undefined) => (n || 0).toLocaleString();
 const today = () => new Date().toISOString().slice(0, 10);
 
 /** LinkedIn, phone, and a notes history live inside the existing `notes` text
@@ -63,6 +67,35 @@ function noteWhen(iso: string): string {
 }
 
 /** Inline per-viewer analytics: deck time-per-page + time per document opened. */
+/** A section that opens and closes. Both analytics panels can be long, and a
+ *  founder scanning ten viewers does not want ten open charts. */
+function Collapsible({
+  title, subtitle, defaultOpen = true, children,
+}: {
+  title: string;
+  subtitle?: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="rounded-xl border border-[#edf0f3] bg-white">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-[#f5f6f8] rounded-xl"
+      >
+        {open ? <ChevronDown className="w-4 h-4 text-[#9ca3af] shrink-0" />
+              : <ChevronRight className="w-4 h-4 text-[#9ca3af] shrink-0" />}
+        <span className="min-w-0">
+          <span className="block text-xs font-bold text-[#191f1d]">{title}</span>
+          {subtitle && <span className="block text-[11px] text-[#9ca3af]">{subtitle}</span>}
+        </span>
+      </button>
+      {open && <div className="px-3 pb-3">{children}</div>}
+    </div>
+  );
+}
+
 function InlineAnalytics({ roomId, deckId, deckUrl, visit, docs }: { roomId: string; deckId?: string; deckUrl?: string; visit: DealVisitRow; docs: DealDocument[] }) {
   const docRows = Object.entries(visit.sections || {})
     .filter(([k, s]) => k.startsWith('doc:') && (s as number) > 0)
@@ -72,10 +105,14 @@ function InlineAnalytics({ roomId, deckId, deckUrl, visit, docs }: { roomId: str
   const docTitle = (id: string) => docs.find(d => d.id === id)?.title || 'Document';
 
   return (
-    <div className="space-y-4">
-      {deckId && visit.email && <DeckPageBars roomId={roomId} deckId={deckId} email={visit.email} deckUrl={deckUrl} />}
-      <div>
-        <p className="text-xs font-semibold text-[#7f8c85] mb-2">Time per document</p>
+    <div className="space-y-3">
+      {/* Full breakdown sits ABOVE the deck analysis: which documents someone
+          actually spent time in is the first question, and the per-page deck
+          chart is the follow-up. */}
+      <Collapsible
+        title="Full breakdown"
+        subtitle={`Time per document · ${num(visit.page_views)} page view${visit.page_views === 1 ? '' : 's'}`}
+      >
         {docRows.length === 0 ? (
           <p className="text-xs text-[#99a1af]">No document opens recorded for this viewer yet.</p>
         ) : (
@@ -89,7 +126,16 @@ function InlineAnalytics({ roomId, deckId, deckUrl, visit, docs }: { roomId: str
             ))}
           </div>
         )}
-      </div>
+      </Collapsible>
+
+      {deckId && visit.email && (
+        <Collapsible
+          title="Deck view analysis"
+          subtitle={`${num(visit.deck_views)} deck open${visit.deck_views === 1 ? '' : 's'}`}
+        >
+          <DeckPageBars roomId={roomId} deckId={deckId} email={visit.email} deckUrl={deckUrl} />
+        </Collapsible>
+      )}
     </div>
   );
 }
@@ -119,8 +165,10 @@ export function DealFlow({ roomId, rows, visits, docs, onChanged }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Pipeline summary */}
+      {/* Pipeline summary. It had no header while every other card has one, which
+          is why it read as a stray row of numbers rather than a section. */}
       <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
+        <p className="text-sm font-bold text-[#191f1d] mb-3">Pipeline summary</p>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex flex-wrap gap-x-8 gap-y-3">
             <div>
@@ -129,11 +177,11 @@ export function DealFlow({ roomId, rows, visits, docs, onChanged }: Props) {
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wide text-[#7f8c85]">Active leads</p>
-              <p className="text-2xl font-bold text-[#191f1d]">{activeLeads}</p>
+              <p className="text-2xl font-bold text-[#191f1d]">{num(activeLeads)}</p>
             </div>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wide text-[#7f8c85]">Total closed</p>
-              <p className="text-2xl font-bold text-[#191f1d]">{totalClosed}</p>
+              <p className="text-2xl font-bold text-[#191f1d]">{num(totalClosed)}</p>
             </div>
           </div>
           <Button onClick={() => setAdding(true)} className="h-9 shrink-0 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]"><Plus className="w-4 h-4 mr-1" /> Add investor</Button>
@@ -164,14 +212,14 @@ export function DealFlow({ roomId, rows, visits, docs, onChanged }: Props) {
       {/* All other viewers (visited but not in the pipeline) */}
       {otherViewers.length > 0 && (
         <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
-          <p className="text-sm font-bold text-[#191f1d] mb-1">Other viewers</p>
+          <p className="text-sm font-bold text-[#191f1d] mb-1">View List</p>
           <p className="text-xs text-[#7f8c85] mb-3">Visited the deal studio but not in your pipeline. Tap to see their deck pages.</p>
           <div className="divide-y divide-[#f0f0f0]">
             {otherViewers.map(v => (
               <div key={v.id}>
                 <button onClick={() => setOpenOther(openOther === v.id ? null : v.id)} className="w-full flex items-center justify-between gap-3 py-2.5 text-left hover:bg-[#f5f6f8] -mx-1 px-1 rounded-lg">
                   <span className="text-sm font-medium text-[#191f1d] truncate">{v.email || 'Anonymous'}</span>
-                  <span className="text-xs text-[#7f8c85] shrink-0 flex items-center gap-2"><span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {v.deck_views}&times; deck</span><span>{Math.round(v.total_seconds)}s</span></span>
+                  <span className="text-xs text-[#7f8c85] shrink-0 flex items-center gap-2"><span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {num(v.deck_views)}&times; deck</span><span>{formatDuration(Math.round(v.total_seconds))}</span></span>
                 </button>
                 {openOther === v.id && (
                   <div className="mb-3 rounded-xl bg-[#f5f6f8] border border-[#edf0f3] p-3">
@@ -186,6 +234,45 @@ export function DealFlow({ roomId, rows, visits, docs, onChanged }: Props) {
                           ><Plus className="w-3.5 h-3.5" /> Add to pipeline</button>
                         )}
                       </div>
+                    </div>
+
+                    {/* Viewer controls. Reset is for your own test views. Block
+                        actually revokes them at the gate, it is not cosmetic.
+                        Delete is permanent and takes their analytics with it. */}
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <button
+                        onClick={async () => {
+                          if (await adminResetVisit(v.id)) { toast.success('Counts reset'); onChanged(); }
+                          else toast.error('Could not reset');
+                        }}
+                        className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-xs font-semibold text-[#7f8c85] border border-[#e6e8ee] hover:bg-white"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" /> Reset counts
+                      </button>
+
+                      {v.email && (
+                        <button
+                          onClick={async () => {
+                            const r = await adminBlockViewer(roomId, v.email!, true);
+                            if (r.ok) { toast.success(`${v.email} can no longer open this room`); onChanged(); }
+                            else toast.error(r.message || 'Could not block');
+                          }}
+                          className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-xs font-semibold text-[#7f8c85] border border-[#e6e8ee] hover:bg-white"
+                        >
+                          <Ban className="w-3.5 h-3.5" /> Block access
+                        </button>
+                      )}
+
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Permanently delete ${v.email || 'this viewer'} and their analytics? This cannot be undone.`)) return;
+                          if (await adminDeleteVisit(v.id)) { toast.success('Viewer deleted'); setOpenOther(null); onChanged(); }
+                          else toast.error('Could not delete');
+                        }}
+                        className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-xs font-semibold text-red-600 border border-red-100 hover:bg-red-50 ml-auto"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                      </button>
                     </div>
                     <InlineAnalytics roomId={roomId} deckId={deckId} deckUrl={deckUrl} visit={v} docs={docs} />
                   </div>
@@ -275,10 +362,10 @@ function InvestorRow({ row, visit, roomId, deckId, deckUrl, docs, onChanged, onA
                 the single strongest signal of interest in the whole pipeline. */}
             {deckViews > 0 && (
               <span
-                title={`Opened the deck ${deckViews} time${deckViews === 1 ? '' : 's'}`}
+                title={`Opened the deck ${num(deckViews)} time${deckViews === 1 ? '' : 's'}`}
                 className="inline-flex items-center gap-1 rounded-full bg-[var(--ds-accent-tint)] text-[var(--ds-accent-ink)] px-2 py-0.5 text-[11px] font-semibold"
               >
-                <Eye className="w-3 h-3" /> {deckViews}&times; deck
+                <Eye className="w-3 h-3" /> {num(deckViews)}&times; deck
               </span>
             )}
           </div>
@@ -323,7 +410,7 @@ function InvestorRow({ row, visit, roomId, deckId, deckUrl, docs, onChanged, onA
         <span className="flex items-center gap-1.5 text-xs">
           <Eye className="w-3.5 h-3.5 text-[var(--ds-brand)]" />
           {deckViews > 0
-            ? <span className="text-[#191f1d]">Viewed deck {deckViews}×{lastSeen ? <span className="text-[#99a1af]"> · last {timeAgo(lastSeen)}</span> : null}</span>
+            ? <span className="text-[#191f1d]">Viewed deck {num(deckViews)}×{lastSeen ? <span className="text-[#99a1af]"> · last {timeAgo(lastSeen)}</span> : null}</span>
             : <span className="text-[#99a1af]">No deck views yet</span>}
         </span>
         {visit && visit.total_seconds > 0 && (

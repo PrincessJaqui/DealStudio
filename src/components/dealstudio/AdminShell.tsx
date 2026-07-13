@@ -165,6 +165,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-4 px-3">
               <a href="/terms" className="text-xs font-medium text-[#7f8c85] hover:text-[#191f1d]">Terms</a>
               <a href="/privacy" className="text-xs font-medium text-[#7f8c85] hover:text-[#191f1d]">Privacy</a>
+              {/* Opens their mail client, same as the site footer. */}
+              <a href="mailto:hello@dealstudio.io" className="text-xs font-medium text-[#7f8c85] hover:text-[#191f1d]">Contact</a>
             </div>
             <p className="px-3 mt-2 text-xs text-[#9ca3af]">Powered by DealStudio&trade;</p>
           </div>
@@ -264,6 +266,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               <div className="flex items-center gap-4 px-3">
                 <a href="/terms" className="text-xs font-medium text-[#7f8c85] hover:text-[#191f1d]">Terms</a>
                 <a href="/privacy" className="text-xs font-medium text-[#7f8c85] hover:text-[#191f1d]">Privacy</a>
+                <a href="mailto:hello@dealstudio.io" className="text-xs font-medium text-[#7f8c85] hover:text-[#191f1d]">Contact</a>
               </div>
               <p className="px-3 mt-2 text-xs text-[#9ca3af]">Powered by DealStudio&trade;</p>
             </div>

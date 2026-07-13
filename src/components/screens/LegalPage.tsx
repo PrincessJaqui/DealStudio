@@ -7,6 +7,7 @@
 
 import { useNavigate } from 'react-router-dom';
 import { PublicHeader } from '../dealstudio/PublicHeader';
+import { SiteFooter } from '../dealstudio/SiteFooter';
 
 export function LegalPage({
   title,
@@ -39,6 +40,7 @@ export function LegalPage({
           Questions about this document? hello@dealstudio.io
         </p>
       </div>
+      <SiteFooter />
     </div>
   );
 }

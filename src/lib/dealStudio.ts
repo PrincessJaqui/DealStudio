@@ -948,3 +948,37 @@ export function resolveSectionOrder(raw: unknown): SectionKey[] {
   // later release still shows up for a deal saved before it existed.
   return [...stored, ...DEFAULT_SECTION_ORDER.filter(k => !seen.has(k))];
 }
+
+/* ── Viewer controls ───────────────────────────────────────────────────────── */
+
+/** Permanently remove a viewer and their analytics. */
+export async function adminDeleteVisit(visitId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('admin_delete_visit', { p_visit: visitId });
+  if (error) return false;
+  return !!(data as { ok?: boolean })?.ok;
+}
+
+/** Keep the viewer, zero their counts. For clearing out your own test views. */
+export async function adminResetVisit(visitId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('admin_reset_visit', { p_visit: visitId });
+  if (error) return false;
+  return !!(data as { ok?: boolean })?.ok;
+}
+
+/**
+ * Block or unblock a viewer by email.
+ *
+ * Blocking sets their access status to 'revoked', which is the status the gate
+ * already refuses. They are locked out for real, not just hidden from the list.
+ */
+export async function adminBlockViewer(
+  dealId: string,
+  email: string,
+  blocked: boolean,
+): Promise<{ ok: boolean; message?: string }> {
+  const { data, error } = await supabase.rpc('admin_block_viewer', {
+    p_deal: dealId, p_email: email, p_blocked: blocked,
+  });
+  if (error) return { ok: false, message: error.message };
+  return (data ?? { ok: false }) as { ok: boolean; message?: string };
+}

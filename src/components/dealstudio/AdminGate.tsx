@@ -11,6 +11,7 @@ import { Loader2, LogOut, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { PublicHeader } from './PublicHeader';
+import { SiteFooter } from './SiteFooter';
 import { refreshUserContext } from '../../lib/analytics';
 import { fetchMyOrg, createMyOrg, applyOrgTheme, claimPendingInvites, myPendingInvite, type Organization } from '../../lib/org';
 import { AccountLock, isEntitled } from './AccountLock';
@@ -288,6 +289,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
         )}
       </div>
       </div>
+      <SiteFooter />
     </div>
   );
 }
