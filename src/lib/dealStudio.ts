@@ -266,15 +266,39 @@ export interface LinkPreview { title: string; description: string; image: string
 /** Pull a link's title/description/image/site via the link-preview edge
  *  function (server-side fetch, since the browser cannot read other sites).
  *  Returns null on any failure; the caller keeps whatever the user typed. */
-export async function fetchLinkPreview(url: string): Promise<LinkPreview | null> {
-  if (!url || !/^https?:\/\//i.test(url)) return null;
+export type LinkPreviewResult =
+  | { ok: true; preview: LinkPreview }
+  | { ok: false; reason: 'bad-url' | 'not-enabled' | 'upstream' };
+
+/**
+ * Pull a link's title/description/image via the link-preview edge function.
+ *
+ * Failures used to return null and the editor just sat there, so a founder could
+ * not tell a dead link from a service that was never switched on. The reason is
+ * now reported, because those two problems have completely different fixes.
+ */
+export async function fetchLinkPreviewResult(url: string): Promise<LinkPreviewResult> {
+  if (!url || !/^https?:\/\//i.test(url)) return { ok: false, reason: 'bad-url' };
+
   try {
     const { data, error } = await supabase.functions.invoke('link-preview', { body: { url } });
-    if (error || !data || (data as any).error) return null;
-    return data as LinkPreview;
+
+    // A CORS/401 rejection never reaches the function body: Supabase blocks the
+    // preflight when "Verify JWT" is on. That is a configuration problem, not a
+    // problem with the link the founder pasted.
+    if (error) return { ok: false, reason: 'not-enabled' };
+    if (!data || (data as any).error) return { ok: false, reason: 'upstream' };
+
+    return { ok: true, preview: data as LinkPreview };
   } catch {
-    return null;
+    return { ok: false, reason: 'not-enabled' };
   }
+}
+
+/** Back-compat: null on any failure. */
+export async function fetchLinkPreview(url: string): Promise<LinkPreview | null> {
+  const r = await fetchLinkPreviewResult(url);
+  return r.ok ? r.preview : null;
 }
 
 

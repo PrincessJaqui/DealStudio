@@ -283,3 +283,24 @@ export async function orgSeatStatus(orgId: string): Promise<SeatStatus | null> {
 export function isSeatError(e: unknown): boolean {
   return String((e as any)?.message ?? '').includes('SEAT_REQUIRED');
 }
+
+/* ── Deal rooms ────────────────────────────────────────────────────────────── */
+
+export type DealStatus = {
+  included: number;
+  purchased: number;
+  allowed: number;
+  used: number;
+  can_add: boolean;
+};
+
+export async function orgDealStatus(orgId: string): Promise<DealStatus | null> {
+  const { data, error } = await supabase.rpc('org_deal_status', { p_org: orgId });
+  if (error) return null;
+  return (Array.isArray(data) ? data[0] : data) ?? null;
+}
+
+/** The database raises DEAL_LIMIT when a company is out of paid deal rooms. */
+export function isDealLimitError(e: unknown): boolean {
+  return String((e as any)?.message ?? '').includes('DEAL_LIMIT');
+}

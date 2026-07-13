@@ -27,6 +27,7 @@ import { DealFlow } from '../dealstudio/DealFlow';
 import { MarketEditor } from '../dealstudio/MarketEditor';
 import { ValuePropEditor } from '../dealstudio/ValuePropEditor';
 import { ProblemSolutionEditor } from '../dealstudio/ProblemSolutionEditor';
+import { IndustryReadingEditor } from '../dealstudio/IndustryReadingEditor';
 import { CompetitionEditor } from '../dealstudio/CompetitionEditor';
 import { DealThemeEditor } from '../dealstudio/DealThemeEditor';
 import { StatSlotField } from '../dealstudio/StatSlotField';
@@ -338,6 +339,13 @@ export function DealStudioScreen() {
             </div>
 
             {/* MARKET */}
+            <TabsContent value="articles" className="space-y-4">
+              <IndustryReadingEditor
+                value={(room as any).market ?? null}
+                onChange={(mk) => update({ market: mk } as any)}
+              />
+            </TabsContent>
+
             <TabsContent value="problem" className="space-y-4">
               <ProblemSolutionEditor
                 value={(room as any).value_prop ?? null}

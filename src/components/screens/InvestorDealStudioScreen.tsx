@@ -439,7 +439,10 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             stack via display:contents. */}
         <div className="contents lg:block lg:space-y-6 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:overscroll-contain ds-scroll-y">
           <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5 text-center">
-            <div className="w-20 h-20 rounded-full bg-[#f5f7f9] border border-[#edf0f3] mx-auto mb-3 overflow-hidden flex items-center justify-center">
+            {/* A white ring plus a soft shadow, so the mark sits ON the card
+                rather than flat against it. The hairline border alone left it
+                looking pasted on. */}
+            <div className="w-20 h-20 rounded-full bg-[#f5f7f9] ring-4 ring-white mx-auto mb-3 overflow-hidden flex items-center justify-center shadow-[0_6px_18px_-4px_rgba(12,16,34,0.28)]">
               {(() => {
                 // Resolved theme logo first (deal, then company), then the hero
                 // image, then initials. The logo never showed here because this
