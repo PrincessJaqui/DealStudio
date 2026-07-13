@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Moon, Sun } from 'lucide-react';
+import dsMark from '../../assets/dealstudio-mark.png';
 import { supabase } from '../../lib/supabase';
 
 function useTheme() {
@@ -61,6 +62,11 @@ export function PublicHeader({
           onClick={() => nav('/')}
           className="flex items-center gap-2.5 font-bold text-[21px] tracking-tight text-[#0c1022] dark:text-[#eef1fa]"
         >
+          <img
+            src={dsMark}
+            alt=""
+            className="h-9 w-9 rounded-full object-cover shrink-0"
+          />
           DealStudio&trade;
         </button>
 

@@ -55,7 +55,7 @@ export function SignupScreen() {
       <PublicHeader />
       <div className="flex-1 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-6">
-        <img src={dsMark} alt="" className="w-11 h-11 rounded-xl mb-4" />
+        <img src={dsMark} alt="" className="w-11 h-11 rounded-full object-cover mb-4" />
         <h1 className="text-lg font-bold text-[#191f1d]">Start your deal room</h1>
         <p className="text-sm text-[#7f8c85] mt-1">30 days free. No card required.</p>
 

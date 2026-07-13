@@ -8,6 +8,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, CreditCard, Shield } from 'lucide-react';
+import dsMark from '../../assets/dealstudio-mark.png';
 import { useAdminAuth } from './AdminGate';
 import { isPlatformAdmin } from '../../lib/billing';
 
@@ -57,6 +58,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
       {/* Full-width top header: wordmark left, company right */}
       <header className="hidden md:flex sticky top-0 z-30 h-[68px] items-center bg-white border-b border-[#edf0f3] px-6">
         <button onClick={() => nav('/admin')} className="flex items-center gap-2.5">
+          <img
+            src={dsMark}
+            alt=""
+            className="h-8 w-8 rounded-full object-cover shrink-0"
+          />
           <span className="font-bold text-[19px] text-[#191f1d]">DealStudio&trade;</span>
         </button>
 
@@ -177,6 +183,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <div className="absolute inset-0 bg-black/40" onClick={() => setDrawer(false)} />
           <aside className="absolute left-0 top-0 bottom-0 w-72 max-w-[85%] bg-white flex flex-col shadow-2xl">
             <div className="flex items-center gap-2.5 px-4 h-14 border-b border-[#edf0f3]">
+              <img src={dsMark} alt="" className="h-7 w-7 rounded-full object-cover shrink-0" />
               <span className="font-bold text-[17px] text-[#191f1d]">DealStudio&trade;</span>
               <button
                 onClick={() => setDrawer(false)}
