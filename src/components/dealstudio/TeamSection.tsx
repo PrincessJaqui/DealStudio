@@ -18,15 +18,16 @@ function MemberCard({ m }: { m: DealTeamMember }) {
   const longBio = (m.bio || '').length > 120;
   return (
     <div className="ds-pulse ds-card flex items-stretch gap-4 rounded-xl border border-[#edf0f3] bg-white p-4">
-      {/* Fixed square: self-stretch let the bio's length drive the height, which
-          made the box tall and narrow and cropped the subject's head. */}
-      <div className="h-28 w-28 shrink-0 self-start overflow-hidden rounded-2xl bg-transparent flex items-center justify-center">
+      {/* Circle, fixed size. Self-stretch let the bio's length drive the height,
+          which made the box tall and narrow and cropped the subject's head.
+          Avatars are circles throughout the app. */}
+      <div className="h-28 w-28 shrink-0 self-start overflow-hidden rounded-full bg-[#f5f6f8] flex items-center justify-center">
         {m.photo_url
           ? <img
               src={m.photo_url}
               alt={m.name}
               loading="lazy"
-              className="h-full w-full object-cover object-top"
+              className="h-full w-full object-cover"
             />
           : <span className="text-lg font-bold text-[#7f8c85]">{initials(m.name) || '·'}</span>}
       </div>
