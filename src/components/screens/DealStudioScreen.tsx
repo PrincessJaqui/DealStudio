@@ -26,10 +26,15 @@ import { DealDocViewer } from '../dealstudio/DealDocViewer';
 import { DealFlow } from '../dealstudio/DealFlow';
 import { MarketEditor } from '../dealstudio/MarketEditor';
 import { ValuePropEditor } from '../dealstudio/ValuePropEditor';
+import { ProblemSolutionEditor } from '../dealstudio/ProblemSolutionEditor';
 import { CompetitionEditor } from '../dealstudio/CompetitionEditor';
 import { DealThemeEditor } from '../dealstudio/DealThemeEditor';
 import { StatSlotField } from '../dealstudio/StatSlotField';
-import { DEFAULT_STAT_SLOTS, type StatSlot } from '../../lib/dealStudio';
+import {
+  DEFAULT_STAT_SLOTS, resolveSectionOrder, SECTION_LABELS,
+  type StatSlot, type SectionKey,
+} from '../../lib/dealStudio';
+import { DisplayOrder } from '../dealstudio/DisplayOrder';
 import { TeamEditor } from '../dealstudio/TeamEditor';
 import { BusinessModelEditor } from '../dealstudio/BusinessModelEditor';
 import {
@@ -315,13 +320,31 @@ export function DealStudioScreen() {
           <Tabs value={tab} onValueChange={setTab}>
             <div className="mb-4 max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <TabsList className="bg-[#f5f7f9] border border-[#edf0f3] rounded-2xl p-1 gap-1 inline-flex">
-                {([['details', 'Details'], ['documents', 'Documents'], ['valueprop', 'Value Prop'], ['market', 'Market'], ['competition', 'Competition'], ['businessmodel', 'Business Model'], ['team', 'Team'], ['dealflow', 'Deal Flow'], ['settings', 'Settings']] as const).map(([t, label]) => (
+                {(() => {
+                  // One list drives the tabs and the investor room, so the admin
+                  // can never show a different order from the one investors read.
+                  const mid = resolveSectionOrder((room as any).section_order)
+                    .map(k => [k, SECTION_LABELS[k]] as [string, string]);
+                  return [
+                    ['details', 'Details'] as [string, string],
+                    ...mid,
+                    ['dealflow', 'Deal Flow'] as [string, string],
+                    ['settings', 'Settings'] as [string, string],
+                  ];
+                })().map(([t, label]) => (
                   <TabsTrigger key={t} value={t} className="shrink-0 whitespace-nowrap rounded-xl px-4 py-1.5 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--ds-accent)] data-[state=active]:to-[var(--ds-accent-to)] data-[state=active]:text-[var(--ds-on-accent)] text-[#7f8c85]">{label}</TabsTrigger>
                 ))}
               </TabsList>
             </div>
 
             {/* MARKET */}
+            <TabsContent value="problem" className="space-y-4">
+              <ProblemSolutionEditor
+                value={(room as any).value_prop ?? null}
+                onChange={(vp) => update({ value_prop: vp } as any)}
+              />
+            </TabsContent>
+
             <TabsContent value="valueprop" className="space-y-4">
               <ValuePropEditor
                 value={(room as any).value_prop ?? null}
@@ -689,6 +712,11 @@ export function DealStudioScreen() {
               );
             })()}
           </div>
+
+          <DisplayOrder
+            order={resolveSectionOrder((room as any).section_order)}
+            onChange={(next: SectionKey[]) => update({ section_order: next } as any)}
+          />
 
           <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2">Deal Calendar</p>

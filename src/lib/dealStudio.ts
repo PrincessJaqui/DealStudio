@@ -835,3 +835,52 @@ export async function captureDemoLead(slug: string, email: string, name?: string
     return false;
   }
 }
+
+/* ── Section display order ─────────────────────────────────────────────────── */
+
+/** The sections a founder can reorder. Details is pinned first; Deal Flow and
+ *  Settings are admin-only and never appear here. */
+export type SectionKey =
+  | 'documents' | 'problem' | 'valueprop' | 'market' | 'competition'
+  | 'businessmodel' | 'team';
+
+export const SECTION_LABELS: Record<SectionKey, string> = {
+  documents: 'Documents',
+  problem: 'Problem & Solution',
+  valueprop: 'Value Prop',
+  market: 'Market',
+  competition: 'Competition',
+  businessmodel: 'Business Model',
+  team: 'Team',
+};
+
+export const DEFAULT_SECTION_ORDER: SectionKey[] = [
+  'documents', 'problem', 'valueprop', 'market', 'competition', 'businessmodel', 'team',
+];
+
+/**
+ * Reads a stored order and returns a valid one.
+ *
+ * Drops anything unrecognised and appends anything missing, so a deal saved
+ * before a new section existed still shows that section rather than silently
+ * hiding it.
+ */
+export function resolveSectionOrder(raw: unknown): SectionKey[] {
+  const seen = new Set<SectionKey>();
+  const stored: SectionKey[] = [];
+
+  if (Array.isArray(raw)) {
+    for (const k of raw) {
+      // Drop anything unrecognised, and dedupe: a repeated key would render the
+      // same section twice and collide on its React key.
+      if ((DEFAULT_SECTION_ORDER as string[]).includes(k as string) && !seen.has(k as SectionKey)) {
+        seen.add(k as SectionKey);
+        stored.push(k as SectionKey);
+      }
+    }
+  }
+
+  // Anything missing is appended rather than hidden, so a section added in a
+  // later release still shows up for a deal saved before it existed.
+  return [...stored, ...DEFAULT_SECTION_ORDER.filter(k => !seen.has(k))];
+}

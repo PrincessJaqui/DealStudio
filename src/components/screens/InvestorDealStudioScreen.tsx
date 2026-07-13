@@ -9,7 +9,7 @@ import { useParams } from 'react-router-dom';
 import { PublicHeader } from '../dealstudio/PublicHeader';
 import { applyDealTheme } from '../../lib/org';
 import { statSlotValue } from '../dealstudio/StatSlotField';
-import { DEFAULT_STAT_SLOTS, type StatSlot } from '../../lib/dealStudio';
+import { DEFAULT_STAT_SLOTS, resolveSectionOrder, type StatSlot, type SectionKey } from '../../lib/dealStudio';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 import { MapPin, Calendar as CalIcon, Share2, Check, LogOut } from 'lucide-react';
@@ -369,40 +369,53 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             </div>
           )}
 
-          {valueProp && (
-            <div className="order-5 lg:order-none">
-              <ProblemSolutionSection value={valueProp} />
-            </div>
-          )}
-
-          {team && <div className="order-6 lg:order-none"><TeamSection team={team} /></div>}
-
-          {valueProp && <div className="order-7 lg:order-none"><ValuePropSection value={valueProp} /></div>}
-
-          {market && <div className="order-8 lg:order-none"><MarketSection market={market} /></div>}
-
-          {market?.businessModel && <div className="order-9 lg:order-none"><BusinessModelSection model={market.businessModel} /></div>}
-
-          {competition && <div className="order-10 lg:order-none"><CompetitionSection value={competition} /></div>}
-
-          {/* Documents */}
-          <div ref={docsView.ref} data-section="documents" className={`order-9 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5 ${docsView.inView ? 'ds-animate' : ''}`}>
-            <h2 className="text-sm font-bold text-[#191f1d] mb-3">Deal Documents</h2>
-            {room.documents.length === 0 ? (
-              <p className="text-sm text-[#99a1af]">No documents shared yet.</p>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  {(docsExpanded ? room.documents : room.documents.slice(0, 2)).map(d => <DealDocumentCard key={d.id} doc={d} onOpen={openDoc} />)}
-                </div>
-                {room.documents.length > 2 && (
-                  <button onClick={() => setDocsExpanded(e => !e)} className="mt-3 ml-auto block text-sm font-semibold text-[var(--ds-accent-ink)] hover:underline">
-                    {docsExpanded ? 'Show less' : `Show all ${room.documents.length} documents`}
-                  </button>
+          {/* Sections render in the order the founder set. One list drives the
+              admin tabs and this room, so they cannot disagree. */}
+          {(() => {
+            const docsBlock = (
+              <div
+                ref={docsView.ref}
+                data-section="documents"
+                className={`rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5 ${docsView.inView ? 'ds-animate' : ''}`}
+              >
+                <h2 className="text-sm font-bold text-[#191f1d] mb-3">Deal Documents</h2>
+                {room.documents.length === 0 ? (
+                  <p className="text-sm text-[#99a1af]">No documents shared yet.</p>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      {(docsExpanded ? room.documents : room.documents.slice(0, 2)).map(d => <DealDocumentCard key={d.id} doc={d} onOpen={openDoc} />)}
+                    </div>
+                    {room.documents.length > 2 && (
+                      <button onClick={() => setDocsExpanded(e => !e)} className="mt-3 ml-auto block text-sm font-semibold text-[var(--ds-accent-ink)] hover:underline">
+                        {docsExpanded ? 'Show less' : `Show all ${room.documents.length} documents`}
+                      </button>
+                    )}
+                  </>
                 )}
-              </>
-            )}
-          </div>
+              </div>
+            );
+
+            const byKey: Record<SectionKey, React.ReactNode> = {
+              documents: docsBlock,
+              problem: valueProp ? <ProblemSolutionSection value={valueProp} /> : null,
+              valueprop: valueProp ? <ValuePropSection value={valueProp} /> : null,
+              market: market ? <MarketSection market={market} /> : null,
+              competition: competition ? <CompetitionSection value={competition} /> : null,
+              businessmodel: market?.businessModel ? <BusinessModelSection model={market.businessModel} /> : null,
+              team: team ? <TeamSection team={team} /> : null,
+            };
+
+            return resolveSectionOrder((room as any).section_order).map((k, i) => {
+              const node = byKey[k];
+              if (!node) return null;
+              return (
+                <div key={k} className="order-none" style={{ order: 5 + i }}>
+                  {node}
+                </div>
+              );
+            });
+          })()}
 
           {market && <div className="order-10 lg:order-none"><IndustryReadingSection market={market} /></div>}
         </div>

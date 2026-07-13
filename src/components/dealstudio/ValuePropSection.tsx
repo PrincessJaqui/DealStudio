@@ -130,14 +130,15 @@ export function CompetitionSection({ value }: { value: DealCompetition }) {
                 <tr>
                   <th className="text-left p-3 min-w-[180px]" />
                   {cols.map(c => (
-                    <th key={c.id} className="p-3 text-center min-w-[130px]">
-                      <div
-                        className={`rounded-t-2xl px-3 py-3 ${
-                          c.is_you
-                            ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]'
-                            : 'bg-[#f1f3f7]'
-                        }`}
-                      >
+                    <th
+                      key={c.id}
+                      className={`text-center min-w-[130px] px-3 py-3 rounded-t-2xl align-bottom ${
+                        c.is_you
+                          ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]'
+                          : 'bg-[#f1f3f7]'
+                      }`}
+                    >
+                      <div>
                         {c.logo && (
                           <div className="h-9 w-9 mx-auto mb-1 rounded-full overflow-hidden bg-white border border-[#edf0f3]">
                             <img src={c.logo} alt="" className="h-full w-full object-cover" />
