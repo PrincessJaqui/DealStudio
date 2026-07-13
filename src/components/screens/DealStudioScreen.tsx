@@ -286,6 +286,139 @@ export function DealStudioScreen() {
   const deck = docs.find(d => d.is_deck) || null;
   const deckIsPdf = !!deck && (deck.file_name || deck.file_url || '').toLowerCase().endsWith('.pdf');
 
+  /* The three side panels, defined once. Desktop shows them in the right
+     rail; mobile places each one inside the tab it belongs to. */
+  const funnelPanel = (
+            <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="font-bold text-[#191f1d] flex items-center gap-2"><Users className="w-4 h-4 text-[var(--ds-brand)]" /> Investor Funnel</p>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">Conv {funnel?.conversion ?? 0}%</span>
+              </div>
+              {(() => {
+                const v = funnel?.totalVisitors ?? 0;
+                if (v === 0) return <p className="text-sm text-[#99a1af] py-1">No activity yet.</p>;
+
+                // Views is the raw total, so it sits apart from the funnel. The
+                // three stages below all count PEOPLE, and their percentages are
+                // of Visitors, which makes them comparable to each other.
+                const totalViews = funnel?.views ?? 0;
+
+                const stages = [
+                  { label: 'Visitors', value: v, hint: 'unique emails' },
+                  { label: 'Viewed deck', value: funnel?.deckViewers ?? 0, hint: 'unique emails' },
+                  { label: 'Repeat visitors', value: funnel?.repeatVisitors ?? 0, hint: 'came back' },
+                ];
+
+                return (
+                  <>
+                    <div className="mb-4 pb-3 border-b border-[#f2f4f6] flex items-baseline justify-between">
+                      <div>
+                        <span className="text-sm text-[#7f8c85]">Views</span>
+                        <span className="block text-[11px] text-[#b6bcc4]">every page view, repeats included</span>
+                      </div>
+                      <span className="text-2xl font-bold text-[var(--ds-accent-ink)]">{totalViews}</span>
+                    </div>
+
+                    {stages.map((s) => {
+                      const widthPct = v ? Math.round((s.value / v) * 100) : 0;
+                      const ofVisitors = v ? Math.round((s.value / v) * 100) : 0;
+                      return (
+                        <div key={s.label} className="mb-3">
+                          <div className="flex items-center justify-between text-sm mb-1">
+                            <span className="text-[#7f8c85]">
+                              {s.label}
+                              <span className="block text-[11px] text-[#b6bcc4]">{s.hint}</span>
+                            </span>
+                            <span className="font-semibold text-[#191f1d]">
+                              {s.value}
+                              <span className="text-[#99a1af] font-normal ml-1">({ofVisitors}%)</span>
+                            </span>
+                          </div>
+                          <div className="h-2.5 rounded-full bg-[var(--ds-tint)] overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]"
+                              style={{ width: `${Math.max(4, widthPct)}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                );
+              })()}
+            </div>
+
+  );
+
+  const displayOrderPanel = (
+            <DisplayOrder
+              order={resolveSectionOrder((room as any).section_order)}
+              onChange={(next: SectionKey[]) => update({ section_order: next } as any)}
+            />
+
+  );
+
+  const calendarPanel = (
+            <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2">Deal Calendar</p>
+              <EventsCalendar
+                events={availabilityEvents}
+                selectedDate={calDate}
+                onSelectDate={setCalDate}
+                currentMonth={calMonth}
+                onChangeMonth={setCalMonth}
+              />
+
+              {/* Hour blocks for the picked day. Reuses scheduleSlots, the same
+                  generator the investor booking modal uses, so what you see here
+                  cannot disagree with what an investor can actually book. */}
+              {calDate && (() => {
+                const sch = room.availability as DealSchedule | null;
+                const slots = sch ? scheduleSlots(sch, calDate) : [];
+                const label = new Date(calDate + 'T00:00:00').toLocaleDateString(undefined, {
+                  weekday: 'short', month: 'short', day: 'numeric',
+                });
+
+                return (
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold text-[#191f1d]">{label}</p>
+                      <span className="text-[11px] text-[#9ca3af]">
+                        {slots.length
+                          ? `${slots.length} slot${slots.length === 1 ? '' : 's'}`
+                          : 'No availability'}
+                      </span>
+                    </div>
+
+                    {slots.length === 0 ? (
+                      <p className="text-xs text-[#9ca3af] py-3 text-center rounded-xl bg-[#f5f6f8] border border-[#edf0f3]">
+                        Nothing set for this day.
+                      </p>
+                    ) : (
+                      // Three across, scrolls when there are more.
+                      <div className="grid grid-cols-3 gap-2 max-h-[132px] overflow-y-auto pr-1">
+                        {slots.map(t => (
+                          <div
+                            key={t}
+                            className="rounded-xl border border-[#edf0f3] bg-white px-2 py-2 text-center shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]"
+                          >
+                            <p className="text-sm font-bold text-[#191f1d] leading-none">
+                              {fmtSlot(t)}
+                            </p>
+                            <p className="mt-1 text-[10px] text-[#9ca3af]">
+                              {sch?.meetingLength ?? 30} min
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+              <button onClick={() => setAvailOpen(true)} className="w-full h-10 mt-2 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white text-sm font-semibold flex items-center justify-center gap-1.5"><RefreshCw className="w-4 h-4" /> Edit availability</button>
+            </div>
+  );
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10">
       {/* Header */}
@@ -564,12 +697,23 @@ export function DealStudioScreen() {
             </TabsContent>
 
             {/* DEAL FLOW */}
-            <TabsContent value="dealflow">
+            <TabsContent value="dealflow" className="space-y-5">
+              {/* Mobile only: the funnel leads, because it is the summary of
+                  everything the table below spells out. */}
+              <div className="lg:hidden">{funnelPanel}</div>
+
               <DealFlow roomId={room.id} rows={access} visits={visits} docs={docs} onChanged={() => reloadVisitors(room.id)} />
+
+              {/* Mobile only: the calendar closes the tab. */}
+              <div className="lg:hidden">{calendarPanel}</div>
             </TabsContent>
 
             {/* SETTINGS */}
             <TabsContent value="settings" className="space-y-4">
+              {/* Mobile only: display order is a setting, so on a phone it sits
+                  with the other settings rather than in a rail that is not there. */}
+              <div className="lg:hidden">{displayOrderPanel}</div>
+
               <DealThemeEditor
                 value={{
                   brand_from: (room as any).brand_from ?? null,
@@ -674,129 +818,13 @@ export function DealStudioScreen() {
         </div>
 
         {/* Right rail */}
-        <div className="space-y-5 lg:sticky lg:top-6">
-          <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
-            <div className="flex items-center justify-between mb-3">
-              <p className="font-bold text-[#191f1d] flex items-center gap-2"><Users className="w-4 h-4 text-[var(--ds-brand)]" /> Investor Funnel</p>
-              <span className="text-[11px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">Conv {funnel?.conversion ?? 0}%</span>
-            </div>
-            {(() => {
-              const v = funnel?.totalVisitors ?? 0;
-              if (v === 0) return <p className="text-sm text-[#99a1af] py-1">No activity yet.</p>;
-
-              // Views is the raw total, so it sits apart from the funnel. The
-              // three stages below all count PEOPLE, and their percentages are
-              // of Visitors, which makes them comparable to each other.
-              const totalViews = funnel?.views ?? 0;
-
-              const stages = [
-                { label: 'Visitors', value: v, hint: 'unique emails' },
-                { label: 'Viewed deck', value: funnel?.deckViewers ?? 0, hint: 'unique emails' },
-                { label: 'Repeat visitors', value: funnel?.repeatVisitors ?? 0, hint: 'came back' },
-              ];
-
-              return (
-                <>
-                  <div className="mb-4 pb-3 border-b border-[#f2f4f6] flex items-baseline justify-between">
-                    <div>
-                      <span className="text-sm text-[#7f8c85]">Views</span>
-                      <span className="block text-[11px] text-[#b6bcc4]">every page view, repeats included</span>
-                    </div>
-                    <span className="text-2xl font-bold text-[var(--ds-accent-ink)]">{totalViews}</span>
-                  </div>
-
-                  {stages.map((s) => {
-                    const widthPct = v ? Math.round((s.value / v) * 100) : 0;
-                    const ofVisitors = v ? Math.round((s.value / v) * 100) : 0;
-                    return (
-                      <div key={s.label} className="mb-3">
-                        <div className="flex items-center justify-between text-sm mb-1">
-                          <span className="text-[#7f8c85]">
-                            {s.label}
-                            <span className="block text-[11px] text-[#b6bcc4]">{s.hint}</span>
-                          </span>
-                          <span className="font-semibold text-[#191f1d]">
-                            {s.value}
-                            <span className="text-[#99a1af] font-normal ml-1">({ofVisitors}%)</span>
-                          </span>
-                        </div>
-                        <div className="h-2.5 rounded-full bg-[var(--ds-tint)] overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]"
-                            style={{ width: `${Math.max(4, widthPct)}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </>
-              );
-            })()}
-          </div>
-
-          <DisplayOrder
-            order={resolveSectionOrder((room as any).section_order)}
-            onChange={(next: SectionKey[]) => update({ section_order: next } as any)}
-          />
-
-          <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2">Deal Calendar</p>
-            <EventsCalendar
-              events={availabilityEvents}
-              selectedDate={calDate}
-              onSelectDate={setCalDate}
-              currentMonth={calMonth}
-              onChangeMonth={setCalMonth}
-            />
-
-            {/* Hour blocks for the picked day. Reuses scheduleSlots, the same
-                generator the investor booking modal uses, so what you see here
-                cannot disagree with what an investor can actually book. */}
-            {calDate && (() => {
-              const sch = room.availability as DealSchedule | null;
-              const slots = sch ? scheduleSlots(sch, calDate) : [];
-              const label = new Date(calDate + 'T00:00:00').toLocaleDateString(undefined, {
-                weekday: 'short', month: 'short', day: 'numeric',
-              });
-
-              return (
-                <div className="mt-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-[#191f1d]">{label}</p>
-                    <span className="text-[11px] text-[#9ca3af]">
-                      {slots.length
-                        ? `${slots.length} slot${slots.length === 1 ? '' : 's'}`
-                        : 'No availability'}
-                    </span>
-                  </div>
-
-                  {slots.length === 0 ? (
-                    <p className="text-xs text-[#9ca3af] py-3 text-center rounded-xl bg-[#f5f6f8] border border-[#edf0f3]">
-                      Nothing set for this day.
-                    </p>
-                  ) : (
-                    // Three across, scrolls when there are more.
-                    <div className="grid grid-cols-3 gap-2 max-h-[132px] overflow-y-auto pr-1">
-                      {slots.map(t => (
-                        <div
-                          key={t}
-                          className="rounded-xl border border-[#edf0f3] bg-white px-2 py-2 text-center shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]"
-                        >
-                          <p className="text-sm font-bold text-[#191f1d] leading-none">
-                            {fmtSlot(t)}
-                          </p>
-                          <p className="mt-1 text-[10px] text-[#9ca3af]">
-                            {sch?.meetingLength ?? 30} min
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-            <button onClick={() => setAvailOpen(true)} className="w-full h-10 mt-2 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white text-sm font-semibold flex items-center justify-center gap-1.5"><RefreshCw className="w-4 h-4" /> Edit availability</button>
-          </div>
+        {/* Right rail. On mobile these three panels move into the tabs they
+            belong to, so a phone is not asked to scroll past a funnel chart to
+            reach the fields it came for. Same panels, rendered once, not copies. */}
+        <div className="hidden lg:block space-y-5 lg:sticky lg:top-6">
+          {funnelPanel}
+          {displayOrderPanel}
+          {calendarPanel}
         </div>
       </div>
 
