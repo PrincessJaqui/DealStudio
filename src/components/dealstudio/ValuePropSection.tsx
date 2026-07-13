@@ -386,8 +386,11 @@ function ValuePropWheel({
                    wedges are live. Once they have clicked, the cue has done its
                    job and it stops. */
                 className={`cursor-pointer ${sel === null && hover === null ? 'ds-wedge-pulse' : ''}`}
-                style={{ animationDelay: `${i * 180}ms` }}
                 style={{
+                  // One style object. There were two, and in JSX the last one
+                  // silently wins -- so animationDelay was being thrown away and
+                  // every wedge pulsed in unison instead of rippling round.
+                  animationDelay: `${i * 180}ms`,
                   opacity: dim ? 0.4 : 1,
                   transform: `translate(${hx}px, ${hy}px)`,
                   filter: lifted ? 'drop-shadow(0 6px 14px rgba(12,16,34,0.28))' : 'none',

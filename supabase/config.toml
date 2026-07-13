@@ -1,0 +1,3 @@
+
+[functions.link-preview]
+verify_jwt = false

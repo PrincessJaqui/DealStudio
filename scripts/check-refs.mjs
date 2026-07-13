@@ -34,7 +34,11 @@ try {
 // its initializer runs, so reading it above that line is a temporal dead zone
 // error. React surfaces it as "Cannot access 'x' before initialization" and a
 // white screen -- and this shipped once, on the settings page.
-const fatal = out.split('\n').filter((l) => /error TS(2304|2552|2448|2454):/.test(l));
+// TS17001: duplicate JSX attribute. The LAST one silently wins, so the first is
+// thrown away with no error at runtime -- a `style` written twice quietly lost
+// its animationDelay and shipped.
+// TS2300: duplicate identifier, usually the same symbol imported twice.
+const fatal = out.split('\n').filter((l) => /error TS(2304|2552|2448|2454|17001|2300):/.test(l));
 
 if (fatal.length) {
   console.error('\nBuild blocked: used but never imported.\n');

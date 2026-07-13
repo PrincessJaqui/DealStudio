@@ -7,10 +7,9 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Eye, Pencil } from 'lucide-react';
 import { CustomLanding } from './CustomLanding';
 import {
-  Loader2, Plus, Trash2, ChevronUp, ChevronDown, Upload, Eye, Check,
+  Loader2, Plus, Trash2, ChevronUp, ChevronDown, Upload, Eye, Check, Pencil,
 } from 'lucide-react';
 import {
   fetchLanding, saveLanding, uploadSiteImage, blankBlock, BLOCK_LABELS, DEFAULT_LANDING,
