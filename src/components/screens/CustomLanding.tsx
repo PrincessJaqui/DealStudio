@@ -44,13 +44,27 @@ export function CustomLanding({ blocks }: { blocks: LandingBlock[] }) {
                       {b.body}
                     </p>
                   )}
-                  {b.ctaLabel && (
-                    <button
-                      onClick={() => go(b.ctaHref)}
-                      className={`mt-7 inline-flex items-center gap-2 rounded-xl ${GRAD} text-white px-[18px] py-3 font-semibold hover:brightness-110 hover:-translate-y-0.5 transition`}
-                    >
-                      {b.ctaLabel} <ArrowRight className="w-4 h-4" />
-                    </button>
+                  {(b.ctaLabel || b.cta2Label) && (
+                    <div className="mt-7 flex flex-wrap gap-3.5">
+                      {b.ctaLabel && (
+                        <button
+                          onClick={() => go(b.ctaHref)}
+                          className={`inline-flex items-center gap-2 rounded-xl ${GRAD} text-white px-[18px] py-3 font-semibold hover:brightness-110 hover:-translate-y-0.5 transition`}
+                        >
+                          {b.ctaLabel} <ArrowRight className="w-4 h-4" />
+                        </button>
+                      )}
+                      {/* The demo button. The live page has always had one; the
+                          block renderer did not, so publishing dropped it. */}
+                      {b.cta2Label && (
+                        <button
+                          onClick={() => go(b.cta2Href)}
+                          className="inline-flex items-center rounded-xl border border-[#e6e8ee] dark:border-[#242c47] bg-white dark:bg-[#141a2e] px-[18px] py-3 font-semibold hover:-translate-y-0.5 transition"
+                        >
+                          {b.cta2Label}
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
 

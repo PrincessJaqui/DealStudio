@@ -7,6 +7,8 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Eye, Pencil } from 'lucide-react';
+import { CustomLanding } from './CustomLanding';
 import {
   Loader2, Plus, Trash2, ChevronUp, ChevronDown, Upload, Eye, Check,
 } from 'lucide-react';
@@ -23,6 +25,7 @@ const lbl = 'block text-xs font-semibold uppercase tracking-wider text-[var(--ds
 
 export function LandingEditor() {
   const [blocks, setBlocks] = useState<LandingBlock[] | null>(null);
+  const [mode, setMode] = useState<'edit' | 'preview'>('edit');
   const [busy, setBusy] = useState('');
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
@@ -111,13 +114,33 @@ export function LandingEditor() {
           </div>
 
           <div className="sm:ml-auto flex items-center gap-2">
+            {/* Preview renders the real page component with the current blocks,
+                so what you see here is what publishing produces. */}
+            {blocks.length > 0 && (
+              <div className="inline-flex bg-[#f5f6f8] border border-[#edf0f3] rounded-xl p-1 gap-0.5">
+                {([['edit', 'Edit', Pencil], ['preview', 'Preview', Eye]] as const).map(([m, label, Icon]) => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-lg text-xs font-semibold transition ${
+                      mode === m
+                        ? 'bg-white text-[#191f1d] shadow-sm'
+                        : 'text-[#7f8c85] hover:text-[#191f1d]'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" /> {label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <a
               href="/"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[#edf0f3] text-sm font-medium text-[#191f1d] hover:bg-[#f5f6f8]"
             >
-              <Eye className="w-4 h-4" /> View
+              <Eye className="w-4 h-4" /> Live
             </a>
             <button
               onClick={() => void publish()}
@@ -146,7 +169,26 @@ export function LandingEditor() {
         </div>
       </div>
 
-      {blocks.map((b, i) => (
+      {/* Preview: the actual page component, driven by the blocks being edited.
+          Not a mock-up of it, so it cannot drift from what publishing produces. */}
+      {mode === 'preview' && blocks.length > 0 && (
+        <div className={`${card} p-0 overflow-hidden`}>
+          <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[#edf0f3] bg-[#f5f6f8]">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#e6e8ee]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#e6e8ee]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#e6e8ee]" />
+            <span className="ml-2 text-xs text-[#9ca3af]">dealstudio.io</span>
+            <span className="ml-auto text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wide">
+              Not published yet
+            </span>
+          </div>
+          <div className="max-h-[70vh] overflow-y-auto">
+            <CustomLanding blocks={blocks} />
+          </div>
+        </div>
+      )}
+
+      {mode === 'edit' && blocks.map((b, i) => (
         <div key={b.id} className={`${card} p-5`}>
           <div className="flex items-center gap-2 mb-4">
             <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-accent-ink)]">
@@ -199,16 +241,33 @@ export function LandingEditor() {
           )}
 
           {(b.type === 'hero' || b.type === 'cta') && (
-            <div className="grid sm:grid-cols-2 gap-3 mt-3">
-              <div>
-                <label className={lbl}>Button label</label>
-                <input className={field} value={b.ctaLabel ?? ''} onChange={e => set(i, { ctaLabel: e.target.value })} placeholder="Get started" />
+            <>
+              <div className="grid sm:grid-cols-2 gap-3 mt-3">
+                <div>
+                  <label className={lbl}>Button label</label>
+                  <input className={field} value={b.ctaLabel ?? ''} onChange={e => set(i, { ctaLabel: e.target.value })} placeholder="Start free for 30 days" />
+                </div>
+                <div>
+                  <label className={lbl}>Button link</label>
+                  <input className={field} value={b.ctaHref ?? ''} onChange={e => set(i, { ctaHref: e.target.value })} placeholder="/signup" />
+                </div>
               </div>
-              <div>
-                <label className={lbl}>Button link</label>
-                <input className={field} value={b.ctaHref ?? ''} onChange={e => set(i, { ctaHref: e.target.value })} placeholder="/signup" />
-              </div>
-            </div>
+
+              {/* The hero has a second button on the live page (the demo link).
+                  Leave the label blank to hide it. */}
+              {b.type === 'hero' && (
+                <div className="grid sm:grid-cols-2 gap-3 mt-3">
+                  <div>
+                    <label className={lbl}>Second button label</label>
+                    <input className={field} value={b.cta2Label ?? ''} onChange={e => set(i, { cta2Label: e.target.value })} placeholder="See a live demo" />
+                  </div>
+                  <div>
+                    <label className={lbl}>Second button link</label>
+                    <input className={field} value={b.cta2Href ?? ''} onChange={e => set(i, { cta2Href: e.target.value })} placeholder="/d/investors" />
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {(b.type === 'image' || b.type === 'hero') && (

@@ -24,6 +24,10 @@ export interface LandingBlock {
   image?: string;
   ctaLabel?: string;
   ctaHref?: string;
+  /** Second button. The live hero has one ("See a live demo"); without this,
+   *  publishing the page quietly dropped it. */
+  cta2Label?: string;
+  cta2Href?: string;
   items?: LandingItem[];
   /** Dark blocks invert: used for the closing call to action. */
   dark?: boolean;
@@ -42,7 +46,7 @@ export function blankBlock(type: BlockType): LandingBlock {
   const id = `b_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
   switch (type) {
     case 'hero':
-      return { id, type, eyebrow: '', title: '', body: '', ctaLabel: 'Get started', ctaHref: '/signup' };
+      return { id, type, eyebrow: '', title: '', body: '', ctaLabel: 'Get started', ctaHref: '/signup', cta2Label: '', cta2Href: '' };
     case 'features':
       return { id, type, title: '', body: '', items: [{ title: '', body: '' }] };
     case 'stats':
@@ -98,6 +102,8 @@ export const DEFAULT_LANDING: LandingBlock[] = [
     body: 'Build your deal, upload your deck, and manage investor access from a single command center.',
     ctaLabel: 'Start free for 30 days',
     ctaHref: '/signup',
+    cta2Label: 'See a live demo',
+    cta2Href: '/d/investors',
   },
   {
     id: 'b_features',

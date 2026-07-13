@@ -22,7 +22,9 @@ select 'landing', $json$[
     "title": "Your Studio, Your Raise.",
     "body": "Build your deal, upload your deck, and manage investor access from a single command center.",
     "ctaLabel": "Start free for 30 days",
-    "ctaHref": "/signup"
+    "ctaHref": "/signup",
+    "cta2Label": "See a live demo",
+    "cta2Href": "/d/investors"
   },
   {
     "id": "b_features",
