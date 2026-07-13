@@ -28,7 +28,7 @@ type Plan = {
 };
 
 const card =
-  'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
+  'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5';
 const box = 'rounded-2xl bg-[#f5f6f8] border border-[#edf0f3] p-4';
 const lbl = 'block text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1';
 const fieldWrap = 'rounded-xl bg-white border border-[#edf0f3] px-3 py-2';

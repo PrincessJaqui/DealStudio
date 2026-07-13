@@ -16,7 +16,7 @@ import { fetchMyOrg } from '../../lib/org';
 import { orgSeatStatus, isSeatError, type SeatStatus } from '../../lib/billing';
 
 const card =
-  'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
+  'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5';
 const field =
   'w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
 

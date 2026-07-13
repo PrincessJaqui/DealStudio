@@ -47,7 +47,7 @@ export function DealDocumentCard({ doc, onOpen, admin = false, onEdit, onDelete,
   }, [menuOpen]);
 
   return (
-    <div className={`ds-pulse ds-card group relative rounded-2xl border bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] overflow-hidden ${selected ? 'border-[var(--ds-brand)] ring-2 ring-[var(--ds-brand)]/40' : 'border-[#edf0f3]'}`}>
+    <div className={`ds-pulse ds-card group relative rounded-2xl border bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] overflow-hidden ${selected ? 'border-[var(--ds-brand)] ring-2 ring-[var(--ds-brand)]/40' : 'border-[#edf0f3]'}`}>
       {/* Preview */}
       <button
         type="button"

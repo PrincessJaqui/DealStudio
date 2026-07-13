@@ -68,7 +68,7 @@ export function LandingScreen() {
   if (custom && custom.length > 0) {
     return (
       <div className="min-h-screen bg-[#f5f6f8] dark:bg-[#0b0e1a] text-[#0c1022] dark:text-[#eef1fa]">
-        <PublicHeader />
+        <PublicHeader darkToggle />
         <CustomLanding blocks={custom} />
         <footer className="border-t border-[#e6e8ee] dark:border-[#242c47] py-9">
           <div className="mx-auto max-w-6xl px-6 text-center text-[14px] text-[#5b6478] dark:text-[#9aa4be]">

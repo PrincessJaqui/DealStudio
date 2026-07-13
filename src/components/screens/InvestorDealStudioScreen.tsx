@@ -305,7 +305,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
         <div className="contents lg:block lg:space-y-6 min-w-0">
           {/* Featured deck */}
           {deck && (
-            <div data-section="deck" className="order-3 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] overflow-hidden">
+            <div data-section="deck" className="order-3 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] overflow-hidden">
               <div className="lg:hidden px-5 pt-5 pb-2"><h2 className="text-sm font-bold text-[#191f1d]">Deck</h2></div>
               <PdfDeckViewer
                 url={deck.file_url}
@@ -315,7 +315,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
           )}
 
           {/* Company header */}
-          <div data-section="header" className="order-2 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
+          <div data-section="header" className="order-2 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5">
             <h2 className="lg:hidden text-sm font-bold text-[#191f1d] mb-2">Overview</h2>
             <h1 className="hidden lg:block text-2xl font-bold text-[#191f1d]">{room.company_name}</h1>
             {room.one_liner && <p className="hidden lg:block text-[#7f8c85] mt-1">{room.one_liner}</p>}
@@ -344,7 +344,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
           </div>
 
           {/* Deal information tiles */}
-          <div data-section="deal_info" className="order-4 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
+          <div data-section="deal_info" className="order-4 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5">
             <h2 className="text-sm font-bold text-[#191f1d] mb-3">Deal Information</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {tiles.map(t => (
@@ -358,7 +358,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
 
           {/* About */}
           {room.summary_html && (
-            <div data-section="about" className="order-5 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
+            <div data-section="about" className="order-5 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5">
               <h2 className="text-sm font-bold text-[#191f1d] mb-3">About {room.company_name}</h2>
               {(() => {
                 const { preview, hasMore } = splitHtmlParagraphs(room.summary_html, 4);
@@ -383,7 +383,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
               <div
                 ref={docsView.ref}
                 data-section="documents"
-                className={`rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5 ${docsView.inView ? 'ds-animate' : ''}`}
+                className={`rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 ${docsView.inView ? 'ds-animate' : ''}`}
               >
                 <h2 className="text-sm font-bold text-[#191f1d] mb-3">Deal Documents</h2>
                 {room.documents.length === 0 ? (
@@ -438,7 +438,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             end. On mobile this is all off: the column flattens into the single
             stack via display:contents. */}
         <div className="contents lg:block lg:space-y-6 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:overscroll-contain ds-scroll-y">
-          <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5 text-center">
+          <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 text-center">
             {/* A white ring plus a soft shadow, so the mark sits ON the card
                 rather than flat against it. The hairline border alone left it
                 looking pasted on. */}
@@ -487,7 +487,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
           </div>
 
           {mapSrc && (
-            <div data-section="hq" className="order-11 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
+            <div data-section="hq" className="order-11 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2">Headquartered</p>
               {/* The radius goes on a wrapper, not the iframe: iOS Safari does not
                   clip an iframe's own content to its border-radius, so the map
@@ -506,7 +506,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
           )}
 
           {room.meeting_enabled && (
-            <div data-section="calendar" className="order-12 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
+            <div data-section="calendar" className="order-12 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
               <p className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2"><span className="flex items-center gap-1"><CalIcon className="w-3.5 h-3.5" /> Availability</span></p>
               <EventsCalendar events={availabilityEvents} selectedDate={selectedDate} onSelectDate={(d) => setSelectedDate(d)} currentMonth={new Date()} onChangeMonth={() => {}} />
 

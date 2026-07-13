@@ -43,7 +43,7 @@ export function AccountLock({ org }: { org: Organization }) {
       <PublicHeader variant="quiet" />
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-7 text-center">
+        <div className="w-full max-w-md rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-7 text-center">
           <span className="w-12 h-12 rounded-2xl bg-[#f5f6f8] flex items-center justify-center mx-auto">
             <Lock className="w-5 h-5 text-[#7f8c85]" />
           </span>

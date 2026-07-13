@@ -142,7 +142,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-[#f5f6f8] flex flex-col">
       <PublicHeader />
       <div className="flex-1 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-6">
+      <div className="w-full max-w-sm bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-6">
         <img src={dsMark} alt="DealStudio" className="w-11 h-11 rounded-full object-cover mb-4" />
         <h1 className="text-lg font-bold text-[#191f1d]">DealStudio&trade; Admin</h1>
 

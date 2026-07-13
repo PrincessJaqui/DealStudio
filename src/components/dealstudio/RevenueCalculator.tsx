@@ -93,7 +93,7 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
       </div>
 
       {m.revenues.length === 0 ? (
-        <div className="rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-8 text-center">
+        <div className="rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-8 text-center">
           <p className="text-sm text-[#99a1af]">
             No business model created yet.{admin ? ' Add a revenue stream to start modeling.' : ''}
           </p>
@@ -103,7 +103,7 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
           {m.revenues.map((r, ri) => {
             const rMonthly = totals.revenues[ri]?.monthly || 0;
             return (
-              <div key={r.id} className="self-start rounded-2xl border border-[#edf0f3] bg-white p-5 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]">
+              <div key={r.id} className="self-start rounded-2xl border border-[#edf0f3] bg-white p-5 shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]">
                 <div className="flex items-center justify-between">
                   <span className="text-[15px] font-bold text-[#191f1d]">{r.name || `Revenue ${ri + 1}`}</span>
                   {admin && (
@@ -200,7 +200,7 @@ export function ModelAnalytics({ value, onChange }: { value: DealBusinessModel; 
   return (
     <>
       {/* Revenue Mix Analysis + Global Metrics */}
-      <div className="mt-6 grid gap-6 rounded-2xl border border-[#edf0f3] bg-white p-6 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] lg:grid-cols-[1.4fr_1fr]">
+      <div className="mt-6 grid gap-6 rounded-2xl border border-[#edf0f3] bg-white p-6 shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] lg:grid-cols-[1.4fr_1fr]">
         <div>
           <h3 className="text-base font-bold text-[#191f1d] mb-4">Revenue Mix Analysis</h3>
           <div className="space-y-3">
@@ -228,7 +228,7 @@ export function ModelAnalytics({ value, onChange }: { value: DealBusinessModel; 
       </div>
 
       {/* Growth Projections */}
-      <div className="mt-6 rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-6">
+      <div className="mt-6 rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-6">
         <div className="flex items-center justify-between gap-3 mb-4">
           <h3 className="text-base font-bold text-[#191f1d]">Growth Projections</h3>
           <div className="text-right">

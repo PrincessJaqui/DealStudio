@@ -120,7 +120,7 @@ export function DealFlow({ roomId, rows, visits, docs, onChanged }: Props) {
   return (
     <div className="space-y-4">
       {/* Pipeline summary */}
-      <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
+      <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex flex-wrap gap-x-8 gap-y-3">
             <div>
@@ -148,7 +148,7 @@ export function DealFlow({ roomId, rows, visits, docs, onChanged }: Props) {
       </div>
 
       {rows.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-10 text-center text-[#99a1af]">
+        <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-10 text-center text-[#99a1af]">
           <Building2 className="w-10 h-10 mx-auto mb-2 opacity-50" />
           <p className="text-sm">No investors yet. Add the first one to start tracking your raise.</p>
         </div>
@@ -163,7 +163,7 @@ export function DealFlow({ roomId, rows, visits, docs, onChanged }: Props) {
 
       {/* All other viewers (visited but not in the pipeline) */}
       {otherViewers.length > 0 && (
-        <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
+        <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
           <p className="text-sm font-bold text-[#191f1d] mb-1">Other viewers</p>
           <p className="text-xs text-[#7f8c85] mb-3">Visited the deal studio but not in your pipeline. Tap to see their deck pages.</p>
           <div className="divide-y divide-[#f0f0f0]">
@@ -263,7 +263,7 @@ function InvestorRow({ row, visit, roomId, deckId, deckUrl, docs, onChanged, onA
   const lastSeen = visit?.last_seen_at || null;
 
   return (
-    <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
+    <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <input value={name} onChange={e => setName(e.target.value)} onBlur={() => { if (name !== (row.name || '')) save({ name: name || null }, false); }}

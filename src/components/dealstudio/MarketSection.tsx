@@ -50,7 +50,7 @@ function ArticleCard({ a, textOnly }: { a: DealArticle; textOnly?: boolean }) {
   const hasDesc = !!(a.description && a.description.trim());
   const showImage = !textOnly && !!a.image;
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] transition-shadow hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.12)]">
+    <div className="overflow-hidden rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] transition-shadow hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.12)]">
       <a href={a.url} target="_blank" rel="noopener noreferrer" className="group block">
         {showImage ? (
           <div className="aspect-[16/9] w-full overflow-hidden bg-[#f5f7f9]">
@@ -101,7 +101,7 @@ export function MarketSection({ market }: { market: DealMarket }) {
   if (!showMarket) return null;
 
   const metric = market[active];
-  const cardCls = 'rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
+  const cardCls = 'rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5';
 
   return (
     <div ref={ref} data-section="market" className={`${cardCls} ${inView ? 'ds-animate' : ''}`}>
@@ -192,7 +192,7 @@ export function IndustryReadingSection({ market }: { market: DealMarket }) {
   const articles = market.articles || [];
   if (articles.length === 0) return null;
   return (
-    <div data-section="reading" className="rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
+    <div data-section="reading" className="rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5">
       <h2 className="text-sm font-bold text-[#191f1d] mb-3">Industry &amp; Market Reading</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {(showAll ? articles : articles.slice(0, 2)).map((a, i) => (

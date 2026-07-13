@@ -37,7 +37,7 @@ export function DisplayOrder({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
+    <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85]">
         Display Order
       </p>

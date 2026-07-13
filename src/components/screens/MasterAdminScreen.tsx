@@ -17,7 +17,7 @@ import {
   isPlatformAdmin, money, type AdminOrg, type Txn, type Plan,
 } from '../../lib/billing';
 
-const card = 'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]';
+const card = 'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]';
 const RANGES: { label: string; days: number | null }[] = [
   { label: '24h', days: 1 }, { label: '7d', days: 7 },
   { label: '30d', days: 30 }, { label: '90d', days: 90 },

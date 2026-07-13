@@ -33,9 +33,17 @@ function useTheme() {
 
 export function PublicHeader({
   variant = 'full',
+  darkToggle = false,
 }: {
   /** 'full' shows Log in / Get started. 'quiet' is for a customer's deal room. */
   variant?: 'full' | 'quiet';
+  /**
+   * Off by default, and opt-in on purpose. Only the landing pages have dark:
+   * styles. Everywhere else this button flipped the theme class and left the
+   * page half-dark and unreadable, so it is only shown where dark mode actually
+   * exists.
+   */
+  darkToggle?: boolean;
 }) {
   const nav = useNavigate();
   const { dark, toggle } = useTheme();
@@ -71,16 +79,22 @@ export function PublicHeader({
         </button>
 
         <div className="ml-auto flex items-center gap-3">
-          <button
-            onClick={toggle}
-            aria-label="Toggle theme"
-            className="w-9 h-9 rounded-xl border border-[#e6e8ee] dark:border-[#242c47] flex items-center justify-center text-[#5b6478] dark:text-[#9aa4be] hover:text-[#0c1022] dark:hover:text-white"
-          >
-            {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
+          {darkToggle && (
+            <button
+              onClick={toggle}
+              aria-label="Toggle theme"
+              className="w-9 h-9 rounded-xl border border-[#e6e8ee] dark:border-[#242c47] flex items-center justify-center text-[#5b6478] dark:text-[#9aa4be] hover:text-[#0c1022] dark:hover:text-white"
+            >
+              {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          )}
 
           {variant === 'quiet' ? (
-            <span className="text-[13px] text-[#5b6478] dark:text-[#9aa4be]">Powered by DealStudio&trade;</span>
+            /* Right-aligned, one line, and small enough not to compete with the
+               customer's own brand: it is a credit, not a headline. */
+            <span className="ml-auto whitespace-nowrap text-right text-[11px] leading-none text-[#99a1af]">
+              Powered by DealStudio&trade;
+            </span>
           ) : email ? (
             <>
               <button

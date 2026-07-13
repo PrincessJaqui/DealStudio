@@ -34,7 +34,7 @@ export function LegalPage({
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
 
-        <div className="rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-8 sm:p-10">
+        <div className="rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-8 sm:p-10">
           <h1 className="text-2xl font-bold text-[#191f1d]">{title}</h1>
           <p className="text-sm text-[#7f8c85] mt-1">
             {version} &middot; Effective {effective}

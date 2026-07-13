@@ -6,13 +6,13 @@
  */
 
 import { useState } from 'react';
-import { Check, X, ExternalLink, ArrowRight, ArrowDown, ChevronDown } from 'lucide-react';
+import { Check, X, ExternalLink, ArrowRight, ArrowDown } from 'lucide-react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 import { psHeader } from '../../lib/dealStudio';
 import type { DealValueProp, DealCompetition, ProblemSolution } from '../../lib/dealStudio';
 
 const card =
-  'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]';
+  'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]';
 
 
 
@@ -86,7 +86,14 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                   </span>
                 </span>
 
-                <span className="mx-auto md:mx-0 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shrink-0">
+                {/* The arrow is now the only affordance, so it carries the cue:
+                    it breathes until the pair is opened, then stops, on both
+                    mobile and desktop. */}
+                <span
+                  className={`mx-auto md:mx-0 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shrink-0 shadow-[0_2px_8px_-1px_rgba(12,16,34,0.35)] ${
+                    isOpen ? '' : 'ds-ps-pulse'
+                  }`}
+                >
                   <ArrowRight className="hidden md:block w-3.5 h-3.5" />
                   <ArrowDown className="md:hidden w-3.5 h-3.5" />
                 </span>
@@ -100,22 +107,6 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                   </span>
                 </span>
 
-                {/* The chevron is a circle and pulses until it is opened, the
-                    same cue the wheel uses, so an investor knows there is more
-                    behind it. Once opened, the cue has done its job. */}
-                <span
-                  /* Desktop only. Stacked on a phone this became a second arrow
-                     under the solution, competing with the one that carries the
-                     meaning. The whole row is a button, so the card still opens on
-                     tap without it. */
-                  className={`hidden md:flex mx-auto md:mx-0 h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e6e8ee] bg-white text-[var(--ds-accent-ink)] ${
-                    isOpen ? '' : 'ds-pulse-pie'
-                  }`}
-                >
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                  />
-                </span>
               </button>
 
               {isOpen && (
@@ -482,7 +473,7 @@ function ValuePropWheel({
       {/* The card for whatever is selected. */}
       <div>
         {active ? (
-          <div className="ds-card rounded-2xl border border-[#edf0f3] bg-white p-5 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]">
+          <div className="ds-card rounded-2xl border border-[#edf0f3] bg-white p-5 shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]">
             <div className="flex items-start gap-3">
               <span
                 className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"

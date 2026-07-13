@@ -79,7 +79,7 @@ export function TeamSection({ team }: { team: DealTeamMember[] }) {
   const { ref, inView } = useInViewOnce<HTMLDivElement>();
   if (members.length === 0) return null;
   return (
-    <div ref={ref} data-section="team" className={`rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5 ${inView ? 'ds-animate' : ''}`}>
+    <div ref={ref} data-section="team" className={`rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 ${inView ? 'ds-animate' : ''}`}>
       <h2 className="text-sm font-bold text-[#191f1d] mb-3">Team</h2>
       <div className="space-y-3">
         {members.map((m, i) => <MemberCard key={i} m={m} />)}

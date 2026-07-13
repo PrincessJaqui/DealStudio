@@ -10,7 +10,7 @@ import {
   type Plan, type Txn,
 } from '../../lib/billing';
 
-const card = 'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]';
+const card = 'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]';
 
 export function BillingScreen() {
   const { org } = useAdminAuth();

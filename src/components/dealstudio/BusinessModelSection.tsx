@@ -78,7 +78,7 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
   const annualOf = (i: number) => revenueMonthly(revenues[i]) * 12;
 
   return (
-    <div ref={ref} data-section="business_model" className={`rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5 ${inView ? 'ds-animate' : ''}`}>
+    <div ref={ref} data-section="business_model" className={`rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 ${inView ? 'ds-animate' : ''}`}>
       <h2 className="text-sm font-bold text-[#191f1d]">Business Model</h2>
       <p className="mt-1 text-sm text-[#7f8c85] leading-relaxed">Tap a stream, then adjust the numbers to model your own assumptions.</p>
 
@@ -172,7 +172,7 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
       </div>
 
       {/* Growth projections */}
-      <div className="mt-6 rounded-2xl border border-[#e6e9ec] bg-[#f2f4f6] p-6 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]">
+      <div className="mt-6 rounded-2xl border border-[#e6e9ec] bg-[#f2f4f6] p-6 shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]">
         <div className="flex items-start justify-between gap-3 mb-4">
           <div>
             <h3 className="text-base font-bold text-[#191f1d]">Growth Assumptions</h3>

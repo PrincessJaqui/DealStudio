@@ -50,7 +50,7 @@ const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
+    <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
       <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">{label}</p>
       <p className="text-2xl font-bold text-[#191f1d] mt-2">{value}</p>
     </div>
@@ -289,7 +289,7 @@ export function DealStudioScreen() {
   /* The three side panels, defined once. Desktop shows them in the right
      rail; mobile places each one inside the tab it belongs to. */
   const funnelPanel = (
-            <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
+            <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5">
               <div className="flex items-center justify-between mb-3">
                 <p className="font-bold text-[#191f1d] flex items-center gap-2"><Users className="w-4 h-4 text-[var(--ds-brand)]" /> Investor Funnel</p>
                 <span className="text-[11px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">Conv {funnel?.conversion ?? 0}%</span>
@@ -359,7 +359,7 @@ export function DealStudioScreen() {
   );
 
   const calendarPanel = (
-            <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
+            <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2">Deal Calendar</p>
               <EventsCalendar
                 events={availabilityEvents}
@@ -523,7 +523,7 @@ export function DealStudioScreen() {
             <TabsContent value="details" className="space-y-4">
               {/* Featured deck — the PDF investors see first at /investors.
                   "Update Document" replaces it (the old version is archived). */}
-              <div className="relative rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] overflow-hidden">
+              <div className="relative rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] overflow-hidden">
                 <button
                   onClick={() => setDocModal({ open: true, existing: deck, deck: true })}
                   className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-[#191f1d]/85 hover:bg-[#191f1d] text-white text-sm font-medium backdrop-blur transition-colors"
@@ -865,7 +865,7 @@ const inputCls = 'w-full h-11 rounded-xl bg-[#f5f6f8] px-3 text-sm text-[#191f1d
 
 function Card({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5">
+    <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5">
       <div className="flex items-center justify-between gap-3 mb-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"><h3 className="shrink-0 text-sm font-bold text-[#191f1d]">{title}</h3>{action && <div className="shrink-0">{action}</div>}</div>
       <div className="space-y-3">{children}</div>
     </div>
