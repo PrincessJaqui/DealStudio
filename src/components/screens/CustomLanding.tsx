@@ -9,6 +9,8 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import type { LandingBlock } from '../../lib/siteContent';
+import { HeroMockup } from '../dealstudio/HeroMockup';
+import { featureIcon } from '../dealstudio/featureIcons';
 
 const GRAD = 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]';
 
@@ -68,10 +70,15 @@ export function CustomLanding({ blocks }: { blocks: LandingBlock[] }) {
                   )}
                 </div>
 
-                {b.image && (
+                {/* An uploaded image wins. With none, show the product itself:
+                    an empty half-hero was why the published landing looked
+                    thinner than the built-in one. */}
+                {b.image ? (
                   <div className="rounded-2xl overflow-hidden border border-[#e6e8ee] dark:border-[#242c47] shadow-[0_24px_60px_-24px_rgba(12,16,34,0.35)]">
                     <img src={b.image} alt="" className="w-full h-full object-cover" />
                   </div>
+                ) : (
+                  <HeroMockup />
                 )}
               </div>
             </section>
@@ -95,11 +102,18 @@ export function CustomLanding({ blocks }: { blocks: LandingBlock[] }) {
               )}
 
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {(b.items ?? []).map((it, i) => (
+                {(b.items ?? []).map((it, i) => {
+                  const Icon = featureIcon(it.icon);
+                  return (
                   <div
                     key={i}
-                    className="rounded-2xl border border-[#e6e8ee] dark:border-[#242c47] bg-white dark:bg-[#141a2e] p-6"
+                    className="ds-card rounded-2xl border border-[#e6e8ee] dark:border-[#242c47] bg-white dark:bg-[#141a2e] p-6"
                   >
+                    {Icon && (
+                      <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white">
+                        <Icon className="h-5 w-5" />
+                      </span>
+                    )}
                     {it.title && (
                       <h3 className="font-bold text-[#0c1022] dark:text-[#eef1fa]">{it.title}</h3>
                     )}
@@ -109,7 +123,8 @@ export function CustomLanding({ blocks }: { blocks: LandingBlock[] }) {
                       </p>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
           );

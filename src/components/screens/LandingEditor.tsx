@@ -16,6 +16,7 @@ import {
   fetchLanding, saveLanding, uploadSiteImage, blankBlock, BLOCK_LABELS, DEFAULT_LANDING,
   type LandingBlock, type BlockType, type LandingItem,
 } from '../../lib/siteContent';
+import { FEATURE_ICONS, FEATURE_ICON_KEYS } from '../dealstudio/featureIcons';
 
 const card =
   'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]';
@@ -334,6 +335,51 @@ export function LandingEditor() {
                       onChange={e => setItem(i, ii, { body: e.target.value })}
                       placeholder={b.type === 'stats' ? 'Label (e.g. per month)' : 'Card description'}
                     />
+
+                    {/* Icons only make sense on feature cards. A stat is a
+                        number, and hanging an icon on it just adds noise. */}
+                    {b.type === 'features' && (
+                      <div className="mt-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1.5">
+                          Icon
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          <button
+                            onClick={() => setItem(i, ii, { icon: '' })}
+                            aria-label="No icon"
+                            title="No icon"
+                            className={`h-9 w-9 rounded-lg flex items-center justify-center text-xs font-semibold transition ${
+                              !it.icon
+                                ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'
+                                : 'bg-white text-[#9ca3af] hover:bg-[#eef0f3]'
+                            }`}
+                          >
+                            None
+                          </button>
+
+                          {FEATURE_ICON_KEYS.map(key => {
+                            const Icon = FEATURE_ICONS[key];
+                            const on = it.icon === key;
+                            return (
+                              <button
+                                key={key}
+                                onClick={() => setItem(i, ii, { icon: key })}
+                                aria-label={key}
+                                title={key}
+                                aria-pressed={on}
+                                className={`h-9 w-9 rounded-lg flex items-center justify-center transition ${
+                                  on
+                                    ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'
+                                    : 'bg-white text-[#7f8c85] hover:bg-[#eef0f3] hover:text-[#191f1d]'
+                                }`}
+                              >
+                                <Icon className="w-4 h-4" />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

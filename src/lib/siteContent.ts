@@ -13,6 +13,8 @@ export interface LandingItem {
   title: string;
   body: string;
   image?: string;
+  /** Key into FEATURE_ICONS. Absent means no icon, which renders fine. */
+  icon?: string;
 }
 
 export interface LandingBlock {
@@ -112,14 +114,17 @@ export const DEFAULT_LANDING: LandingBlock[] = [
     body: '',
     items: [
       {
+        icon: 'lock',
         title: 'Gated access',
         body: 'Password, invite-only, or a private share link. Revoke anytime. You decide who sees what, per investor.',
       },
       {
+        icon: 'trending-up',
         title: 'Live business model',
         body: 'An interactive revenue model and market funnel investors can explore. Edit once, everyone sees the latest.',
       },
       {
+        icon: 'bar-chart',
         title: 'Investor analytics',
         body: 'See who opened the deck, what they read, and how long. Follow up on the ones leaning in.',
       },
