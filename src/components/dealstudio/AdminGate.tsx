@@ -12,17 +12,17 @@ import { supabase } from '../../lib/supabase';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { PublicHeader } from './PublicHeader';
 import { refreshUserContext } from '../../lib/analytics';
-import { fetchMyOrg, createMyOrg, applyOrgTheme, claimPendingInvites, type Organization } from '../../lib/org';
+import { fetchMyOrg, createMyOrg, applyOrgTheme, claimPendingInvites, myPendingInvite, type Organization } from '../../lib/org';
 import { AccountLock, isEntitled } from './AccountLock';
 import { isPlatformAdmin } from '../../lib/billing';
 
-type Status = 'loading' | 'signedout' | 'notadmin' | 'admin';
+type Status = 'loading' | 'signedout' | 'notadmin' | 'needsorg' | 'admin';
 
 /** Lets the admin screen render Sign out inside its own header. */
 const AdminAuthContext = createContext<{ signOut: () => Promise<void>; org: Organization | null; refreshOrg: () => Promise<void> }>({ signOut: async () => {}, org: null, refreshOrg: async () => {} });
 export const useAdminAuth = () => useContext(AdminAuthContext);
 
-async function resolve(): Promise<{ status: Status; org: Organization | null }> {
+async function resolve(): Promise<{ status: Status; org: Organization | null; invitedBy?: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { status: 'signedout', org: null };
   await refreshUserContext();
@@ -56,7 +56,22 @@ async function resolve(): Promise<{ status: Status; org: Organization | null }> 
     }
   }
 
-  return { status: org ? 'admin' : 'notadmin', org };
+  if (org) return { status: 'admin', org };
+
+  // No company. Two very different people end up here, and offering the wrong
+  // screen to the second one is destructive.
+  //
+  // If an invite is still waiting, the claim failed (their company is out of
+  // seats, most likely). Do NOT offer to create a company: they would end up in
+  // a second, separate one instead of the company that invited them.
+  const invitedBy = await myPendingInvite();
+  if (invitedBy) {
+    return { status: 'notadmin', org: null, invitedBy };
+  }
+
+  // Otherwise they genuinely have no company: a master admin made the account,
+  // or a signup lost its company metadata. They name it themselves.
+  return { status: 'needsorg', org: null };
 }
 
 export function AdminGate({ children }: { children: ReactNode }) {
@@ -68,6 +83,30 @@ export function AdminGate({ children }: { children: ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
+  const [newCompany, setNewCompany] = useState('');
+  const [invitedBy, setInvitedBy] = useState<string | null>(null);
+
+  /** A signed-in user with no company names it here and is straight into their
+   *  own workspace. No invite, no waiting on anyone. */
+  const setupCompany = async () => {
+    const name = newCompany.trim();
+    if (!name) return setError('Company name is required');
+
+    setBusy(true);
+    setError('');
+    try {
+      await createMyOrg(name, name);
+      const fresh = await fetchMyOrg();
+      if (!fresh) throw new Error('Could not create your company');
+      setOrg(fresh);
+      applyOrgTheme(fresh);
+      setStatus('admin');
+    } catch (e: any) {
+      setError(e?.message || 'Could not create your company');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   useEffect(() => {
     let alive = true;
@@ -75,6 +114,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
       if (!alive) return;
       setStatus(r.status);
       setOrg(r.org);
+      setInvitedBy(r.invitedBy ?? null);
       if (r.org) { void isPlatformAdmin().then(v => { if (alive) setIsMaster(v); }); } else { setIsMaster(false); }
       applyOrgTheme(r.org);   // repaint the design tokens in the company's brand
     });
@@ -146,9 +186,51 @@ export function AdminGate({ children }: { children: ReactNode }) {
         <img src={dsMark} alt="DealStudio" className="w-11 h-11 rounded-full object-cover mb-4" />
         <h1 className="text-lg font-bold text-[#191f1d]">DealStudio&trade; Admin</h1>
 
-        {status === 'notadmin' ? (
+        {status === 'needsorg' ? (
           <>
-            <p className="text-sm text-[#7f8c85] mt-2">This account is not part of a company workspace yet. Ask an owner to invite you, or sign in with a different account.</p>
+            <h1 className="text-lg font-bold text-[#191f1d]">Name your company</h1>
+            <p className="text-sm text-[#7f8c85] mt-2 leading-relaxed">
+              This is what investors will see at the top of your deal room. You can
+              change it later in Settings.
+            </p>
+
+            <label className="block text-xs font-semibold text-[#7f8c85] mt-4 mb-1">
+              Company
+            </label>
+            <input
+              value={newCompany}
+              onChange={(e) => setNewCompany(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') void setupCompany(); }}
+              placeholder="Northwind Robotics"
+              autoFocus
+              className="w-full bg-[#f5f6f8] rounded-xl px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+            />
+
+            {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+
+            <button
+              onClick={() => void setupCompany()}
+              disabled={busy || !newCompany.trim()}
+              className="mt-5 w-full rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white font-semibold py-2.5 text-sm disabled:opacity-60 inline-flex items-center justify-center gap-2"
+            >
+              {busy && <Loader2 className="w-4 h-4 animate-spin" />}
+              Create my workspace
+            </button>
+
+            <button
+              onClick={signOut}
+              className="mt-2 w-full rounded-xl py-2 text-sm font-semibold text-[#7f8c85] hover:text-[#191f1d]"
+            >
+              Sign out
+            </button>
+          </>
+        ) : status === 'notadmin' ? (
+          <>
+            <p className="text-sm text-[#7f8c85] mt-2 leading-relaxed">
+              {invitedBy
+                ? `Your invite to ${invitedBy} is still waiting. That usually means they are out of seats. Ask an owner there to add a seat, then sign in again.`
+                : 'This account is not part of a company workspace yet. Ask an owner to invite you, or sign in with a different account.'}
+            </p>
             <button
               onClick={signOut}
               className="mt-5 w-full rounded-xl border border-[#edf0f3] py-2.5 text-sm font-semibold text-[#7f8c85] hover:text-[#191f1d]"

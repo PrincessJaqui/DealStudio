@@ -375,3 +375,29 @@ export async function sendMagicLink(email: string): Promise<{ ok: boolean; messa
   });
   return error ? { ok: false, message: error.message } : { ok: true };
 }
+
+/**
+ * Create an account and email them a link to set their password.
+ *
+ * Uses signInWithOtp with shouldCreateUser, which creates the auth user through
+ * GoTrue and mails a link. That matters: creating the row in SQL instead would
+ * corrupt the identities table and 500 their first login. This is the supported
+ * path, and it needs no service-role key.
+ *
+ * The link lands on /reset-password, where they choose a password. They name
+ * their own company on first sign-in, so no company is required here.
+ */
+export async function adminCreateUser(
+  email: string,
+  fullName?: string,
+): Promise<{ ok: boolean; message?: string }> {
+  const { error } = await supabase.auth.signInWithOtp({
+    email: email.trim(),
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: `${window.location.origin}/reset-password`,
+      data: fullName?.trim() ? { full_name: fullName.trim() } : undefined,
+    },
+  });
+  return error ? { ok: false, message: error.message } : { ok: true };
+}

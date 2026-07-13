@@ -289,3 +289,17 @@ export async function renameOrg(name: string): Promise<{ deals_updated: number }
   if (error) throw error;
   return (data as { deals_updated: number }) ?? { deals_updated: 0 };
 }
+
+/**
+ * The company that invited this user, if their invite is still unclaimed.
+ *
+ * claim_pending_invites swallows failures (an org out of seats, say), so a user
+ * can be left with no org AND a waiting invite. Without this we would offer them
+ * a "name your company" screen and they would quietly create a second company
+ * instead of joining the one that invited them.
+ */
+export async function myPendingInvite(): Promise<string | null> {
+  const { data, error } = await supabase.rpc('my_pending_invite');
+  if (error) return null;
+  return (data as string) || null;
+}

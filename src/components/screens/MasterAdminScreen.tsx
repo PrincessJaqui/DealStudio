@@ -13,7 +13,7 @@ import { EditOrgDialog } from '../dealstudio/EditOrgDialog';
 import { PricingSetup } from '../dealstudio/PricingSetup';
 import {
   adminListOrgs, adminUpdateOrg, adminListTransactions, adminListPlans, savePlan,
-  adminActivateUser, adminSetPasswordByEmail, sendPasswordReset, sendMagicLink,
+  adminActivateUser, adminCreateUser, adminSetPasswordByEmail, sendPasswordReset, sendMagicLink,
   isPlatformAdmin, money, type AdminOrg, type Txn, type Plan,
 } from '../../lib/billing';
 
@@ -99,6 +99,7 @@ function UsersTab() {
   const [actNote, setActNote] = useState('');
   const [actOk, setActOk] = useState(false);
   const [actPassword, setActPassword] = useState('');
+  const [actName, setActName] = useState('');
 
   const activate = async () => {
     setActBusy(true); setActNote('');
@@ -120,6 +121,19 @@ function UsersTab() {
     );
     setActEmail(''); setActCompany('');
     await load();
+  };
+
+  /** Creates the account and mails them a link to set a password. They name
+   *  their own company when they first sign in, so we do not ask for one. */
+  const doCreate = async () => {
+    if (!actEmail.trim()) return;
+    setActBusy(true); setActNote('');
+    const r = await adminCreateUser(actEmail, actName);
+    setActBusy(false); setActOk(r.ok);
+    setActNote(r.ok
+      ? `Sent. ${actEmail.trim()} will get a link to set a password, then they name their own company.`
+      : (r.message || 'Could not create that account.'));
+    if (r.ok) { setActEmail(''); setActName(''); }
   };
 
   const doReset = async () => {
@@ -197,13 +211,13 @@ function UsersTab() {
           sign up first, because forging an auth user in SQL corrupts the
           identities table and 500s their next login. */}
       <div className={`${card} p-5 mb-5`}>
-        <h2 className="font-bold text-[#191f1d]">Activate a user</h2>
+        <h2 className="font-bold text-[#191f1d]">Users</h2>
         <p className="text-sm text-[#7f8c85] mt-0.5">
-          Confirms their email and puts them in a company, without waiting on the
-          confirmation link. They must have signed up already.
+          Create an account and send them a link to set a password, or unstick
+          someone whose confirmation email never arrived.
         </p>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <input
             value={actEmail}
             onChange={(e) => setActEmail(e.target.value)}
@@ -211,19 +225,49 @@ function UsersTab() {
             className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
           />
           <input
-            value={actCompany}
-            onChange={(e) => setActCompany(e.target.value)}
-            placeholder="Company name (if they have none)"
+            value={actName}
+            onChange={(e) => setActName(e.target.value)}
+            placeholder="Their name (optional)"
             className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
           />
-          <button
-            onClick={() => void activate()}
-            disabled={!actEmail.trim() || actBusy}
-            className="inline-flex items-center justify-center gap-1.5 h-11 px-5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
-          >
-            {actBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-            Activate
-          </button>
+        </div>
+
+        <button
+          onClick={() => void doCreate()}
+          disabled={!actEmail.trim() || actBusy}
+          className="mt-3 w-full sm:w-auto inline-flex items-center justify-center gap-1.5 h-11 px-5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
+        >
+          {actBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+          Create account and send setup link
+        </button>
+
+        <p className="mt-2 text-xs text-[#9ca3af] leading-relaxed">
+          They set their own password from the link, then name their own company on
+          first sign-in. No company needed here.
+        </p>
+
+        {/* Everything below is for accounts that ALREADY exist and are stuck. */}
+        <div className="mt-5 pt-4 border-t border-[#edf0f3]">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#7f8c85]">
+            Already signed up but locked out
+          </p>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
+            <input
+              value={actCompany}
+              onChange={(e) => setActCompany(e.target.value)}
+              placeholder="Company to put them in (optional)"
+              className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+            />
+            <button
+              onClick={() => void activate()}
+              disabled={!actEmail.trim() || actBusy}
+              className="inline-flex items-center justify-center gap-1.5 h-11 px-5 rounded-xl text-sm font-semibold text-[var(--ds-brand)] border border-[#e6e8ee] hover:bg-[#f5f6f8] disabled:opacity-50"
+            >
+              <Check className="w-4 h-4" />
+              Confirm email
+            </button>
+          </div>
         </div>
 
         {/* The email routes come first on purpose. They are the right answer
