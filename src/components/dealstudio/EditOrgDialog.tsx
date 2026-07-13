@@ -186,11 +186,23 @@ export function EditOrgDialog({
 
           <div>
             <label className={label}>Subscription status</label>
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className={field}>
-              {['trialing', 'active', 'past_due', 'canceled'].map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
+            <select
+              value={comped ? 'comped' : status}
+              onChange={(e) => setStatus(e.target.value)}
+              disabled={comped}
+              className={`${field} disabled:opacity-60 disabled:cursor-not-allowed`}
+            >
+              {comped
+                ? <option value="comped">comped (full access, not billed)</option>
+                : ['trialing', 'active', 'past_due', 'canceled'].map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
             </select>
+            {comped && (
+              <p className="text-xs text-[var(--ds-accent-ink)] mt-1">
+                Comped overrides the billing status. Turn it off to set a status.
+              </p>
+            )}
           </div>
 
           <Toggle

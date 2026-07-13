@@ -196,10 +196,13 @@ export function PricingSetup() {
       {error && <p className="text-sm text-red-600">{error}</p>}
       {note && <p className="text-sm text-[var(--ds-accent-ink)]">{note}</p>}
 
+      <div className="grid gap-4 xl:grid-cols-2 items-start">
       {plans.map((p, i) => (
         <div key={p.id} className={card}>
           <div className="flex items-center gap-2 mb-4">
-            <h3 className="font-bold text-[#191f1d]">Plan {i + 1}</h3>
+            <h3 className="font-bold text-[#191f1d]">
+              {String(val(p, 'name') ?? '').trim() || `Plan ${i + 1}`}
+            </h3>
             {!val(p, 'is_public') && (
               <span className="inline-flex items-center gap-1 rounded-full bg-[#eef0f3] text-[#7f8c85] text-[10px] font-semibold px-2 py-0.5 uppercase tracking-wide">
                 <EyeOff className="w-3 h-3" /> Private
@@ -394,6 +397,7 @@ export function PricingSetup() {
           </div>
         </div>
       ))}
+      </div>
 
       {plans.length === 0 && (
         <div className={`${card} py-10 text-center`}>

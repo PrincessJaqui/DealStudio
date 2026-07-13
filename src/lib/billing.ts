@@ -262,3 +262,24 @@ export async function adminSaveAddonFull(a: {
   });
   if (error) throw error;
 }
+
+/* ── Team seats ────────────────────────────────────────────────────────────── */
+
+export type SeatStatus = {
+  included: number;
+  purchased: number;
+  allowed: number;
+  used: number;
+  can_add: boolean;
+};
+
+export async function orgSeatStatus(orgId: string): Promise<SeatStatus | null> {
+  const { data, error } = await supabase.rpc('org_seat_status', { p_org: orgId });
+  if (error) return null;
+  return (Array.isArray(data) ? data[0] : data) ?? null;
+}
+
+/** The database raises SEAT_REQUIRED when a company is out of paid seats. */
+export function isSeatError(e: unknown): boolean {
+  return String((e as any)?.message ?? '').includes('SEAT_REQUIRED');
+}

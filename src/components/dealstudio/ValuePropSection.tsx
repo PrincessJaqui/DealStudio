@@ -82,7 +82,7 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
             </div>
 
             {/* Solution */}
-            <div className="rounded-2xl border border-[var(--ds-accent)] bg-[var(--ds-accent-tint)] p-4">
+            <div className="rounded-2xl bg-[var(--ds-tint)] p-4">
               <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-1.5">
                 Solution
               </p>
@@ -179,7 +179,7 @@ export function CompetitionSection({ value }: { value: DealCompetition }) {
                       return (
                         <td
                           key={c.id}
-                          className={`p-3 text-center align-middle ${c.is_you ? 'bg-[var(--ds-accent-tint)]' : ''}`}
+                          className="p-3 text-center align-middle"
                         >
                           <span
                             className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${

@@ -30,7 +30,7 @@ function AssumptionRow({ row }: { row: Row }) {
   const display = editing ? draft : (Number.isFinite(row.value) ? row.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '0');
   return (
     <div className="ds-pulse ds-card flex items-center gap-3 rounded-xl border border-[#eceef0] bg-white p-3">
-      <div className="w-11 h-11 rounded-xl bg-[var(--ds-accent-panel-from)] text-white flex items-center justify-center text-lg font-bold shrink-0">{row.icon}</div>
+      <div className="w-11 h-11 rounded-xl bg-[var(--ds-brand)] text-white flex items-center justify-center text-lg font-bold shrink-0">{row.icon}</div>
       <div className="min-w-0 flex-1">
         <p className="text-[11px] text-[#7f8c85] leading-tight">{row.label}</p>
         <div className="flex items-center">
@@ -85,7 +85,7 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
       <div className="mt-5 grid gap-6 lg:grid-cols-2">
         {/* LEFT: projected revenue + stream cards */}
         <div className="space-y-4">
-          <div className="rounded-2xl bg-gradient-to-br from-[var(--ds-accent-panel-from)] to-[var(--ds-accent-panel-to)] px-6 py-5 text-white shadow-[0_4px_16px_-4px_rgba(4,51,58,0.35)]">
+          <div className="rounded-2xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-6 py-5 text-white shadow-[0_4px_16px_-4px_rgba(63,102,41,0.5)]">
             <p className="text-sm font-semibold text-white/90">Projected Year 1 Revenue</p>
             <p className="mt-1 text-3xl font-bold tracking-tight text-right">{fmtFull(totals.totalAnnual)}</p>
           </div>
@@ -95,9 +95,9 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
             return (
               <button key={r.id} type="button" onClick={() => setActive(i)}
                 style={{ animationDelay: `${i * 180}ms` }}
-                className={`ds-pulse ds-card w-full text-left rounded-2xl border p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition-colors ${on ? 'border-[var(--ds-brd-3)] bg-[var(--ds-tint-2)]' : 'border-[#edf0f3] bg-white hover:bg-[#f5f6f8]'}`}>
+                className={`ds-pulse ds-card w-full text-left rounded-2xl border p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition-colors ${on ? 'border-[var(--ds-accent)] bg-[var(--ds-accent-tint)]' : 'border-[#edf0f3] bg-white hover:bg-[#f5f6f8]'}`}>
                 <div className="flex items-center gap-4">
-                  <div className="w-[88px] h-[88px] rounded-full bg-gradient-to-br from-[var(--ds-accent-panel-from)] to-[var(--ds-accent-panel-to)] flex flex-col items-center justify-center text-white shrink-0">
+                  <div className="w-[88px] h-[88px] rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] flex flex-col items-center justify-center text-white shrink-0">
                     <span className="text-base font-bold leading-none">{fmtCompact(annualOf(i))}</span>
                     <span className="mt-1 text-[10px] font-medium text-white/85">Annually</span>
                   </div>
@@ -144,7 +144,7 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
       </div>
 
       {/* Green card: revenue mix + global metrics */}
-      <div className="mt-6 grid gap-6 rounded-2xl bg-gradient-to-br from-[var(--ds-accent-panel-from)] to-[var(--ds-accent-panel-to)] p-6 text-white lg:grid-cols-2">
+      <div className="mt-6 grid gap-6 rounded-2xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-mid)] p-6 text-white lg:grid-cols-2">
         <div>
           <h3 className="text-base font-bold mb-4">Revenue Mix</h3>
           <div className="space-y-3">

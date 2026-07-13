@@ -148,7 +148,7 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
                       </label>
 
                       {t.impacts && (
-                        <div className="mt-2 rounded-xl bg-[var(--ds-tint-2)] border border-[var(--ds-brd-3)] p-3">
+                        <div className="mt-2 rounded-xl bg-[var(--ds-accent-tint)] border border-[var(--ds-accent)] p-3">
                           <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-2">Impacted Tier</p>
                           <div className="space-y-2">
                             {(t.impactedTiers || []).map((it, ii) => (

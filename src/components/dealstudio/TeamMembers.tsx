@@ -12,6 +12,8 @@ import {
   fetchOrgMembers, addOrgMember, removeOrgMember, setOrgMemberRole,
   type OrgMember,
 } from '../../lib/org';
+import { fetchMyOrg } from '../../lib/org';
+import { orgSeatStatus, isSeatError, type SeatStatus } from '../../lib/billing';
 
 const card =
   'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5';
@@ -25,9 +27,15 @@ export function TeamMembers() {
   const [busy, setBusy] = useState('');
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
+  const [seats, setSeats] = useState<SeatStatus | null>(null);
 
   const load = async () => setMembers(await fetchOrgMembers());
-  useEffect(() => { void load(); }, []);
+  const refreshSeats = async () => {
+    const org = await fetchMyOrg();
+    if (org) setSeats(await orgSeatStatus(org.id));
+  };
+
+  useEffect(() => { void load(); void refreshSeats(); }, []);
 
   const you = members?.find(m => m.is_you);
   const canManage = you?.role === 'owner';
@@ -44,9 +52,20 @@ export function TeamMembers() {
       );
       await load();
     } catch (e: any) {
-      setError(e?.message || 'Could not add that person');
+      // The seat limit is enforced in the database, so this is the authoritative
+      // answer, not a hint. Say what it costs rather than just refusing.
+      if (isSeatError(e)) {
+        setError(
+          seats
+            ? `All ${seats.allowed} of your seats are in use. Add a paid seat in Billing to invite another team member.`
+            : 'You are out of team seats. Add a paid seat in Billing to invite another team member.'
+        );
+      } else {
+        setError(e?.message || 'Could not add that person');
+      }
     } finally {
       setBusy('');
+      void refreshSeats();
     }
   };
 
@@ -76,7 +95,25 @@ export function TeamMembers() {
 
   return (
     <div className={card}>
-      <h2 className="font-bold text-[#191f1d]">Team</h2>
+      <div className="flex items-center gap-2">
+        <h2 className="font-bold text-[#191f1d]">Team</h2>
+        {seats && (
+          <span
+            className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+              seats.can_add
+                ? 'bg-[var(--ds-accent-tint)] text-[var(--ds-accent-ink)]'
+                : 'bg-amber-50 text-amber-700'
+            }`}
+          >
+            {seats.used} of {seats.allowed} seats
+          </span>
+        )}
+      </div>
+      {seats && !seats.can_add && (
+        <p className="text-xs text-[#7f8c85] mt-1">
+          Every seat is in use. Adding another team member requires a paid seat.
+        </p>
+      )}
       <p className="text-sm text-[#7f8c85] mt-0.5 mb-4">
         {canManage
           ? 'People who can sign in and manage your deals.'
