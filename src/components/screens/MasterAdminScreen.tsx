@@ -10,6 +10,7 @@ import {
   ChevronUp, ChevronDown, Pencil, Mail, Link2 as LinkIcon,
 } from 'lucide-react';
 import { EditOrgDialog } from '../dealstudio/EditOrgDialog';
+import { PlatformDashboard } from '../dealstudio/PlatformDashboard';
 import { PricingSetup } from '../dealstudio/PricingSetup';
 import {
   adminListOrgs, adminUpdateOrg, adminListTransactions, adminListPlans, savePlan,
@@ -205,6 +206,10 @@ function UsersTab() {
 
   return (
     <>
+      <div className="mb-5">
+        <PlatformDashboard />
+      </div>
+
       {/* Activation. Email confirmation is on, so a customer whose confirmation
           mail bounced, expired, or landed in spam is stuck outside with no way
           in. This is the way in. It cannot CREATE an account: the person must

@@ -401,3 +401,31 @@ export async function adminCreateUser(
   });
   return error ? { ok: false, message: error.message } : { ok: true };
 }
+
+/* ── Platform dashboard ────────────────────────────────────────────────────── */
+
+export type PlatformStats = {
+  users: {
+    total: number; confirmed: number; new_30d: number;
+    active_7d: number; active_30d: number; never_signed_in: number;
+  };
+  companies: {
+    total: number; paying: number; trialing: number; comped: number; expired: number;
+  };
+  deals: { total: number; active: number; draft: number };
+  engagement: {
+    investor_sessions: number; sessions_7d: number;
+    total_page_views: number; total_deck_views: number;
+    investors_tracked: number; committed_cents: number;
+  };
+  per_deal: Array<{
+    slug: string; company: string; active: boolean;
+    sessions: number; views: number; investors: number;
+  }>;
+};
+
+export async function adminPlatformStats(): Promise<PlatformStats | null> {
+  const { data, error } = await supabase.rpc('admin_platform_stats');
+  if (error) return null;
+  return (data as PlatformStats) ?? null;
+}

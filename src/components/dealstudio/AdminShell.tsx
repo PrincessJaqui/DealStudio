@@ -7,7 +7,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, CreditCard, Shield, Home } from 'lucide-react';
+import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, UserPlus, CreditCard, Shield, Home } from 'lucide-react';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { useAdminAuth } from './AdminGate';
 import { isPlatformAdmin } from '../../lib/billing';
@@ -35,6 +35,31 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   const [drawer, setDrawer] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
+  const [invited, setInvited] = useState(false);
+
+  /** Share the product, not the deal room. Copies the signup link, and uses the
+   *  native share sheet on a phone where one exists. */
+  const inviteFriends = async () => {
+    const url = `${window.location.origin}/signup`;
+    const text = 'I am using DealStudio to run my raise. Investor deal rooms, live analytics.';
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'DealStudio', text, url });
+        return;
+      } catch {
+        // Cancelled the share sheet. Fall through to copying.
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setInvited(true);
+      setTimeout(() => setInvited(false), 2000);
+    } catch {
+      /* clipboard blocked; nothing useful to do */
+    }
+  };
   const [isMaster, setIsMaster] = useState(false);
 
   useEffect(() => { void isPlatformAdmin().then(setIsMaster); }, []);
@@ -79,7 +104,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </span>
             <span className="text-left leading-tight">
               <span className="block text-sm font-bold text-[#191f1d] truncate max-w-[180px]">{org?.name || 'Company'}</span>
-              <span className="block text-xs text-[#7f8c85]">Admin</span>
+              <span className={`block text-xs ${isMaster ? 'font-semibold text-[var(--ds-brand)]' : 'text-[#7f8c85]'}`}>
+                {isMaster ? 'Master Admin' : 'Admin'}
+              </span>
             </span>
           </button>
 
@@ -87,9 +114,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <>
               <div className="fixed inset-0 z-10" onClick={() => setUserMenu(false)} />
               <div className="absolute right-0 top-14 z-20 w-52 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.18)] p-1.5">
-                <button onClick={() => nav('/admin/settings')}
+                <button onClick={() => { setUserMenu(false); void inviteFriends(); }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]">
-                  <User className="w-4 h-4" /> Account
+                  <UserPlus className="w-4 h-4" /> {invited ? 'Link copied' : 'Invite friends'}
                 </button>
                 <button onClick={() => void signOut()}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]">
@@ -177,13 +204,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
                   <div className="px-3 py-2 border-b border-[#edf0f3] mb-1">
                     <p className="text-[11px] uppercase tracking-wider font-semibold text-[var(--ds-accent-ink)]">Company</p>
                     <p className="text-sm font-semibold text-[#191f1d] truncate">{org.name}</p>
+                    <p className={`text-xs mt-0.5 ${isMaster ? 'font-semibold text-[var(--ds-brand)]' : 'text-[#7f8c85]'}`}>
+                      {isMaster ? 'Master Admin' : 'Admin'}
+                    </p>
                   </div>
                 )}
                 <button
                   onClick={() => nav('/admin/settings')}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
                 >
-                  <User className="w-4 h-4" /> Account
+                  <UserPlus className="w-4 h-4" /> {invited ? 'Link copied' : 'Invite friends'}
                 </button>
                 <button
                   onClick={() => void signOut()}
