@@ -170,20 +170,6 @@ export function DealFlow({ roomId, rows, visits, docs, onChanged }: Props) {
       <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
         <p className="text-sm font-bold text-[#191f1d] mb-3">Pipeline summary</p>
         <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex flex-wrap gap-x-8 gap-y-3">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">Committed</p>
-              <p className="text-2xl font-bold text-[#191f1d]">{fmtMoney(raised)}</p>
-            </div>
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wide text-[#7f8c85]">Active leads</p>
-              <p className="text-2xl font-bold text-[#191f1d]">{num(activeLeads)}</p>
-            </div>
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wide text-[#7f8c85]">Total closed</p>
-              <p className="text-2xl font-bold text-[#191f1d]">{num(totalClosed)}</p>
-            </div>
-          </div>
           <Button onClick={() => setAdding(true)} className="h-9 shrink-0 rounded-xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]"><Plus className="w-4 h-4 mr-1" /> Add investor</Button>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -190,3 +190,17 @@ html.dark .ds-page-bottom { background-color: #0b0e1a; }
 @media (prefers-reduced-motion: reduce) {
   .ds-fade { animation: none; }
 }
+
+/* ── Number inputs ─────────────────────────────────────────────────────────────
+   Kill the up/down spinners. They are tiny, easy to hit by accident, and on a
+   money field a stray click silently changes the number. Typing is the only sane
+   way to enter an amount. */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

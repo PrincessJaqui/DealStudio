@@ -85,7 +85,7 @@ export function PublicHeader({
       <div className="mx-auto max-w-6xl px-6 h-[68px] flex items-center gap-4">
         <button
           onClick={() => nav('/')}
-          className="flex items-center gap-2.5 font-bold text-[21px] tracking-tight text-[#0c1022] dark:text-[#eef1fa]"
+          className="flex items-center gap-2 sm:gap-2.5 font-bold text-[17px] sm:text-[21px] tracking-tight text-[#0c1022] dark:text-[#eef1fa] whitespace-nowrap"
         >
           <img
             src={dsMark}
@@ -102,7 +102,9 @@ export function PublicHeader({
               aria-label="Toggle theme"
               className="w-9 h-9 rounded-xl border border-[#e6e8ee] dark:border-[#242c47] flex items-center justify-center text-[#5b6478] dark:text-[#9aa4be] hover:text-[#0c1022] dark:hover:text-white"
             >
-              {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {/* The icon names the mode you are IN, not the one you would switch
+                  to. In light mode you see a sun. */}
+              {dark ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
             </button>
           )}
 
@@ -139,15 +141,15 @@ export function PublicHeader({
             <>
               <button
                 onClick={() => nav('/admin')}
-                className="px-2 py-2.5 text-[15px] font-semibold text-[#0c1022] dark:text-[#eef1fa]"
+                className="px-1.5 sm:px-2 py-2.5 text-[13px] sm:text-[15px] font-semibold text-[#0c1022] dark:text-[#eef1fa] whitespace-nowrap"
               >
                 Log in
               </button>
               <button
                 onClick={() => nav('/signup')}
-                className={`rounded-xl ${GRAD} text-white px-[18px] py-2.5 text-[15px] font-semibold hover:brightness-110 transition`}
+                className={`rounded-xl ${GRAD} text-white px-3 sm:px-[18px] py-2.5 text-[13px] sm:text-[15px] font-semibold hover:brightness-110 transition whitespace-nowrap`}
               >
-                Get started
+                Sign up
               </button>
             </>
           )}

@@ -117,6 +117,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]">
                   <UserPlus className="w-4 h-4" /> {invited ? 'Link copied' : 'Invite friends'}
                 </button>
+                {/* Moved out of the nav rail: it is not a place you work, it is a
+                    place you leave to. */}
+                <a href="/"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]">
+                  <Home className="w-4 h-4" /> View home page
+                </a>
                 <button onClick={() => void signOut()}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]">
                   <LogOut className="w-4 h-4" /> Sign out
@@ -129,7 +135,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
       <div className="md:flex md:min-h-[calc(100vh-68px)]">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-[#edf0f3] bg-white">
+      {/* h-[calc(100vh-68px)] + sticky: the rail fills the screen below the
+          header instead of stopping at its content and leaving a grey strip. */}
+      <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-[#edf0f3] bg-white sticky top-[68px] h-[calc(100vh-68px)]">
         <div className="sticky top-[68px] flex flex-col h-[calc(100vh-68px)]">
         <nav className="flex-1 p-3 space-y-1 pt-4">
           {NAV.map(({ to, label, Icon, end }) => (
@@ -139,13 +147,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </NavLink>
           ))}
 
-          <a
-            href="/"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
-          >
-            <Home className="w-4 h-4" />
-            View home page
-          </a>
         </nav>
 
         {/* Legal and the credit sit at the foot of the rail, out of the way of
@@ -216,6 +217,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 >
                   <UserPlus className="w-4 h-4" /> {invited ? 'Link copied' : 'Invite friends'}
                 </button>
+                <a href="/"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]">
+                  <Home className="w-4 h-4" /> View home page
+                </a>
                 <button
                   onClick={() => void signOut()}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
@@ -253,13 +258,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 </NavLink>
               ))}
 
-              <a
-                href="/"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
-              >
-                <Home className="w-4 h-4" />
-                View home page
-              </a>
             </nav>
 
             <div className="px-3 pb-3 pt-3 border-t border-[#edf0f3]">

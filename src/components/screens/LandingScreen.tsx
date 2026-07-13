@@ -115,7 +115,7 @@ export function LandingScreen() {
                   Log in
                 </button>
                 <button onClick={() => nav('/admin')} className={`rounded-xl ${GRAD} text-white px-[18px] py-2.5 text-[15px] font-semibold shadow-[0_10px_24px_-10px_rgba(80,61,187,0.6)] hover:brightness-110 transition`}>
-                  Get started
+                  Sign up
                 </button>
               </>
             )}

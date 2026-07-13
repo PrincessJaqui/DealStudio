@@ -507,17 +507,6 @@ export function DealStudioScreen() {
             <Plus className="w-4 h-4" /> New deal
           </button>
 
-          {/* Deleting a deal used to live only on the Deal Manager page. That page
-              is gone, so it moves here -- otherwise removing the page would have
-              silently removed the only way to delete a deal. */}
-          <button
-            onClick={() => setDeleting(true)}
-            aria-label="Delete this deal"
-            title="Delete this deal"
-            className="inline-flex items-center justify-center h-9 w-9 rounded-xl border border-[#edf0f3] text-[#c7cdd4] hover:text-red-600 hover:bg-red-50 hover:border-red-100"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
@@ -888,6 +877,24 @@ export function DealStudioScreen() {
                   <Switch checked={room.is_active} onCheckedChange={toggleActive} />
                 </div>
               </Card>
+
+              {/* Danger zone, last on the page. Deleting a deal room takes its
+                  documents, its analytics and its investor list with it, so it
+                  sits at the very bottom, behind a word you have to type. */}
+              <div className="rounded-2xl border border-red-100 bg-red-50/40 p-5">
+                <p className="font-bold text-[#191f1d]">Delete this deal</p>
+                <p className="text-sm text-[#7f8c85] mt-1">
+                  Removes the room, its documents, its analytics and its investor
+                  list. Investors holding the link will see a not-found page.
+                  This cannot be undone.
+                </p>
+                <button
+                  onClick={() => setDeleting(true)}
+                  className="mt-4 inline-flex items-center gap-1.5 h-10 px-4 rounded-xl text-sm font-semibold text-red-600 bg-white border border-red-200 hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4" /> Delete deal
+                </button>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
