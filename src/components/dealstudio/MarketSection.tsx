@@ -124,11 +124,11 @@ export function MarketSection({ market }: { market: DealMarket }) {
                   <stop offset="100%" stopColor="var(--ds-accent-to)" />
                 </linearGradient>
               </defs>
-              <circle cx="100" cy="100" r="92" fill={active === 'tam' ? 'url(#selGrad)' : 'var(--ds-tint-5)'} className="cursor-pointer transition-all"
+              <circle cx="100" cy="100" r="92" fill={active === 'tam' ? 'url(#selGrad)' : 'var(--ds-accent-ring-1)'} className="cursor-pointer transition-all"
                 onClick={() => setActive('tam')} />
-              <circle cx="100" cy="100" r="64" fill={active === 'sam' ? 'url(#selGrad)' : 'var(--ds-ring)'} className="cursor-pointer transition-all"
+              <circle cx="100" cy="100" r="64" fill={active === 'sam' ? 'url(#selGrad)' : 'var(--ds-accent-ring-2)'} className="cursor-pointer transition-all"
                 onClick={() => setActive('sam')} />
-              <circle cx="100" cy="100" r="36" fill={active === 'som' ? 'url(#selGrad)' : 'var(--ds-ring-2)'} className="cursor-pointer transition-all"
+              <circle cx="100" cy="100" r="36" fill={active === 'som' ? 'url(#selGrad)' : 'var(--ds-accent-ring-3)'} className="cursor-pointer transition-all"
                 onClick={() => setActive('som')} />
               <text x="100" y="105" textAnchor="middle" className="fill-white font-bold" style={{ fontSize: '14px' }}>{metric?.value || '—'}</text>
             </svg>

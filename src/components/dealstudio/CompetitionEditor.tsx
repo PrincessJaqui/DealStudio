@@ -253,7 +253,7 @@ export function CompetitionEditor({
                             className={`w-8 h-8 rounded-full inline-flex items-center justify-center transition hover:scale-110 ${
                               on
                                 ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shadow-sm'
-                                : 'bg-[#fdeaea] text-[#e05252]'
+                                : 'text-[var(--ds-brand)] opacity-45 hover:opacity-80'
                             }`}
                           >
                             {on ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}

@@ -184,7 +184,7 @@ export function CompetitionSection({ value }: { value: DealCompetition }) {
                             className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${
                               on
                                 ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'
-                                : 'bg-[#fdeaea] text-[#e05252]'
+                                : 'text-[var(--ds-brand)] opacity-40'
                             }`}
                           >
                             {on ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
@@ -388,19 +388,33 @@ function ValuePropWheel({
         </g>
 
         {/* The hub sits outside the rotating group so it never spins. */}
-        <circle cx={CX} cy={CY} r={R_IN - 8} fill="white" />
-        <circle
-          cx={CX} cy={CY} r={R_IN - 8}
-          fill="none" stroke="var(--ds-accent-tint)" strokeWidth="2"
-        />
+        <defs>
+          <linearGradient id="ds-hub" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="var(--ds-grad-from)" />
+            <stop offset="100%" stopColor="var(--ds-grad-to)" />
+          </linearGradient>
+        </defs>
+
+        <circle cx={CX} cy={CY} r={R_IN - 6} fill="white" />
+        <circle cx={CX} cy={CY} r={R_IN - 9} fill="url(#ds-hub)" />
+
         <text
-          x={CX} y={CY}
+          x={CX} y={CY - 5}
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-[#9ca3af] font-semibold"
-          style={{ fontSize: 9 }}
+          className="fill-white font-bold"
+          style={{ fontSize: 11 }}
         >
-          {sel === null ? 'Tap a wedge' : `${sel + 1} of ${n}`}
+          Value
+        </text>
+        <text
+          x={CX} y={CY + 7}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          className="fill-white/75 font-semibold"
+          style={{ fontSize: 8 }}
+        >
+          {sel === null ? `${n} pillars` : `${sel + 1} of ${n}`}
         </text>
       </svg>
 

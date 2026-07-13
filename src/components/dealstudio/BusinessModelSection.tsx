@@ -120,7 +120,7 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
             <div className="inline-flex w-full items-center gap-1 rounded-full bg-[#f5f5f5] p-1 overflow-x-auto [&::-webkit-scrollbar]:hidden mb-4">
               {revenues.map((r, i) => (
                 <button key={r.id} type="button" onClick={() => setActive(i)}
-                  className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${active === i ? 'bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shadow-sm' : 'text-[#7f8c85] hover:text-[#191f1d]'}`}>
+                  className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${active === i ? 'bg-gradient-to-br from-[var(--ds-accent)] to-[var(--ds-accent-to)] text-[var(--ds-on-accent)] shadow-sm' : 'text-[#7f8c85] hover:text-[#191f1d]'}`}>
                   {shortLabel(r.name)}
                 </button>
               ))}
