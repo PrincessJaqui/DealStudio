@@ -427,7 +427,16 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
         </div>
 
         {/* Right rail (flattens into the grid on mobile via display:contents) */}
-        <div className="contents lg:block lg:space-y-6 lg:sticky lg:top-6">
+        {/* The side column scrolls on its own.
+            Sticky alone was not enough: once the sidebar grew taller than the
+            viewport it pinned in place and the bottom of it became unreachable,
+            because it had no scroll container of its own. Capping the height to
+            the viewport and letting it scroll means an investor can work through
+            the deal terms and documents without dragging the whole page.
+            overscroll-contain stops the page lurching when the sidebar hits its
+            end. On mobile this is all off: the column flattens into the single
+            stack via display:contents. */}
+        <div className="contents lg:block lg:space-y-6 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:overscroll-contain ds-scroll-y">
           <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-5 text-center">
             <div className="w-20 h-20 rounded-full bg-[#f5f7f9] border border-[#edf0f3] mx-auto mb-3 overflow-hidden flex items-center justify-center">
               {(() => {

@@ -98,6 +98,17 @@ body {
 .ds-animate .ds-pulse-pie { animation: dsPulseScaleLoop 2.6s ease-in-out infinite; }
 .ds-bar { transform-origin: left center; transform: scaleX(0); }
 .ds-animate .ds-bar { animation: dsBarGrow 0.9s ease-out forwards; }
+/* A quiet scrollbar for panels that scroll inside the page, so an independently
+   scrolling column does not announce itself with a heavy native bar. */
+.ds-scroll-y { scrollbar-width: thin; scrollbar-color: #d6dae0 transparent; }
+.ds-scroll-y::-webkit-scrollbar { width: 6px; }
+.ds-scroll-y::-webkit-scrollbar-track { background: transparent; }
+.ds-scroll-y::-webkit-scrollbar-thumb {
+  background: #d6dae0;
+  border-radius: 999px;
+}
+.ds-scroll-y::-webkit-scrollbar-thumb:hover { background: #c2c8d0; }
+
 .ds-card { transition: transform 0.18s ease, box-shadow 0.18s ease; }
 .ds-card:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -10px rgba(25,31,29,0.20); }
 
