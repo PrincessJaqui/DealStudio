@@ -22,7 +22,7 @@ import { DealDocViewer } from '../dealstudio/DealDocViewer';
 import { RequestMeetingModal } from '../dealstudio/RequestMeetingModal';
 import { RichTextRenderer } from '../RichTextEditor';
 import { MarketSection, IndustryReadingSection } from '../dealstudio/MarketSection';
-import { ValuePropSection, CompetitionSection } from '../dealstudio/ValuePropSection';
+import { ValuePropSection, ProblemSolutionSection, CompetitionSection } from '../dealstudio/ValuePropSection';
 import { TeamSection } from '../dealstudio/TeamSection';
 import { BusinessModelSection } from '../dealstudio/BusinessModelSection';
 import {
@@ -366,6 +366,12 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
                   </>
                 );
               })()}
+            </div>
+          )}
+
+          {valueProp && (
+            <div className="order-5 lg:order-none">
+              <ProblemSolutionSection value={valueProp} />
             </div>
           )}
 

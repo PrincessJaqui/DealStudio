@@ -75,9 +75,17 @@ body {
 .ds-card { transition: transform 0.18s ease, box-shadow 0.18s ease; }
 .ds-card:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -10px rgba(25,31,29,0.20); }
 
+/* Cards fade up as their section scrolls in. The stagger comes from an inline
+   transition-delay on each card, so one class covers any number of them. */
+@keyframes dsRiseIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ds-animate .ds-card { animation: dsRiseIn 0.5s ease-out backwards; }
+
 @media (prefers-reduced-motion: reduce) {
   .ds-bar { transform: scaleX(1); }
-  .ds-animate .ds-pulse, .ds-animate .ds-pulse-pie, .ds-animate .ds-bar { animation: none; }
+  .ds-animate .ds-pulse, .ds-animate .ds-pulse-pie, .ds-animate .ds-bar, .ds-animate .ds-card { animation: none; }
 }
 
 

@@ -309,15 +309,27 @@ export const DEFAULT_STAT_SLOTS: StatSlot[] = [
 
 export interface DealValuePillar { title: string; description: string; }
 
+/** One problem paired with the thing you do about it. */
+export interface ProblemSolution {
+  id: string;
+  problem: string;
+  solution: string;
+}
+
 export interface DealValueProp {
   headline: string;      // the one line an investor should remember
+  /** Legacy single problem/solution. Kept so existing deals do not lose text. */
   problem: string;
   solution: string;
   pillars: DealValuePillar[];
+  /** The statement that opens the Problem and Solution section. */
+  statement?: string;
+  /** Specific problems, each with its own answer. */
+  pairs?: ProblemSolution[];
 }
 
 export const EMPTY_VALUE_PROP: DealValueProp = {
-  headline: '', problem: '', solution: '', pillars: [],
+  headline: '', problem: '', solution: '', pillars: [], statement: '', pairs: [],
 };
 
 

@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { Check, X, ExternalLink } from 'lucide-react';
+import { Check, X, ExternalLink, ArrowRight, ArrowDown } from 'lucide-react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 import type { DealValueProp, DealCompetition } from '../../lib/dealStudio';
 
@@ -21,47 +21,77 @@ export function ValuePropSection({ value }: { value: DealValueProp }) {
   const { ref, inView } = useInViewOnce<HTMLDivElement>();
 
   const pillars = (value.pillars ?? []).filter(p => p.title || p.description);
-  const hasBody = value.headline || value.problem || value.solution || pillars.length;
-  if (!hasBody) return null;
+  if (!pillars.length) return null;
 
   return (
-    <div ref={ref} className={`${card} p-5 ${inView ? 'ac-in' : 'ac-out'}`}>
+    <div ref={ref} data-section="valueprop" className={`${card} p-5 ${inView ? 'ds-animate' : ''}`}>
       <h2 className="text-sm font-bold text-[#191f1d] mb-3">Value Proposition</h2>
+      <ValuePropWheel pillars={pillars} inView={inView} />
+    </div>
+  );
+}
 
-      <div>
-        {value.headline && (
-          <div className="mb-4">
-            <h3 className="text-base font-bold text-[#191f1d]">{value.headline}</h3>
-            <p className="text-xs text-[#7f8c85]">Why this wins</p>
+/* ── Problem and Solution ──────────────────────────────────────────────────── */
+
+export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
+  const { ref, inView } = useInViewOnce<HTMLDivElement>();
+
+  // Pairs are the shape now. The legacy single problem/solution is folded in as
+  // one pair so existing deals do not silently lose their text.
+  const pairs = (value.pairs ?? []).filter(p => p.problem || p.solution);
+  const legacy = !pairs.length && (value.problem || value.solution)
+    ? [{ id: 'legacy', problem: value.problem, solution: value.solution }]
+    : [];
+  const rows = pairs.length ? pairs : legacy;
+
+  if (!rows.length && !value.statement) return null;
+
+  return (
+    <div ref={ref} data-section="problem" className={`${card} p-5 ${inView ? 'ds-animate' : ''}`}>
+      <h2 className="text-sm font-bold text-[#191f1d] mb-3">Problem and Solution</h2>
+
+      {value.statement && (
+        <p className="text-sm leading-relaxed text-[#4b5563] mb-5 whitespace-pre-line">
+          {value.statement}
+        </p>
+      )}
+
+      <div className="space-y-3">
+        {rows.map((p, i) => (
+          <div
+            key={p.id || i}
+            className="ds-card grid gap-3 md:grid-cols-[1fr_auto_1fr] items-stretch"
+            style={{ transitionDelay: `${i * 60}ms` }}
+          >
+            {/* Problem */}
+            <div className="rounded-2xl border border-[#edf0f3] bg-[#f8f9fb] p-4">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#9ca3af] mb-1.5">
+                Problem
+              </p>
+              <p className="text-sm leading-relaxed text-[#191f1d] whitespace-pre-line">
+                {p.problem}
+              </p>
+            </div>
+
+            {/* The arrow is the argument: this problem leads to that answer. */}
+            <div className="flex md:flex-col items-center justify-center">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shadow-sm">
+                <ArrowRight className="w-4 h-4 md:block hidden" />
+                <ArrowDown className="w-4 h-4 md:hidden" />
+              </span>
+            </div>
+
+            {/* Solution */}
+            <div className="rounded-2xl border border-[var(--ds-accent)] bg-[var(--ds-accent-tint)] p-4">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-1.5">
+                Solution
+              </p>
+              <p className="text-sm leading-relaxed text-[#191f1d] whitespace-pre-line">
+                {p.solution}
+              </p>
+            </div>
           </div>
-        )}
-
-        {(value.problem || value.solution) && (
-          <div className="grid gap-4 sm:grid-cols-2 mt-6">
-            {value.problem && (
-              <div className="rounded-xl bg-[#f5f6f8] border border-[#edf0f3] p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-accent-ink)]">
-                  The problem
-                </p>
-                <p className="text-sm text-[#4b5563] leading-relaxed mt-1.5 whitespace-pre-line">
-                  {value.problem}
-                </p>
-              </div>
-            )}
-            {value.solution && (
-              <div className="rounded-xl bg-[#f5f6f8] border border-[#edf0f3] p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-accent-ink)]">
-                  Our solution
-                </p>
-                <p className="text-sm text-[#4b5563] leading-relaxed mt-1.5 whitespace-pre-line">
-                  {value.solution}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {pillars.length > 0 && <ValuePropWheel pillars={pillars} />}
+        ))}
       </div>
     </div>
   );
@@ -269,9 +299,14 @@ function wrap(text: string, perLine = 12, maxLines = 3): string[] {
 
 function ValuePropWheel({
   pillars,
-}: { pillars: { title?: string; description?: string }[] }) {
+  inView,
+}: {
+  pillars: { title?: string; description?: string }[];
+  inView: boolean;
+}) {
   const n = pillars.length;
   const [sel, setSel] = useState<number | null>(null);
+  const [hover, setHover] = useState<number | null>(null);
 
   // With nothing picked the wheel sits where it was built. Picking one spins it
   // so that wedge lands top-right, next to its card.
@@ -288,22 +323,36 @@ function ValuePropWheel({
       >
         <g
           style={{
-            transform: `rotate(${rot}deg)`,
+            transform: inView ? `rotate(${rot}deg) scale(1)` : 'rotate(-25deg) scale(0.86)',
+            opacity: inView ? 1 : 0,
             transformOrigin: '150px 150px',
-            transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: 'transform 700ms cubic-bezier(0.34, 1.2, 0.64, 1), opacity 500ms ease-out',
           }}
         >
           {pillars.map((p, i) => {
             const sg = slice(i, n);
             const dim = sel !== null && sel !== i;
+            const lifted = hover === i || sel === i;
             const lines = wrap(p.title || `Pillar ${i + 1}`, n > 4 ? 10 : 12);
+
+            // Hovering pushes the wedge a little further out along its own
+            // bisector, so it lifts away from the wheel rather than just
+            // changing colour.
+            const [hx, hy] = polar(0, 0, lifted ? 6 : 0, sg.mid);
 
             return (
               <g
                 key={i}
                 onClick={() => setSel(sel === i ? null : i)}
+                onMouseEnter={() => setHover(i)}
+                onMouseLeave={() => setHover(null)}
                 className="cursor-pointer"
-                style={{ opacity: dim ? 0.4 : 1, transition: 'opacity 300ms' }}
+                style={{
+                  opacity: dim ? 0.4 : 1,
+                  transform: `translate(${hx}px, ${hy}px)`,
+                  filter: lifted ? 'drop-shadow(0 6px 14px rgba(12,16,34,0.28))' : 'none',
+                  transition: 'opacity 300ms, transform 250ms ease-out, filter 250ms',
+                }}
               >
                 <path d={sg.d} fill={sliceFill(i, n)} />
 
@@ -358,7 +407,7 @@ function ValuePropWheel({
       {/* The card for whatever is selected. */}
       <div>
         {active ? (
-          <div className="rounded-2xl border border-[#edf0f3] bg-white p-5 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]">
+          <div className="ds-card rounded-2xl border border-[#edf0f3] bg-white p-5 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)]">
             <div className="flex items-start gap-3">
               <span
                 className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
@@ -393,7 +442,10 @@ function ValuePropWheel({
               <button
                 key={i}
                 onClick={() => setSel(i)}
-                className="w-full flex items-center gap-3 rounded-xl border border-[#edf0f3] bg-white px-4 py-3 text-left hover:border-[var(--ds-accent)] transition"
+                onMouseEnter={() => setHover(i)}
+                onMouseLeave={() => setHover(null)}
+                style={{ animationDelay: `${i * 70}ms` }}
+                className="ds-card w-full flex items-center gap-3 rounded-xl border border-[#edf0f3] bg-white px-4 py-3 text-left hover:border-[var(--ds-accent)]"
               >
                 <span
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
