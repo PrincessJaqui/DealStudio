@@ -148,7 +148,7 @@ export function InterfaceStudioScreen() {
           <p className="text-sm text-[#7f8c85]">
             {tab === 'landing'
               ? 'Edit the public marketing page. Changes go live when you publish.'
-              : 'Make DealStudio look like your company. Changes preview instantly.'}
+              : 'Make DealStudio\u2122 look like your company. Changes preview instantly.'}
           </p>
         </div>
         <div className={`flex items-center gap-2 ${tab === 'landing' ? 'hidden' : ''}`}>

@@ -12,7 +12,7 @@ export function TermsScreen() {
   return (
     <LegalPage title="Terms of Service" version="Version 1.0" effective="July 12, 2026">
       <p className="text-sm leading-relaxed text-[#4b5563] mb-7">
-        These Terms of Service (the "Terms") govern your use of DealStudio, an investor deal room
+        These Terms of Service (the "Terms") govern your use of DealStudio&trade;, an investor deal room
         service operated by JM Solutions ("JM Solutions", "we", "us"). By creating an account or
         using the service, you agree to these Terms. If you are agreeing on behalf of a company,
         you represent that you have authority to bind it.
@@ -20,7 +20,7 @@ export function TermsScreen() {
 
       <Clause n={1} title="The service">
         <p>
-          DealStudio lets you publish a private investor deal room: upload a pitch deck and
+          DealStudio&trade; lets you publish a private investor deal room: upload a pitch deck and
           supporting documents, present your market and business model, control who has access, and
           see how investors engage with what you have shared.
         </p>
@@ -79,7 +79,7 @@ export function TermsScreen() {
       </Clause>
 
       <Clause n={5} title="Acceptable use">
-        <p>You agree not to use DealStudio to:</p>
+        <p>You agree not to use DealStudio&trade; to:</p>
         <ul className="list-disc pl-5 space-y-1">
           <li>Upload unlawful, infringing, or knowingly false material.</li>
           <li>Make securities offerings or solicitations that breach applicable law.</li>
@@ -95,7 +95,7 @@ export function TermsScreen() {
 
       <Clause n={6} title="Nothing here is investment or legal advice">
         <p>
-          DealStudio is a presentation and access-control tool. We are not a broker-dealer, not an
+          DealStudio&trade; is a presentation and access-control tool. We are not a broker-dealer, not an
           investment adviser, and not a party to any transaction between you and an investor. We do
           not verify the accuracy of anything you publish in a deal room, and we make no
           representation to any investor about you or your company.

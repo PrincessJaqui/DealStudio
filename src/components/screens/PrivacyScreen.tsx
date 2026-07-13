@@ -18,8 +18,8 @@ export function PrivacyScreen() {
   return (
     <LegalPage title="Privacy Policy" version="Version 1.0" effective="July 12, 2026">
       <p className="text-sm leading-relaxed text-[#4b5563] mb-7">
-        This policy explains what DealStudio, operated by JM Solutions ("we", "us"), collects, why,
-        and what we do with it. DealStudio is an investor deal room service. Two different groups of
+        This policy explains what DealStudio&trade;, operated by JM Solutions ("we", "us"), collects, why,
+        and what we do with it. DealStudio&trade; is an investor deal room service. Two different groups of
         people appear in this policy: <strong className="text-[#191f1d]">customers</strong>, who are
         founders with an account, and <strong className="text-[#191f1d]">investors</strong>, who
         visit a deal room a customer has shared with them.
@@ -138,14 +138,14 @@ export function PrivacyScreen() {
 
       <Clause n={9} title="Children">
         <p>
-          DealStudio is not intended for anyone under 18 and we do not knowingly collect data from
+          DealStudio&trade; is not intended for anyone under 18 and we do not knowingly collect data from
           children.
         </p>
       </Clause>
 
       <Clause n={10} title="International transfers">
         <p>
-          Our infrastructure is hosted in the United States. If you use DealStudio from elsewhere,
+          Our infrastructure is hosted in the United States. If you use DealStudio&trade; from elsewhere,
           your data will be transferred to and processed in the United States.
         </p>
       </Clause>
