@@ -204,3 +204,11 @@ input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* ── Business model: two columns down to 430px ────────────────────────────────
+   Tailwind's smallest breakpoint is sm (640px), so the business model collapsed
+   to one column on any phone wider than a watch. These panels stay side by side
+   until 430px, which is roughly the widest phone. */
+@media (min-width: 430px) {
+  .ds-two-col-early { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

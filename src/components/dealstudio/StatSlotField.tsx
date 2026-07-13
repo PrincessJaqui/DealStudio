@@ -13,6 +13,7 @@
  * duplicating them, so switching a slot away and back does not lose the value.
  */
 
+import { Info } from 'lucide-react';
 import { STAT_KIND_LABELS, type StatKind, type StatSlot } from '../../lib/dealStudio';
 
 const input =
@@ -32,12 +33,15 @@ export function StatSlotField({
   slot,
   teamSize,
   headquarters,
+  committedLabel,
   onSlot,
   onTeamSize,
 }: {
   slot: StatSlot;
   teamSize: number;
   headquarters: string;
+  /** The live committed total, formatted. Same number Deal Flow shows. */
+  committedLabel: string;
   onSlot: (next: StatSlot) => void;
   onTeamSize: (n: number) => void;
 }) {
@@ -75,6 +79,21 @@ export function StatSlotField({
           className={input}
           placeholder={PLACEHOLDER.team_size}
         />
+      ) : kind === 'committedLive' ? null : kind === 'total_raised' ? (
+        <div>
+          <input
+            value={committedLabel}
+            readOnly
+            className={`${input} bg-[#f5f6f8] text-[#7f8c85] cursor-not-allowed`}
+          />
+          <p className="text-[11px] text-[#9ca3af] mt-1 flex items-start gap-1">
+            <Info className="w-3 h-3 mt-0.5 shrink-0" />
+            <span>
+              Adds up every investor marked Committed in Deal Flow. It updates
+              itself, so this and your pipeline can never disagree.
+            </span>
+          </p>
+        </div>
       ) : kind === 'headquarters' ? (
         <div>
           <input
@@ -103,6 +122,10 @@ export function StatSlotField({
 export function statSlotValue(
   slot: StatSlot,
   room: { team_size?: number | null; headquarters?: string | null },
+  /** The live committed total. Passing it keeps the investor page and the
+   *  pipeline showing the same number; without it the tile would render whatever
+   *  stale figure had been typed in months ago. */
+  committed?: number,
 ): { label: string; value: string } {
   const label =
     slot.kind === 'other'
@@ -114,7 +137,9 @@ export function statSlotValue(
       ? (room.team_size ? String(room.team_size) : '')
       : slot.kind === 'headquarters'
         ? (room.headquarters ?? '')
-        : (slot.value ?? '');
+        : slot.kind === 'total_raised'
+          ? (committed != null ? `$${committed.toLocaleString()}` : (slot.value ?? ''))
+          : (slot.value ?? '');
 
   return { label, value: value || '\u2014' };
 }

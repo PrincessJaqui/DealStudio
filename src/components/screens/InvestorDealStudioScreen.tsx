@@ -8,7 +8,7 @@
 import { useParams } from 'react-router-dom';
 import { PublicHeader } from '../dealstudio/PublicHeader';
 import { applyDealTheme, resolveDealSlug } from '../../lib/org';
-import { trackInviteOpen } from '../../lib/dealStudio';
+import { trackInviteOpen, fetchCommittedTotal } from '../../lib/dealStudio';
 import { getOrCreateSessionToken } from '../../lib/analytics';
 import { statSlotValue } from '../dealstudio/StatSlotField';
 import { DEFAULT_STAT_SLOTS, resolveSectionOrder, scheduleSlots, type StatSlot, type SectionKey } from '../../lib/dealStudio';
@@ -112,6 +112,13 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   }, [routeHandle, routeDeck, routeSlug]);
 
   const SLUG = resolvedSlug ?? '';
+
+  // The live committed total. Null unless the founder chose to show it.
+  const [committed, setCommitted] = useState<number | null>(null);
+  useEffect(() => {
+    if (!SLUG) return;
+    void (async () => setCommitted(await fetchCommittedTotal(SLUG)))();
+  }, [SLUG]);
 
   // Opened via someone's personal link. Record which browser it was: the first
   // is presumed to be them, any others are people the link was forwarded to.
@@ -343,7 +350,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   const tiles = [
     { label: lbl('round', 'Series'), value: room.round || '\u2014' },
     { label: lbl('raise_amount', 'Amount'), value: room.raise_amount || '\u2014' },
-    ...slots.map(sl => statSlotValue(sl, room)),
+    ...slots.map(sl => statSlotValue(sl, room, committed ?? undefined)),
   ];
   // The Headquarters field is the source of truth for company location, so it
   // wins. Coordinates are only a fallback for a deal that has them but never had

@@ -317,7 +317,7 @@ export interface StatSlot {
 }
 
 export const STAT_KIND_LABELS: Record<StatKind, string> = {
-  total_raised: 'Total Raised',
+  total_raised: 'Committed',
   team_size: 'Team Size',
   instrument: 'Instrument',
   headquarters: 'Headquarters',
@@ -1115,4 +1115,17 @@ export function inviteUrl(handle: string | null, slug: string, token: string): s
 /** Called by the investor page when it is opened with ?i={token}. */
 export async function trackInviteOpen(token: string, session: string): Promise<void> {
   await supabase.rpc('track_invite_open', { p_token: token, p_session: session });
+}
+
+/**
+ * The live committed total for a public deal room.
+ *
+ * Returns null unless the founder chose to display it. The server enforces that,
+ * not the client: a number the founder never chose to show should not be sitting
+ * in the payload for anyone who opens dev tools.
+ */
+export async function fetchCommittedTotal(slug: string): Promise<number | null> {
+  const { data, error } = await supabase.rpc('deal_committed_total', { p_slug: slug });
+  if (error) return null;
+  return data == null ? null : Number(data);
 }

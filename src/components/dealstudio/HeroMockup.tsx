@@ -44,7 +44,7 @@ export function HeroMockup() {
         </div>
 
         <div className="mt-3.5 grid grid-cols-2 gap-2.5">
-          {[['Valuation cap', '$8.0M'], ['Committed', '$430K']].map(([lab, val]) => (
+          {[['Raise amount', '$8.0M'], ['Committed', '$430K']].map(([lab, val]) => (
             <div key={lab} className="rounded-xl bg-white dark:bg-[#141a2e] border border-[#e6e8ee] dark:border-[#242c47] px-3 py-2.5">
               <div className="text-[10.5px] uppercase tracking-wider font-semibold text-[var(--ds-accent-ink)] dark:text-[var(--ds-accent)]">{lab}</div>
               <div className="mt-0.5 font-bold text-[19px] tabular-nums">{val}</div>

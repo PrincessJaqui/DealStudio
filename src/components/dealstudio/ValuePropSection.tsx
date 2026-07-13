@@ -75,9 +75,12 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
               <button
                 onClick={() => setOpen(isOpen ? null : key)}
                 aria-expanded={isOpen}
-                className="w-full grid gap-3 md:grid-cols-[1fr_auto_1fr_auto] items-center p-3.5 text-left hover:bg-[#fafbfc] transition-colors"
+                className="w-full grid gap-4 md:grid-cols-[1fr_auto_1fr] items-center p-3.5 text-left hover:bg-[#fafbfc] transition-colors"
               >
-                <span className="block min-w-0 text-center md:text-left">
+                {/* Problem and solution each get their own card inside the group,
+                    so the pair reads as two things with something between them
+                    rather than one run-on row. */}
+                <span className="block min-w-0 rounded-xl border border-[#edf0f3] bg-[#fafbfc] p-3 text-center md:text-left">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-[#9ca3af] mb-0.5">
                     Problem
                   </span>
@@ -90,7 +93,7 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                     it breathes until the pair is opened, then stops, on both
                     mobile and desktop. */}
                 <span
-                  className={`mx-auto md:mx-0 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shrink-0 shadow-[0_2px_8px_-1px_rgba(12,16,34,0.35)] ${
+                  className={`mx-auto md:mx-2 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shrink-0 shadow-[0_2px_8px_-1px_rgba(12,16,34,0.35)] ${
                     isOpen ? '' : 'ds-ps-pulse'
                   }`}
                 >
@@ -98,7 +101,7 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                   <ArrowDown className="md:hidden w-3.5 h-3.5" />
                 </span>
 
-                <span className="block min-w-0 text-center md:text-left">
+                <span className="block min-w-0 rounded-xl border border-[var(--ds-accent-tint)] bg-[var(--ds-accent-tint)]/40 p-3 text-center md:text-left">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-0.5">
                     Solution
                   </span>
@@ -358,11 +361,14 @@ function ValuePropWheel({
       >
         <g
           style={{
-            transform: inView ? `rotate(${rot}deg) scale(1)` : 'rotate(-25deg) scale(0.86)',
+            // A full turn, not a 25-degree nudge. The wheel now visibly spins
+            // into place when it scrolls into view, which is the cue that it is
+            // something you can interact with rather than a static chart.
+            transform: inView ? `rotate(${rot}deg) scale(1)` : 'rotate(-385deg) scale(0.86)',
             opacity: inView ? 1 : 0,
             transformBox: 'view-box',
             transformOrigin: '150px 150px',
-            transition: 'transform 700ms cubic-bezier(0.34, 1.2, 0.64, 1), opacity 500ms ease-out',
+            transition: 'transform 1100ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease-out',
           }}
         >
           {pillars.map((p, i) => {
@@ -473,9 +479,11 @@ function ValuePropWheel({
         )}
       </svg>
 
-      {/* The card for whatever is selected. */}
-      <div>
-        {active ? (
+      {/* Detail AND list. The list used to be replaced by the detail card, so
+          choosing a pillar hid every other pillar and the only way back was to
+          find the wedge again. */}
+      <div className="space-y-4">
+        {active && (
           <div className="ds-card rounded-2xl border border-[#edf0f3] bg-white p-5 shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]">
             <div className="flex items-start gap-3">
               <span
@@ -505,8 +513,9 @@ function ValuePropWheel({
               Show all
             </button>
           </div>
-        ) : (
-          <div className="space-y-2">
+        )}
+
+        <div className="space-y-2">
             {pillars.map((p, i) => (
               <button
                 key={i}
@@ -527,8 +536,7 @@ function ValuePropWheel({
                 </span>
               </button>
             ))}
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

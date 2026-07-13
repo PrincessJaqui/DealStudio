@@ -636,6 +636,7 @@ export function DealStudioScreen() {
                             slot={slots[i]}
                             teamSize={room.team_size || 0}
                             headquarters={room.headquarters || ''}
+                            committedLabel={`$${raised.toLocaleString()}`}
                             onSlot={(next) => setSlot(i, next)}
                             onTeamSize={(n) => update({ team_size: n })}
                           />

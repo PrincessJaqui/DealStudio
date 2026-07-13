@@ -17,12 +17,18 @@ import {
 import { DealViewerAnalytics } from './DealViewerAnalytics';
 import { DeckPageBars } from './DeckPageBars';
 
+/**
+ * On the brand palette. These were a stock blue and a stock amber that appear
+ * nowhere else in the product, so the pipeline looked like a different app
+ * bolted on. Progress now runs brand blue -> teal accent; only passed is red,
+ * because only passed is bad news.
+ */
 const stagePill: Record<DealAccessRow['stage'], string> = {
   lead: 'bg-[#f5f7f9] text-[#7f8c85] border-[#edf0f3]',
-  reached_out: 'bg-[#eef6fb] text-[#0e6f88] border-[#d4e9f1]',
-  engaged: 'bg-[#fff7ed] text-[#b45309] border-[#f6e3cf]',
-  committed: 'bg-[var(--ds-tint)] text-[var(--ds-brand)] border-[var(--ds-brd-2)]',
-  passed: 'bg-[#fdecec] text-[#c0392b] border-[#f5d6d6]',
+  reached_out: 'bg-[var(--ds-tint)] text-[var(--ds-brand)] border-transparent',
+  engaged: 'bg-[var(--ds-accent-tint)] text-[var(--ds-accent-ink)] border-transparent',
+  committed: 'bg-gradient-to-br from-[var(--ds-accent)] to-[var(--ds-accent-to)] text-[var(--ds-on-accent)] border-transparent',
+  passed: 'bg-red-50 text-red-700 border-red-100',
 };
 
 function timeAgo(iso: string | null): string {

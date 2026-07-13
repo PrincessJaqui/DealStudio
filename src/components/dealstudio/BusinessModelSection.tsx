@@ -82,7 +82,7 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
       <h2 className="text-sm font-bold text-[#191f1d]">Business Model</h2>
       <p className="mt-1 text-sm text-[#7f8c85] leading-relaxed">Tap a stream, then adjust the numbers to model your own assumptions.</p>
 
-      <div className="mt-5 grid gap-6 lg:grid-cols-2">
+      <div className="mt-5 grid gap-6 ds-two-col-early">
         {/* LEFT: projected revenue + stream cards */}
         <div className="space-y-4">
           <div className="rounded-2xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-6 py-5 text-white shadow-[0_4px_16px_-4px_rgba(63,102,41,0.5)]">
@@ -144,7 +144,7 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
       </div>
 
       {/* Green card: revenue mix + global metrics */}
-      <div className="mt-6 grid gap-6 rounded-2xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-mid)] p-6 text-white lg:grid-cols-2">
+      <div className="mt-6 grid gap-6 rounded-2xl bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-mid)] p-6 text-white ds-two-col-early">
         <div>
           <h3 className="text-base font-bold mb-4">Revenue Mix</h3>
           <div className="space-y-3">
