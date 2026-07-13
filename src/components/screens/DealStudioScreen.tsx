@@ -26,6 +26,7 @@ import { DealSwitcher } from '../dealstudio/DealSwitcher';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { DealDocViewer } from '../dealstudio/DealDocViewer';
 import { DealFlow } from '../dealstudio/DealFlow';
+import { DealPeople } from '../dealstudio/DealPeople';
 import { MarketEditor } from '../dealstudio/MarketEditor';
 import { ValuePropEditor } from '../dealstudio/ValuePropEditor';
 import { ProblemSolutionEditor } from '../dealstudio/ProblemSolutionEditor';
@@ -765,7 +766,18 @@ export function DealStudioScreen() {
                   everything the table below spells out. */}
               <div className="lg:hidden">{funnelPanel}</div>
 
-              <DealFlow roomId={room.id} rows={access} visits={visits} docs={docs} onChanged={() => reloadVisitors(room.id)} />
+              {/* The merged people table sits above the funnel: who is in the room
+                  is the question, the funnel is the summary of it. */}
+              <div className="space-y-4">
+                <DealPeople
+                  dealId={room.id}
+                  slug={room.slug}
+                  handle={org?.handle ?? null}
+                  docs={docs}
+                  onChanged={() => reloadVisitors(room.id)}
+                />
+                <DealFlow roomId={room.id} rows={access} visits={visits} docs={docs} onChanged={() => reloadVisitors(room.id)} />
+              </div>
 
               {/* Mobile only: the calendar closes the tab. */}
               <div className="lg:hidden">{calendarPanel}</div>

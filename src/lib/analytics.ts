@@ -29,7 +29,12 @@ let cachedUserRole: string | null = null;
 // rolling 30-minute idle timeout — after 30 min of inactivity, a new session
 // is created (matching standard analytics tools' behavior).
 // ─────────────────────────────────────────────────────────────────────────────
-function getOrCreateSessionToken(): string {
+/**
+ * Exported so forward-tracking uses the SAME session token as the rest of
+ * analytics. A second, separate token would count the same browser twice and
+ * report a forward that never happened.
+ */
+export function getOrCreateSessionToken(): string {
   try {
     const lastSeen = parseInt(localStorage.getItem(SESSION_LAST_SEEN_KEY) || '0', 10);
     const now = Date.now();

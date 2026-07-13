@@ -982,3 +982,137 @@ export async function adminBlockViewer(
   if (error) return { ok: false, message: error.message };
   return (data ?? { ok: false }) as { ok: boolean; message?: string };
 }
+
+/* ── Deal people (pipeline + viewers, merged) ──────────────────────────────── */
+
+/**
+ * The pipeline stage. NOT the same thing as access status.
+ *
+ * `stage` is where someone is in the raise. `status` (elsewhere) is whether the
+ * gate lets them in. Marking someone "passed" must not lock them out, and
+ * blocking someone must not wipe their stage, so the two never merged.
+ */
+export type DealStage =
+  | 'prospect' | 'met' | 'viewed' | 'lead' | 'interested'
+  | 'negotiating' | 'committed' | 'closed' | 'passed';
+
+export const STAGE_LABEL: Record<DealStage, string> = {
+  prospect: 'Prospect',
+  met: 'Met',
+  viewed: 'Viewed deal',
+  lead: 'Lead',
+  interested: 'Interested',
+  negotiating: 'Negotiating',
+  committed: 'Committed',
+  closed: 'Closed',
+  passed: 'Passed',
+};
+
+export const STAGE_ORDER: DealStage[] = [
+  'prospect', 'met', 'viewed', 'lead', 'interested',
+  'negotiating', 'committed', 'closed', 'passed',
+];
+
+export type DealPerson = {
+  access_id: string | null;
+  visit_id: string | null;
+  email: string | null;
+  name: string | null;
+  company_name: string | null;
+  company_logo: string | null;
+  linkedin: string | null;
+  website: string | null;
+  stage: DealStage;
+  blocked: boolean;
+  share_token: string | null;
+  visits: number;
+  total_seconds: number;
+  deck_views: number;
+  doc_views: number;
+  sections: Record<string, number>;
+  last_seen: string | null;
+  committed: number;
+  note_count: number;
+  forwards: number;
+};
+
+export type DealNote = {
+  id: string;
+  body: string;
+  kind: 'note' | 'stage';
+  created_at: string;
+  updated_at: string | null;
+};
+
+export async function fetchDealPeople(dealId: string): Promise<DealPerson[]> {
+  const { data, error } = await supabase.rpc('admin_deal_people', { p_deal: dealId });
+  if (error) { console.warn('[dealStudio] people', error); return []; }
+  return (data ?? []) as DealPerson[];
+}
+
+/** Change someone's stage. A note is required, and the change is recorded. */
+export async function setDealStage(
+  accessId: string, stage: DealStage, note: string,
+): Promise<{ ok: boolean; message?: string }> {
+  const { data, error } = await supabase.rpc('admin_set_stage', {
+    p_access: accessId, p_stage: stage, p_note: note,
+  });
+  if (error) return { ok: false, message: error.message };
+  return (data ?? { ok: false }) as { ok: boolean; message?: string };
+}
+
+export async function fetchDealNotes(accessId: string): Promise<DealNote[]> {
+  const { data, error } = await supabase.rpc('admin_deal_notes', { p_access: accessId });
+  if (error) return [];
+  return (data ?? []) as DealNote[];
+}
+
+export async function addDealNote(accessId: string, body: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('dealstudio_notes')
+    .insert({ access_id: accessId, body: body.trim(), kind: 'note' });
+  return !error;
+}
+
+export async function editDealNote(noteId: string, body: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('dealstudio_notes')
+    .update({ body: body.trim(), updated_at: new Date().toISOString() })
+    .eq('id', noteId);
+  return !error;
+}
+
+export async function deleteDealNote(noteId: string): Promise<boolean> {
+  const { error } = await supabase.from('dealstudio_notes').delete().eq('id', noteId);
+  return !error;
+}
+
+/** Add or update the details a founder keeps about a person. */
+export async function saveDealPerson(
+  accessId: string,
+  patch: Partial<Pick<DealPerson, 'name' | 'company_name' | 'company_logo' | 'linkedin' | 'website'>>,
+): Promise<boolean> {
+  const { error } = await supabase.from('dealstudio_access').update(patch).eq('id', accessId);
+  return !error;
+}
+
+/**
+ * Someone's personal link.
+ *
+ * Every distinct browser that opens it is recorded. The first is presumed to be
+ * them; the rest are people the link reached that we never sent it to. That is a
+ * FORWARD, and it is a proxy, not a measurement: the same investor on a phone
+ * and a laptop looks like one forward, and a forward nobody opens looks like
+ * none. Never present it as "shares".
+ */
+export function inviteUrl(handle: string | null, slug: string, token: string): string {
+  const base = handle
+    ? `${window.location.origin}/${handle}/${slug}`
+    : `${window.location.origin}/d/${slug}`;
+  return `${base}?i=${token}`;
+}
+
+/** Called by the investor page when it is opened with ?i={token}. */
+export async function trackInviteOpen(token: string, session: string): Promise<void> {
+  await supabase.rpc('track_invite_open', { p_token: token, p_session: session });
+}

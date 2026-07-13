@@ -8,6 +8,8 @@
 import { useParams } from 'react-router-dom';
 import { PublicHeader } from '../dealstudio/PublicHeader';
 import { applyDealTheme, resolveDealSlug } from '../../lib/org';
+import { trackInviteOpen } from '../../lib/dealStudio';
+import { getOrCreateSessionToken } from '../../lib/analytics';
 import { statSlotValue } from '../dealstudio/StatSlotField';
 import { DEFAULT_STAT_SLOTS, resolveSectionOrder, scheduleSlots, type StatSlot, type SectionKey } from '../../lib/dealStudio';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -110,6 +112,14 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   }, [routeHandle, routeDeck, routeSlug]);
 
   const SLUG = resolvedSlug ?? '';
+
+  // Opened via someone's personal link. Record which browser it was: the first
+  // is presumed to be them, any others are people the link was forwarded to.
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('i');
+    if (!token) return;
+    void trackInviteOpen(token, getOrCreateSessionToken());
+  }, []);
   const docsView = useInViewOnce<HTMLDivElement>();
   const [room, setRoom] = useState<DealStudioPublic | null>(null);
   const [fieldLabels, setFieldLabels] = useState<Record<string, string>>({});
