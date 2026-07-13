@@ -37,7 +37,7 @@ import {
   adminFetchDealStudio, adminSaveDealStudio, adminSetActive, adminSetSharedPassword,
   adminFetchDocuments, adminDeleteDocument, adminDeleteDocuments, adminReorderDocuments, adminFetchAccess,
   adminFetchVisits, adminFetchFunnel, adminFetchDocStats,
-  scheduleDates, committedTotal, EMPTY_MARKET,
+  scheduleDates, scheduleSlots, committedTotal, EMPTY_MARKET,
 } from '../../lib/dealStudio';
 
 const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -49,6 +49,14 @@ function StatTile({ label, value }: { label: string; value: string }) {
       <p className="text-2xl font-bold text-[#191f1d] mt-2">{value}</p>
     </div>
   );
+}
+
+/** 14:30 reads as 2:30 PM. The cards are for scanning, not for configuring. */
+function fmtSlot(t: string): string {
+  const [h, m] = t.split(':').map(Number);
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${suffix}`;
 }
 
 export function DealStudioScreen() {
@@ -71,6 +79,7 @@ export function DealStudioScreen() {
   const [pwTouched, setPwTouched] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+  const [calDate, setCalDate] = useState<string | null>(null);
   const [calMonth, setCalMonth] = useState(new Date());
   const [selectMode, setSelectMode] = useState(false);
   const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());
@@ -683,7 +692,60 @@ export function DealStudioScreen() {
 
           <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_4px_16px_-2px_rgba(0,0,0,0.06)] p-4">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2">Deal Calendar</p>
-            <EventsCalendar events={availabilityEvents} selectedDate={null} onSelectDate={() => {}} currentMonth={calMonth} onChangeMonth={setCalMonth} />
+            <EventsCalendar
+              events={availabilityEvents}
+              selectedDate={calDate}
+              onSelectDate={setCalDate}
+              currentMonth={calMonth}
+              onChangeMonth={setCalMonth}
+            />
+
+            {/* Hour blocks for the picked day. Reuses scheduleSlots, the same
+                generator the investor booking modal uses, so what you see here
+                cannot disagree with what an investor can actually book. */}
+            {calDate && (() => {
+              const sch = room.availability as DealSchedule | null;
+              const slots = sch ? scheduleSlots(sch, calDate) : [];
+              const label = new Date(calDate + 'T00:00:00').toLocaleDateString(undefined, {
+                weekday: 'short', month: 'short', day: 'numeric',
+              });
+
+              return (
+                <div className="mt-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-[#191f1d]">{label}</p>
+                    <span className="text-[11px] text-[#9ca3af]">
+                      {slots.length
+                        ? `${slots.length} slot${slots.length === 1 ? '' : 's'}`
+                        : 'No availability'}
+                    </span>
+                  </div>
+
+                  {slots.length === 0 ? (
+                    <p className="text-xs text-[#9ca3af] py-3 text-center rounded-xl bg-[#f5f6f8] border border-[#edf0f3]">
+                      Nothing set for this day.
+                    </p>
+                  ) : (
+                    // Three across, scrolls when there are more.
+                    <div className="grid grid-cols-3 gap-2 max-h-[132px] overflow-y-auto pr-1">
+                      {slots.map(t => (
+                        <div
+                          key={t}
+                          className="rounded-xl border border-[#edf0f3] bg-white px-2 py-2 text-center shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]"
+                        >
+                          <p className="text-sm font-bold text-[#191f1d] leading-none">
+                            {fmtSlot(t)}
+                          </p>
+                          <p className="mt-1 text-[10px] text-[#9ca3af]">
+                            {sch?.meetingLength ?? 30} min
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             <button onClick={() => setAvailOpen(true)} className="w-full h-10 mt-2 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white text-sm font-semibold flex items-center justify-center gap-1.5"><RefreshCw className="w-4 h-4" /> Edit availability</button>
           </div>
         </div>

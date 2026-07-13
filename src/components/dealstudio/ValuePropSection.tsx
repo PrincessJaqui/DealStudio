@@ -5,6 +5,7 @@
  * never shows a hollow heading.
  */
 
+import { useState } from 'react';
 import { Check, X, ExternalLink } from 'lucide-react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 import type { DealValueProp, DealCompetition } from '../../lib/dealStudio';
@@ -59,41 +60,7 @@ export function ValuePropSection({ value }: { value: DealValueProp }) {
           </div>
         )}
 
-        {/* Circular pillars: each reason gets equal visual weight, which is the
-            point. A ranked list implies a hierarchy the founder did not intend. */}
-        {pillars.length > 0 && (
-          <div
-            className="grid gap-6 mt-8"
-            style={{ gridTemplateColumns: `repeat(auto-fit, minmax(180px, 1fr))` }}
-          >
-            {pillars.map((p, i) => {
-              // Walk the brand gradient across the circles so they read as a set.
-              const t = pillars.length > 1 ? i / (pillars.length - 1) : 0;
-              return (
-                <div key={i} className="text-center">
-                  <span
-                    className="mx-auto mb-3 flex h-[86px] w-[86px] items-center justify-center rounded-full text-white text-xl font-bold shadow-[0_8px_24px_-8px_rgba(0,0,0,0.25)]"
-                    style={{
-                      background: `linear-gradient(135deg,
-                        color-mix(in srgb, var(--ds-accent) ${100 - t * 100}%, var(--ds-grad-to) ${t * 100}%),
-                        color-mix(in srgb, var(--ds-accent-to) ${100 - t * 100}%, var(--ds-grad-from) ${t * 100}%))`,
-                    }}
-                  >
-                    {i + 1}
-                  </span>
-                  {p.title && (
-                    <p className="text-sm font-bold text-[#191f1d] leading-snug">{p.title}</p>
-                  )}
-                  {p.description && (
-                    <p className="text-sm text-[#7f8c85] leading-relaxed mt-1.5">
-                      {p.description}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+        {pillars.length > 0 && <ValuePropWheel pillars={pillars} />}
       </div>
     </div>
   );
@@ -223,6 +190,134 @@ export function CompetitionSection({ value }: { value: DealCompetition }) {
             </p>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ── The value proposition wheel ───────────────────────────────────────────── */
+
+const CX = 150, CY = 150, R_IN = 58, R_OUT = 132, GAP = 3, EXPLODE = 5;
+
+function polar(cx: number, cy: number, r: number, deg: number): [number, number] {
+  const a = ((deg - 90) * Math.PI) / 180;
+  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+}
+
+/**
+ * One slice of the wheel, nudged out along its own bisector so the segments
+ * read as separate pieces rather than a single pie.
+ */
+function slice(i: number, n: number) {
+  const span = 360 / n;
+  const start = i * span + GAP / 2;
+  const end = (i + 1) * span - GAP / 2;
+  const mid = (start + end) / 2;
+
+  const [ox, oy] = polar(0, 0, EXPLODE, mid);
+  const cx = CX + ox, cy = CY + oy;
+
+  const [x1, y1] = polar(cx, cy, R_OUT, start);
+  const [x2, y2] = polar(cx, cy, R_OUT, end);
+  const [x3, y3] = polar(cx, cy, R_IN, end);
+  const [x4, y4] = polar(cx, cy, R_IN, start);
+  const large = end - start > 180 ? 1 : 0;
+
+  return {
+    d: `M ${x1} ${y1} A ${R_OUT} ${R_OUT} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${R_IN} ${R_IN} 0 ${large} 0 ${x4} ${y4} Z`,
+    label: polar(cx, cy, (R_IN + R_OUT) / 2, mid),
+  };
+}
+
+/** Walks the brand palette so the slices read as one family, not a rainbow. */
+function sliceFill(i: number, n: number): string {
+  const t = n > 1 ? i / (n - 1) : 0;
+  const pct = Math.round(t * 100);
+  return `color-mix(in srgb, var(--ds-grad-to) ${pct}%, var(--ds-accent) ${100 - pct}%)`;
+}
+
+function ValuePropWheel({ pillars }: { pillars: { title?: string; description?: string }[] }) {
+  const n = pillars.length;
+  const [active, setActive] = useState<number | null>(null);
+
+  return (
+    <div className="mt-8 grid gap-8 lg:grid-cols-[300px_1fr] items-center">
+      <svg
+        viewBox="0 0 300 300"
+        className="w-full max-w-[300px] mx-auto"
+        role="img"
+        aria-label="Value proposition pillars"
+      >
+        {pillars.map((p, i) => {
+          const sg = slice(i, n);
+          const on = active === null || active === i;
+          return (
+            <g
+              key={i}
+              onMouseEnter={() => setActive(i)}
+              onMouseLeave={() => setActive(null)}
+              className="cursor-default transition-opacity"
+              style={{ opacity: on ? 1 : 0.35 }}
+            >
+              <path d={sg.d} fill={sliceFill(i, n)} />
+              <text
+                x={sg.label[0]}
+                y={sg.label[1]}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                className="fill-white font-bold"
+                style={{ fontSize: n > 4 ? 11 : 13 }}
+              >
+                {i + 1}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* The hub. Deliberately empty: the pillars are the content, and a
+            label here would compete with them. */}
+        <circle cx={CX} cy={CY} r={R_IN - 12} fill="white" />
+        <circle
+          cx={CX} cy={CY} r={R_IN - 12}
+          fill="none"
+          stroke="var(--ds-accent-tint)"
+          strokeWidth="2"
+        />
+      </svg>
+
+      <div className="space-y-3">
+        {pillars.map((p, i) => {
+          const on = active === null || active === i;
+          return (
+            <div
+              key={i}
+              onMouseEnter={() => setActive(i)}
+              onMouseLeave={() => setActive(null)}
+              className="flex gap-3 rounded-xl p-3 transition"
+              style={{
+                opacity: on ? 1 : 0.45,
+                background: active === i ? 'var(--ds-accent-tint)' : 'transparent',
+              }}
+            >
+              <span
+                className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                style={{ background: sliceFill(i, n) }}
+              >
+                {i + 1}
+              </span>
+              <div className="min-w-0">
+                {p.title && (
+                  <p className="text-sm font-bold text-[#191f1d] leading-snug">{p.title}</p>
+                )}
+                {p.description && (
+                  <p className="text-sm text-[#7f8c85] leading-relaxed mt-0.5">
+                    {p.description}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
