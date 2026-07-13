@@ -19,6 +19,8 @@ import { SystemSettingsScreen } from './components/screens/SystemSettingsScreen'
 import { BillingScreen } from './components/screens/BillingScreen';
 import { MasterAdminScreen } from './components/screens/MasterAdminScreen';
 import { SignupScreen } from './components/screens/SignupScreen';
+import { TermsScreen } from './components/screens/TermsScreen';
+import { PrivacyScreen } from './components/screens/PrivacyScreen';
 import { AdminGate } from './components/dealstudio/AdminGate';
 import { AdminShell } from './components/dealstudio/AdminShell';
 
@@ -37,6 +39,8 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
+        <Route path="/terms" element={<TermsScreen />} />
+        <Route path="/privacy" element={<PrivacyScreen />} />
 
         <Route path="/d/:slug" element={<InvestorDealStudioScreen />} />
         <Route path="/dealstudio" element={<InvestorDealStudioScreen />} />

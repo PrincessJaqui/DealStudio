@@ -93,6 +93,15 @@ export function SignupScreen() {
           Create account
         </button>
 
+        {/* Terms bind a customer only if they were told at sign-up. Without this
+            line the documents are decorative. */}
+        <p className="text-center text-xs text-[#9ca3af] mt-3 leading-relaxed">
+          By creating an account you agree to the{' '}
+          <Link to="/terms" className="font-medium text-[var(--ds-brand)] hover:underline">Terms of Service</Link>
+          {' '}and{' '}
+          <Link to="/privacy" className="font-medium text-[var(--ds-brand)] hover:underline">Privacy Policy</Link>.
+        </p>
+
         <p className="text-center text-sm text-[#7f8c85] mt-4">
           Already have an account? <Link to="/admin" className="font-semibold text-[var(--ds-brand)]">Sign in</Link>
         </p>

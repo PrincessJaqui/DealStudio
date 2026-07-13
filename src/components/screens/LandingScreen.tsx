@@ -72,6 +72,20 @@ export function LandingScreen() {
         <footer className="border-t border-[#e6e8ee] dark:border-[#242c47] py-9">
           <div className="mx-auto max-w-6xl px-6 text-center text-[14px] text-[#5b6478] dark:text-[#9aa4be]">
             &copy; {new Date().getFullYear()} DealStudio
+          <span className="mx-2 text-[#c7cdd4]">&middot;</span>
+          <a href="/terms" className="hover:text-[var(--ds-brand)]">Terms</a>
+          <span className="mx-2 text-[#c7cdd4]">&middot;</span>
+          <a href="/privacy" className="hover:text-[var(--ds-brand)]">Privacy</a>
+          <span className="block mt-2 text-[13px] text-[#9aa4be]">
+            Hosted on SOC 2 Type 2 compliant infrastructure. Encrypted in transit and at rest.
+          </span>
+            <span className="mx-2 text-[#c7cdd4]">&middot;</span>
+            <a href="/terms" className="hover:text-[var(--ds-brand)]">Terms</a>
+            <span className="mx-2 text-[#c7cdd4]">&middot;</span>
+            <a href="/privacy" className="hover:text-[var(--ds-brand)]">Privacy</a>
+            <span className="block mt-2 text-[13px] text-[#9aa4be]">
+              Hosted on SOC 2 Type 2 compliant infrastructure. Encrypted in transit and at rest.
+            </span>
           </div>
         </footer>
       </div>
