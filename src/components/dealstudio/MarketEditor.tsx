@@ -81,7 +81,8 @@ export function MarketEditor({ value, onChange }: { value: DealMarket | null | u
           A sentence or two framing the market and why now. TAM, SAM and SOM cannot be pulled
           from a reliable public source, so enter your own figures and attach what justifies them.
         </p>
-        <textarea className={input + ' mt-3 min-h-[80px]'} placeholder="A sentence or two framing the market and why now."
+        <label className={labelCls + ' mt-3 block'}>Why now</label>
+        <textarea className={input + ' mt-1 min-h-[80px]'} placeholder="A sentence or two framing the market and why now."
           value={m.overview} onChange={e => onChange({ ...m, overview: e.target.value })} />
       </div>
 

@@ -57,8 +57,9 @@ export function ProblemSolutionEditor({
         summary="A statement to open with, then each problem paired with what you do about it."
         action={<AddButton label="Pair" onClick={addPair} />}
       >
+        <label className={labelCls}>Opening statement</label>
         <textarea
-          className={`${input} min-h-[80px] resize-y`}
+          className={`${input} mt-1 min-h-[80px] resize-y`}
           value={v.statement ?? ''}
           onChange={(e) => set({ statement: e.target.value })}
           placeholder="The statement that opens this section."

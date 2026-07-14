@@ -102,8 +102,9 @@ export function CompetitionEditor({
       <div className={`${card} p-5`}>
         <h3 className="text-sm font-bold text-[#191f1d]">Competition Landscape</h3>
         <p className="text-xs text-[#7f8c85] mt-0.5">How the market is served today, before you.</p>
+        <p className={`${labelCls} mt-3`}>Current industry</p>
         <textarea
-          className={`${input} mt-3 min-h-[80px] resize-y`}
+          className={`${input} mt-1 min-h-[80px] resize-y`}
           value={v.overview}
           onChange={(e) => set({ overview: e.target.value })}
           placeholder="How the market is served today, in a sentence or two."
