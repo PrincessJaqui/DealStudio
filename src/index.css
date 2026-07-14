@@ -61,8 +61,34 @@
    Render the entire app at 90%, i.e. a persistent browser zoom-out so nothing
    feels oversized. Applied to `body` so React-portalled overlays (dialogs,
    toasts) scale with the page too. Reverting is a one-line delete. */
+:root {
+  /* The zoom, as a number, so anything that has to reason about it reads it from
+     here rather than hard-coding 0.9 in a calc() somewhere and going stale. */
+  --ds-zoom: 0.9;
+  --ds-header-h: 68px;
+
+  /* THE VIEWPORT, IN LAYOUT PIXELS.
+     zoom does NOT scale viewport units: 100vh is computed in layout pixels and
+     then the whole box is painted at 0.9x, so height: 100vh covers only 90% of
+     the screen and leaves a grey strip at the bottom. Dividing by the zoom first
+     is what makes it reach the bottom edge. */
+  --ds-screen-h: calc(100vh / var(--ds-zoom));
+}
 body {
   zoom: 0.9;
+}
+
+/* The admin nav rail: the screen, minus the header. */
+.ds-rail-h {
+  height: calc(var(--ds-screen-h) - var(--ds-header-h));
+}
+/* The breakpoint lives here, not as a md: prefix in the markup: Tailwind's
+   variants only apply to utilities Tailwind itself generates, so md:ds-rail-min-h
+   would have compiled to nothing at all. */
+@media (min-width: 768px) {
+  .ds-rail-min-h {
+    min-height: calc(var(--ds-screen-h) - var(--ds-header-h));
+  }
 }
 
 /* ── DealStudio interaction cues ─────────────────────────────── */

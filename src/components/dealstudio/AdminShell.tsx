@@ -133,12 +133,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <div className="md:flex md:min-h-[calc(100vh-68px)]">
-      {/* Desktop sidebar */}
-      {/* h-[calc(100vh-68px)] + sticky: the rail fills the screen below the
-          header instead of stopping at its content and leaving a grey strip. */}
-      <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-[#edf0f3] bg-white sticky top-[68px] h-[calc(100vh-68px)]">
-        <div className="sticky top-[68px] flex flex-col h-[calc(100vh-68px)]">
+      <div className="md:flex ds-rail-min-h">
+      {/* Desktop sidebar.
+
+          The height is ds-rail-h, NOT calc(100vh - 68px). body carries
+          zoom: 0.9, and zoom does not scale viewport units: 100vh is computed in
+          layout pixels and then painted at 0.9x, so the rail covered 90% of the
+          screen and left a grey strip under it. ds-rail-h divides by the zoom
+          first. See --ds-screen-h in index.css. */}
+      <aside className="hidden md:flex w-56 shrink-0 flex-col border-r border-[#edf0f3] bg-white sticky top-[68px] ds-rail-h">
+        <div className="sticky top-[68px] flex flex-col ds-rail-h">
         <nav className="flex-1 p-3 space-y-1 pt-4">
           {NAV.map(({ to, label, Icon, end }) => (
             <NavLink key={to} to={to} end={end} className={linkCls}>
