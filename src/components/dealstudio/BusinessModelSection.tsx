@@ -128,7 +128,7 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
           )}
 
           {stream && (
-            <div className="rounded-2xl border border-[#edf0f3] bg-[#fafbfc] p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+            <div className="rounded-2xl border border-[#e6e9ec] bg-[#f2f4f6] p-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
               <p className="text-[15px] font-bold text-[#191f1d]">{stream.name || 'Revenue'}</p>
               <p className="text-xs text-[#7f8c85] mb-3">Set Assumptions</p>
               {rows.length === 0 ? (
