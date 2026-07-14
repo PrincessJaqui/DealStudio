@@ -18,13 +18,20 @@
 import { useEffect, useRef } from 'react';
 
 export function PillTabs<T extends string>({
-  tabs, value, onChange, hintKey,
+  tabs, value, onChange, hintKey, tone = 'accent',
 }: {
   tabs: readonly (readonly [T, string])[];
   value: T;
   onChange: (t: T) => void;
   /** Unique per tab bar. The hint plays once per key, ever. */
   hintKey: string;
+  /**
+   * Teal is the page tab bar. Brand blue is for a pill bar that sits INSIDE a
+   * card and filters that card's content, so a filter row can never be mistaken
+   * for a second set of page tabs. Same component either way, so the two cannot
+   * drift apart.
+   */
+  tone?: 'accent' | 'brand';
 }) {
   const rail = useRef<HTMLDivElement>(null);
 
@@ -77,7 +84,9 @@ export function PillTabs<T extends string>({
             onClick={() => onChange(id)}
             className={`px-5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${
               value === id
-                ? 'bg-gradient-to-r from-[var(--ds-accent)] to-[var(--ds-accent-to)] text-[var(--ds-on-accent)]'
+                ? tone === 'brand'
+                  ? 'bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'
+                  : 'bg-gradient-to-r from-[var(--ds-accent)] to-[var(--ds-accent-to)] text-[var(--ds-on-accent)]'
                 : 'text-[#7f8c85] hover:text-[#191f1d]'
             }`}
           >

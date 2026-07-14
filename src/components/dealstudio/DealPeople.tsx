@@ -1,11 +1,11 @@
 /**
- * DealPeople — one table of everyone connected to this deal.
+ * DealPeople: the Deal Flow tab. One table of everyone connected to this deal.
  *
- * Pipeline and viewers used to be two lists. Someone who opened your deck three
- * times but was never added to the pipeline sat in a separate box below, which
- * is exactly backwards: that person is the most interesting row on the screen.
- * They are merged, and a viewer with no pipeline row still appears, staged
- * "Viewed deal".
+ * This is now the ENTIRE tab. It used to sit above a second card that listed the
+ * same investors again on the old five-stage vocabulary (lead, reached out,
+ * engaged), which the database has not allowed since 0036. Two lists, two
+ * vocabularies, one set of people. That card is gone; everything it did lives
+ * here.
  *
  * Two words that look alike and are not:
  *   Status (this table)  = the pipeline stage. Where they are in the raise.
@@ -17,19 +17,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Search, ChevronUp, ChevronDown, MoreVertical, Eye, FileText, Share2,
-  StickyNote, Ban, Mail, Pencil, X, Loader2, Check,
+  Search, ChevronUp, ChevronDown, MoreVertical, ArrowUpRight, Share2,
+  Ban, Mail, Pencil, X, Loader2, Check, Download, RefreshCw, Plus,
 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import {
   fetchDealPeople, setDealStage, fetchDealNotes, addDealNote, editDealNote,
-  deleteDealNote, saveDealPerson, inviteUrl, formatDuration,
+  deleteDealNote, saveDealPerson, createDealPerson, inviteUrl, formatDuration,
   STAGE_LABEL, STAGE_ORDER,
   type DealPerson, type DealStage, type DealNote, type DealDocument,
 } from '../../lib/dealStudio';
 import { adminBlockViewer } from '../../lib/dealStudio';
+import { PillTabs } from './PillTabs';
+import { DeckPageBars } from './DeckPageBars';
 
 const num = (n: number | null | undefined) => (n || 0).toLocaleString();
+const DASH = '\u2013';
 
 /** Passed is red. Everything else is quiet: a pipeline that shouts is unreadable. */
 const stageClass = (s: DealStage) =>
@@ -39,17 +42,36 @@ const stageClass = (s: DealStage) =>
   : s === 'viewed'  ? 'bg-[var(--ds-tint)] text-[var(--ds-brand)] border-transparent'
                     : 'bg-[#f5f6f8] text-[#7f8c85] border-transparent';
 
-const timeAgo = (iso: string | null) => {
-  if (!iso) return '—';
-  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  if (mins < 1440) return `${Math.floor(mins / 60)}h ago`;
-  return `${Math.floor(mins / 1440)}d ago`;
+/** Jan 11, 2026. A date, not "3d ago": the founder is scanning for the one they
+ *  have not touched since the last board meeting, and that is a date question. */
+const fmtDate = (iso: string | null) => {
+  if (!iso) return DASH;
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? DASH : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 };
+
+const fmtClock = (d: Date) =>
+  d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
 
 type SortKey =
   | 'email' | 'name' | 'company_name' | 'stage' | 'visits'
-  | 'total_seconds' | 'deck_views' | 'doc_views' | 'forwards' | 'last_seen';
+  | 'total_seconds' | 'deck_views' | 'doc_views' | 'forwards'
+  | 'last_seen' | 'last_note_at';
+
+/** The one control that opens a breakdown, so the four of them cannot drift. */
+function Drill({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={label}
+      aria-label={label}
+      className="text-[#191f1d] hover:text-[var(--ds-brand)] disabled:text-[#d7dbe0] disabled:cursor-not-allowed"
+    >
+      <ArrowUpRight className="w-4 h-4" />
+    </button>
+  );
+}
 
 export function DealPeople({
   dealId, slug, handle, docs, onChanged,
@@ -61,6 +83,8 @@ export function DealPeople({
   onChanged: () => void;
 }) {
   const [people, setPeople] = useState<DealPerson[] | null>(null);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<DealStage | 'all'>('all');
   const [sort, setSort] = useState<SortKey>('last_seen');
@@ -69,6 +93,7 @@ export function DealPeople({
   const [menu, setMenu] = useState<string | null>(null);
   const [menuAt, setMenuAt] = useState<{ top: number; right: number } | null>(null);
 
+  const [adding, setAdding] = useState(false);
   const [sections, setSections] = useState<DealPerson | null>(null);
   const [deckFor, setDeckFor] = useState<DealPerson | null>(null);
   const [docsFor, setDocsFor] = useState<DealPerson | null>(null);
@@ -76,8 +101,19 @@ export function DealPeople({
   const [detailsFor, setDetailsFor] = useState<DealPerson | null>(null);
   const [stageFor, setStageFor] = useState<{ person: DealPerson; next: DealStage } | null>(null);
 
-  const load = async () => setPeople(await fetchDealPeople(dealId));
+  const deck = docs.find(d => d.is_deck);
+
+  const load = async () => {
+    setPeople(await fetchDealPeople(dealId));
+    setUpdatedAt(new Date());
+  };
   useEffect(() => { void load(); }, [dealId]);
+
+  const refresh = async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  };
 
   const rows = useMemo(() => {
     let r = people ?? [];
@@ -93,8 +129,12 @@ export function DealPeople({
     const val = (p: DealPerson) => {
       const v = p[sort as keyof DealPerson];
       if (sort === 'stage') return STAGE_ORDER.indexOf(p.stage);
+      if (sort === 'last_seen' || sort === 'last_note_at') {
+        const raw = p[sort] as string | null;
+        return raw ? new Date(raw).getTime() : 0;
+      }
       if (typeof v === 'string') return v.toLowerCase();
-      if (v == null) return sort === 'last_seen' ? 0 : '';
+      if (v == null) return '';
       return v as number | string;
     };
     return [...r].sort((a, b) => {
@@ -104,6 +144,31 @@ export function DealPeople({
       return dir === 'asc' ? c : -c;
     });
   }, [people, q, filter, sort, dir]);
+
+  /** The rows on screen, as a CSV. What you filtered to is what you export. */
+  const exportReport = () => {
+    const head = [
+      'Email', 'Contact', 'Company', 'Status', 'Visits', 'Total time',
+      'Deck views', 'Document views', 'Forwards', 'Last viewed', 'Last note',
+    ];
+    const cell = (v: string | number) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const lines = [head.map(cell).join(',')];
+    for (const p of rows) {
+      lines.push([
+        p.email || '', p.name || '', p.company_name || '', STAGE_LABEL[p.stage],
+        p.visits || 0, formatDuration(Math.round(p.total_seconds)),
+        p.deck_views || 0, p.doc_views || 0, p.forwards || 0,
+        p.last_seen ? fmtDate(p.last_seen) : '',
+        p.last_note_at ? fmtDate(p.last_note_at) : '',
+      ].map(cell).join(','));
+    }
+    const url = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${slug}-deal-flow.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
     <th className={`font-semibold px-4 py-2.5 whitespace-nowrap ${right ? 'text-right' : ''}`}>
@@ -130,49 +195,73 @@ export function DealPeople({
   };
 
   const card = 'bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]';
+  const chip = 'inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] transition';
 
   if (people === null) {
     return <div className={`${card} p-8 flex justify-center`}><Loader2 className="w-5 h-5 animate-spin text-[var(--ds-brand)]" /></div>;
   }
 
   return (
-    <div className={card}>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 border-b border-[#edf0f3]">
-        <div>
-          <p className="text-sm font-bold text-[#191f1d]">People</p>
-          <p className="text-xs text-[#7f8c85]">
-            Everyone in the pipeline, and everyone who has opened the room.
+    <div className={`${card} p-5`}>
+      {/* Page header: title, one line on what the section is for, actions right. */}
+      <div className="flex flex-col sm:flex-row sm:items-start gap-3 mb-4">
+        <div className="min-w-0">
+          <h3 className="text-sm font-bold text-[#191f1d]">Deal Flow</h3>
+          <p className="text-xs text-[#7f8c85] mt-0.5">
+            Everyone in the pipeline and everyone who has opened the room, and what they read.
           </p>
         </div>
 
-        <div className="sm:ml-auto flex items-center gap-2">
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value as DealStage | 'all')}
-            className="h-9 rounded-xl bg-[#f5f6f8] px-3 text-sm text-[#191f1d] outline-none cursor-pointer"
-          >
-            <option value="all">All statuses</option>
-            {STAGE_ORDER.map(s => <option key={s} value={s}>{STAGE_LABEL[s]}</option>)}
-          </select>
+        <div className="sm:ml-auto flex flex-wrap items-center gap-2 shrink-0">
+          <button onClick={exportReport} className={chip}>
+            <Download className="w-4 h-4" /> Export Report
+          </button>
 
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#99a1af]" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search name, email, company"
-              className="w-full sm:w-60 h-9 bg-[#f5f6f8] rounded-xl pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
-            />
-          </div>
+          <button onClick={() => void refresh()} className={chip} title="Reload this table">
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            {updatedAt ? `Updated ${fmtClock(updatedAt)}` : 'Refresh'}
+          </button>
+
+          <button
+            onClick={() => setAdding(true)}
+            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] hover:brightness-110 transition"
+          >
+            <Plus className="w-4 h-4" /> New Investor
+          </button>
+        </div>
+      </div>
+
+      {/* Status filter. Brand blue, so it cannot be mistaken for the teal page tabs. */}
+      <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
+        <div className="min-w-0 lg:flex-1">
+          <PillTabs
+            tabs={[['all', 'All'] as [string, string], ...STAGE_ORDER.map(s => [s, STAGE_LABEL[s]] as [string, string])]}
+            value={filter}
+            onChange={(v) => setFilter(v as DealStage | 'all')}
+            hintKey="dealflow-status"
+            tone="brand"
+          />
+        </div>
+
+        <div className="relative shrink-0 lg:-mt-1">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#99a1af]" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search name, email, company"
+            className="w-full lg:w-64 h-10 bg-[#f5f6f8] rounded-xl pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+          />
         </div>
       </div>
 
       {rows.length === 0 ? (
-        <p className="p-6 text-sm text-[#99a1af] text-center">
-          {people.length === 0 ? 'Nobody has opened this deal room yet.' : 'Nothing matches that.'}
+        <p className="py-10 text-sm text-[#99a1af] text-center">
+          {people.length === 0
+            ? 'Nobody is on this deal yet. Add the first investor to start tracking your raise.'
+            : 'Nothing matches that.'}
         </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="rounded-2xl border border-[#edf0f3] overflow-x-auto ds-scroll-x">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-wide text-[#7f8c85] border-b border-[#edf0f3]">
@@ -181,13 +270,12 @@ export function DealPeople({
                 <Th k="company_name">Company</Th>
                 <Th k="stage">Status</Th>
                 <Th k="visits" right>Visits</Th>
-                <Th k="total_seconds" right>Time</Th>
-                <th className="font-semibold px-4 py-2.5 text-right whitespace-nowrap">Sections</th>
-                <Th k="deck_views" right>Deck</Th>
-                <Th k="doc_views" right>Docs</Th>
+                <Th k="total_seconds" right>Total Time</Th>
+                <Th k="deck_views" right>Deck View</Th>
+                <Th k="doc_views" right>Document Views</Th>
                 <Th k="forwards" right>Forwards</Th>
-                <Th k="last_seen" right>Last seen</Th>
-                <th className="font-semibold px-4 py-2.5 text-right whitespace-nowrap">Notes</th>
+                <Th k="last_seen" right>Last Viewed</Th>
+                <Th k="last_note_at" right>Last Note</Th>
                 <th className="px-4 py-2.5" />
               </tr>
             </thead>
@@ -196,7 +284,7 @@ export function DealPeople({
               {rows.map((p) => {
                 const id = p.access_id || p.visit_id || p.email || '';
                 return (
-                  <tr key={id} className="border-b border-[#f5f6f8] last:border-0 hover:bg-[#fafbfc]">
+                  <tr key={id} className="border-b border-[#f5f6f8] last:border-0 odd:bg-[#fafbfc] hover:bg-[#f5f6f8]">
                     <td className="px-4 py-3 font-medium text-[#191f1d] whitespace-nowrap">
                       <span className="flex items-center gap-2">
                         {p.blocked && (
@@ -208,12 +296,12 @@ export function DealPeople({
                       </span>
                     </td>
 
-                    <td className="px-4 py-3 text-[#7f8c85] whitespace-nowrap">{p.name || '—'}</td>
+                    <td className="px-4 py-3 text-[#7f8c85] whitespace-nowrap">{p.name || DASH}</td>
 
                     <td className="px-4 py-3 whitespace-nowrap">
                       {p.company_name ? (
                         <span className="flex items-center gap-2">
-                          <span className="w-6 h-6 shrink-0 rounded-full overflow-hidden ring-2 ring-white bg-white shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
+                          <span className="w-7 h-7 shrink-0 rounded-full overflow-hidden ring-2 ring-white bg-white shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
                             {p.company_logo
                               ? <img src={p.company_logo} alt="" className="w-full h-full object-cover" />
                               : <span className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white text-[10px] font-semibold">
@@ -222,7 +310,7 @@ export function DealPeople({
                           </span>
                           <span className="text-[#191f1d]">{p.company_name}</span>
                         </span>
-                      ) : <span className="text-[#c7cdd4]">—</span>}
+                      ) : <span className="text-[#c7cdd4]">{DASH}</span>}
                     </td>
 
                     <td className="px-4 py-3">
@@ -238,32 +326,25 @@ export function DealPeople({
                     </td>
 
                     <td className="px-4 py-3 text-right tabular-nums text-[#7f8c85]">{num(p.visits)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums text-[#7f8c85]">{formatDuration(Math.round(p.total_seconds))}</td>
-
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => setSections(p)}
-                        className="text-xs font-semibold text-[var(--ds-brand)] hover:underline"
-                      >
-                        View
-                      </button>
-                    </td>
 
                     <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1.5 tabular-nums text-[#7f8c85]">
-                        {num(p.deck_views)}
-                        <button onClick={() => setDeckFor(p)} title="Full deck analytics" className="text-[#c7cdd4] hover:text-[var(--ds-brand)]">
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
+                      <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
+                        {formatDuration(Math.round(p.total_seconds))}
+                        <Drill label="Time per section" onClick={() => setSections(p)} />
                       </span>
                     </td>
 
                     <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1.5 tabular-nums text-[#7f8c85]">
+                      <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
+                        {num(p.deck_views)}
+                        <Drill label="Time on the deck, page by page" onClick={() => setDeckFor(p)} />
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
                         {num(p.doc_views)}
-                        <button onClick={() => setDocsFor(p)} title="Time per document" className="text-[#c7cdd4] hover:text-[var(--ds-brand)]">
-                          <FileText className="w-3.5 h-3.5" />
-                        </button>
+                        <Drill label="Time per document" onClick={() => setDocsFor(p)} />
                       </span>
                     </td>
 
@@ -277,23 +358,24 @@ export function DealPeople({
                       </span>
                     </td>
 
-                    <td className="px-4 py-3 text-right text-[#7f8c85] whitespace-nowrap">{timeAgo(p.last_seen)}</td>
+                    <td className="px-4 py-3 text-right text-[#7f8c85] whitespace-nowrap">{fmtDate(p.last_seen)}</td>
 
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => setNotesFor(p)}
-                        disabled={!p.access_id}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-brand)] hover:underline disabled:text-[#c7cdd4] disabled:no-underline"
-                      >
-                        <StickyNote className="w-3.5 h-3.5" /> {num(p.note_count)}
-                      </button>
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <span className="inline-flex items-center gap-2 text-[#7f8c85]">
+                        {p.note_count ? fmtDate(p.last_note_at) : DASH}
+                        <Drill
+                          label="Notes history"
+                          onClick={() => setNotesFor(p)}
+                          disabled={!p.access_id}
+                        />
+                      </span>
                     </td>
 
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={(e) => openMenu(id, e)}
                         aria-label={`Actions for ${p.email || 'this person'}`}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#7f8c85] hover:bg-white hover:text-[#191f1d]"
                       >
                         <MoreVertical className="w-4 h-4" />
                       </button>
@@ -361,6 +443,14 @@ export function DealPeople({
         </div>
       )}
 
+      {adding && (
+        <AddInvestorDialog
+          dealId={dealId}
+          onClose={() => setAdding(false)}
+          onSaved={async () => { setAdding(false); await load(); onChanged(); }}
+        />
+      )}
+
       {stageFor && (
         <StageDialog
           person={stageFor.person}
@@ -393,14 +483,24 @@ export function DealPeople({
       {docsFor && (
         <SectionsDialog person={docsFor} docs={docs} docsOnly onClose={() => setDocsFor(null)} />
       )}
+
+      {/* The deck drill-down is the page-by-page chart, not a single total. It was
+          only reachable from the card that is now gone, and it is the best data
+          in the product. */}
       {deckFor && (
-        <SectionsDialog person={deckFor} docs={docs} deckOnly onClose={() => setDeckFor(null)} />
+        deck && deckFor.email
+          ? (
+            <Shell title={`Deck analytics: ${deckFor.name || deckFor.email}`} onClose={() => setDeckFor(null)}>
+              <DeckPageBars roomId={dealId} deckId={deck.id} email={deckFor.email} deckUrl={deck.file_url} />
+            </Shell>
+          )
+          : <SectionsDialog person={deckFor} docs={docs} deckOnly onClose={() => setDeckFor(null)} />
       )}
     </div>
   );
 }
 
-/* ── Dialogs ───────────────────────────────────────────────────────────────── */
+/* Dialogs */
 
 function Shell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return createPortal(
@@ -419,6 +519,52 @@ function Shell({ title, onClose, children }: { title: string; onClose: () => voi
       </div>
     </>,
     document.body,
+  );
+}
+
+/** New investor. Email is the key: it is what the visit rows join on, so a person
+ *  added here and the same person opening the room are one row, not two. */
+function AddInvestorDialog({
+  dealId, onClose, onSaved,
+}: { dealId: string; onClose: () => void; onSaved: () => void }) {
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [company, setCompany] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const field = 'w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
+  const label = 'block text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1';
+  const valid = /.+@.+\..+/.test(email.trim());
+
+  return (
+    <Shell title="New investor" onClose={onClose}>
+      <div className="space-y-3">
+        <div><label className={label}>Email</label>
+          <input value={email} onChange={e => setEmail(e.target.value)} autoFocus className={field} placeholder="name@firm.com" /></div>
+        <div><label className={label}>Contact name</label>
+          <input value={name} onChange={e => setName(e.target.value)} className={field} placeholder="Optional" /></div>
+        <div><label className={label}>Company</label>
+          <input value={company} onChange={e => setCompany(e.target.value)} className={field} placeholder="Optional" /></div>
+      </div>
+
+      <p className="mt-3 text-xs text-[#7f8c85]">
+        They start as a Prospect. Adding them here does not grant access to the room.
+      </p>
+
+      <button
+        onClick={async () => {
+          setBusy(true);
+          const r = await createDealPerson(dealId, { email, name, company_name: company });
+          setBusy(false);
+          if (r.ok) { toast.success('Investor added'); onSaved(); }
+          else toast.error(r.message || 'Could not add them');
+        }}
+        disabled={!valid || busy}
+        className="mt-5 w-full inline-flex items-center justify-center gap-1.5 h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
+      >
+        {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Add investor
+      </button>
+    </Shell>
   );
 }
 
@@ -473,7 +619,7 @@ function NotesDialog({
   useEffect(() => { void load(); }, [person.access_id]);
 
   return (
-    <Shell title={`Notes — ${person.name || person.email}`} onClose={onClose}>
+    <Shell title={`Notes: ${person.name || person.email}`} onClose={onClose}>
       <textarea
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
@@ -506,7 +652,7 @@ function NotesDialog({
               )}
               <span className="text-[11px] text-[#9ca3af] ml-auto">
                 {new Date(n.created_at).toLocaleString()}
-                {n.updated_at && ' · edited'}
+                {n.updated_at && ' (edited)'}
               </span>
             </div>
 
@@ -570,9 +716,9 @@ function DetailsDialog({
     <Shell title="Details" onClose={onClose}>
       <div className="space-y-3">
         <div><label className={label}>Contact name</label>
-          <input value={name} onChange={e => setName(e.target.value)} className={field} placeholder="Dana Whitfield" /></div>
+          <input value={name} onChange={e => setName(e.target.value)} className={field} placeholder="Contact name" /></div>
         <div><label className={label}>Company</label>
-          <input value={company} onChange={e => setCompany(e.target.value)} className={field} placeholder="Northwind Capital" /></div>
+          <input value={company} onChange={e => setCompany(e.target.value)} className={field} placeholder="Company" /></div>
         <div><label className={label}>Company logo URL</label>
           <input value={logo} onChange={e => setLogo(e.target.value)} className={field} placeholder="https://..." /></div>
         <div><label className={label}>LinkedIn</label>
@@ -637,7 +783,7 @@ function SectionsDialog({
   const title = deckOnly ? 'Deck analytics' : docsOnly ? 'Time per document' : 'Time per section';
 
   return (
-    <Shell title={`${title} — ${person.name || person.email}`} onClose={onClose}>
+    <Shell title={`${title}: ${person.name || person.email}`} onClose={onClose}>
       {rows.length === 0 ? (
         <p className="text-sm text-[#99a1af]">Nothing recorded yet.</p>
       ) : (

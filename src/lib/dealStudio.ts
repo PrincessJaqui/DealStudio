@@ -1079,6 +1079,8 @@ export type DealPerson = {
   last_seen: string | null;
   committed: number;
   note_count: number;
+  /** When the most recent note was written. Null when there are none. */
+  last_note_at: string | null;
   forwards: number;
 };
 
@@ -1094,6 +1096,36 @@ export async function fetchDealPeople(dealId: string): Promise<DealPerson[]> {
   const { data, error } = await supabase.rpc('admin_deal_people', { p_deal: dealId });
   if (error) { console.warn('[dealStudio] people', error); return []; }
   return (data ?? []) as DealPerson[];
+}
+
+/**
+ * Add someone to the pipeline by hand.
+ *
+ * Not an upsert. The uniqueness rule on this table is an expression index on
+ * (dealstudio_id, lower(email)), and PostgREST cannot target an expression
+ * index with on_conflict, so an upsert here fails at the database. A plain
+ * insert is used and the duplicate comes back as 23505, which is the honest
+ * answer anyway: that person is already on this deal.
+ *
+ * Stage defaults to 'prospect' because the founder added them by hand and
+ * nothing has happened yet. Access status stays 'pending': adding someone to
+ * your pipeline is not the same as letting them into the room.
+ */
+export async function createDealPerson(
+  dealId: string,
+  patch: { email: string; name?: string | null; company_name?: string | null },
+): Promise<{ ok: boolean; message?: string }> {
+  const { error } = await supabase.from('dealstudio_access').insert({
+    dealstudio_id: dealId,
+    email: patch.email.trim().toLowerCase(),
+    name: patch.name?.trim() || null,
+    company_name: patch.company_name?.trim() || null,
+    stage: 'prospect',
+    status: 'pending',
+  });
+  if (!error) return { ok: true };
+  if (error.code === '23505') return { ok: false, message: 'That email is already on this deal.' };
+  return { ok: false, message: error.message };
 }
 
 /** Change someone's stage. A note is required, and the change is recorded. */

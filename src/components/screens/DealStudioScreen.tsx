@@ -25,7 +25,6 @@ import { isDealLimitError } from '../../lib/billing';
 import { DealSwitcher } from '../dealstudio/DealSwitcher';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { DealDocViewer } from '../dealstudio/DealDocViewer';
-import { DealFlow } from '../dealstudio/DealFlow';
 import { DealPeople } from '../dealstudio/DealPeople';
 import { PillTabs } from '../dealstudio/PillTabs';
 import { MarketEditor } from '../dealstudio/MarketEditor';
@@ -45,10 +44,10 @@ import { DisplayOrder } from '../dealstudio/DisplayOrder';
 import { TeamEditor } from '../dealstudio/TeamEditor';
 import { BusinessModelEditor } from '../dealstudio/BusinessModelEditor';
 import {
-  DealStudio, DealDocument, DealAccessRow, DealVisitRow, DealFunnel, DealIndustry, DealSchedule, DocStat,
+  DealStudio, DealDocument, DealAccessRow, DealFunnel, DealIndustry, DealSchedule, DocStat,
   adminFetchDealStudio, adminSaveDealStudio, adminSetActive, adminSetSharedPassword,
   adminFetchDocuments, adminDeleteDocument, adminDeleteDocuments, adminReorderDocuments, adminFetchAccess,
-  adminFetchVisits, adminFetchFunnel, adminFetchDocStats,
+  adminFetchFunnel, adminFetchDocStats,
   scheduleDates, scheduleSlots, committedTotal, EMPTY_MARKET,
 } from '../../lib/dealStudio';
 
@@ -120,7 +119,6 @@ export function DealStudioScreen() {
   const [room, setRoom] = useState<DealStudio | null>(null);
   const [docs, setDocs] = useState<DealDocument[]>([]);
   const [access, setAccess] = useState<DealAccessRow[]>([]);
-  const [visits, setVisits] = useState<DealVisitRow[]>([]);
   const [funnel, setFunnel] = useState<DealFunnel | null>(null);
   const [tab, setTab] = useState('details');
   const [savedAt, setSavedAt] = useState<string>('');
@@ -198,7 +196,9 @@ export function DealStudioScreen() {
   const reloadVisitors = async (roomId: string) => {
     const rows = await adminFetchAccess(roomId);
     setAccess(rows);
-    setVisits(await adminFetchVisits(roomId));
+    // The visit rows themselves are no longer read on this screen: the Deal Flow
+    // table gets them merged with the pipeline from admin_deal_people, in one
+    // call. Fetching them again here was a second round trip for nobody.
     setFunnel(await adminFetchFunnel(roomId));
     // Keep the public-facing raised amount in sync with committed deals.
     const total = committedTotal(rows);
@@ -752,26 +752,19 @@ export function DealStudioScreen() {
             </TabsContent>
 
             {/* DEAL FLOW */}
+            {/* One card, and only one. The old pipeline card listed the same
+                investors a second time on the pre-0036 stage vocabulary, which
+                the database no longer accepts, so half its buttons wrote a value
+                that failed the check constraint. Everything it did lives in the
+                table now. */}
             <TabsContent value="dealflow" className="space-y-5">
-              {/* Mobile only: the funnel leads, because it is the summary of
-                  everything the table below spells out. */}
-              <div className="lg:hidden">{funnelPanel}</div>
-
-              {/* The merged people table sits above the funnel: who is in the room
-                  is the question, the funnel is the summary of it. */}
-              <div className="space-y-4">
-                <DealPeople
-                  dealId={room.id}
-                  slug={room.slug}
-                  handle={org?.handle ?? null}
-                  docs={docs}
-                  onChanged={() => reloadVisitors(room.id)}
-                />
-                <DealFlow roomId={room.id} rows={access} visits={visits} docs={docs} onChanged={() => reloadVisitors(room.id)} />
-              </div>
-
-              {/* Mobile only: the calendar closes the tab. */}
-              <div className="lg:hidden">{calendarPanel}</div>
+              <DealPeople
+                dealId={room.id}
+                slug={room.slug}
+                handle={org?.handle ?? null}
+                docs={docs}
+                onChanged={() => reloadVisitors(room.id)}
+              />
             </TabsContent>
 
             {/* SETTINGS */}
@@ -931,6 +924,15 @@ export function DealStudioScreen() {
               </div>
             </TabsContent>
           </Tabs>
+
+          {/* Mobile only. Desktop shows these in the right rail beside every tab.
+              They used to be injected into the Deal Flow tab on a phone, which is
+              the one tab that is now a single table, so they sit below the tab
+              content instead. Same panels, rendered once, not copies. */}
+          <div className="lg:hidden space-y-5 mt-5">
+            {funnelPanel}
+            {calendarPanel}
+          </div>
         </div>
 
         {/* Right rail */}
