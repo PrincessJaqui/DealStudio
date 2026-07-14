@@ -554,9 +554,23 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
           // overscroll-contain is gone on purpose: with it, reaching the bottom of
           // the sidebar stops the wheel dead instead of handing the scroll back to
           // the page, which is its own way of feeling stuck.
-          className="contents lg:block lg:self-start lg:space-y-6 lg:sticky lg:top-[84px] lg:overflow-y-auto ds-scroll-y"
+          /* ONE container, not three floating cards.
+           *
+           * Three separate cards cannot "reach the bottom of the screen" -- only a
+           * container can, and there wasn't one. That is why every fix here felt
+           * like a patch: I kept adjusting the height of a transparent div that had
+           * no visual edges, so nothing ever looked like it ended anywhere.
+           *
+           * Now: this element IS the card. It is sticky, its height is measured, and
+           * it clips. The scrolling happens in the region inside it. On mobile it is
+           * display:contents, so it vanishes and the three sections flatten back into
+           * the page grid as their own cards, which is right for a phone. */
+          className="contents lg:flex lg:flex-col lg:self-start lg:sticky lg:top-[84px] lg:rounded-2xl lg:border lg:border-[#edf0f3] lg:bg-white lg:shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] lg:overflow-hidden"
         >
-          <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 text-center">
+          {/* The scroll region. contents on mobile so it does not become a grid
+              item and trap the sections inside itself. */}
+          <div className="contents lg:block lg:flex-1 lg:min-h-0 lg:overflow-y-auto ds-scroll-y">
+          <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 text-center lg:rounded-none lg:border-x-0 lg:border-t-0 lg:border-b lg:border-[#edf0f3] lg:shadow-none lg:last:border-b-0">
             {/* A white ring plus a soft shadow, so the mark sits ON the card
                 rather than flat against it. The hairline border alone left it
                 looking pasted on. */}
@@ -605,7 +619,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
           </div>
 
           {mapSrc && (
-            <div data-section="hq" className="order-11 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
+            <div data-section="hq" className="order-11 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4 lg:rounded-none lg:border-x-0 lg:border-t-0 lg:border-b lg:border-[#edf0f3] lg:shadow-none lg:last:border-b-0">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2">Headquartered</p>
               {/* The radius goes on a wrapper, not the iframe: iOS Safari does not
                   clip an iframe's own content to its border-radius, so the map
@@ -624,7 +638,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
           )}
 
           {room.meeting_enabled && (
-            <div data-section="calendar" className="order-12 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
+            <div data-section="calendar" className="order-12 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4 lg:rounded-none lg:border-x-0 lg:border-t-0 lg:border-b lg:border-[#edf0f3] lg:shadow-none lg:last:border-b-0">
               <p className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2"><span className="flex items-center gap-1"><CalIcon className="w-3.5 h-3.5" /> Availability</span></p>
               <EventsCalendar events={availabilityEvents} selectedDate={selectedDate} onSelectDate={(d) => setSelectedDate(d)} currentMonth={new Date()} onChangeMonth={() => {}} />
 
@@ -682,10 +696,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             </div>
           )}
         
-          {/* A real element, not padding. Chrome ignores a scroll container's
-              padding-bottom at the end of the scroll, so the last card looked cut
-              off against the edge. An element cannot be ignored. */}
-          <div className="hidden lg:block h-6 shrink-0" aria-hidden="true" />
+          </div>
 </div>
       </div>
 
