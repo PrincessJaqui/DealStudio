@@ -27,9 +27,18 @@ type Row = { icon: '#' | '$' | '%'; label: string; suffix?: string; value: numbe
 function AssumptionRow({ row }: { row: Row }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  /** The cue has one job: tell you the field is yours to change. Once you have
+   *  touched it, the job is done, and a field that keeps pulsing at someone who
+   *  is already typing in it is just noise. */
+  const [touched, setTouched] = useState(false);
   const display = editing ? draft : (Number.isFinite(row.value) ? row.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '0');
   return (
-    <div className="ds-field-pulse ds-card flex items-center gap-3 rounded-xl border border-[#eceef0] bg-white p-3">
+    <div
+      onPointerDown={() => setTouched(true)}
+      className={`ds-card flex items-center gap-3 rounded-xl border border-[#eceef0] bg-white p-3 shadow-[0_6px_20px_-8px_rgba(12,16,34,0.25)] ${
+        touched ? '' : 'ds-field-pulse'
+      }`}
+    >
       <div className="w-11 h-11 rounded-xl bg-[var(--ds-brand)] text-white flex items-center justify-center text-lg font-bold shrink-0">{row.icon}</div>
       <div className="min-w-0 flex-1">
         <p className="text-[11px] text-[#7f8c85] leading-tight">{row.label}</p>
@@ -55,6 +64,7 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
   const [active, setActive] = useState(0);
   /** Null while not being edited. A 0 in the box would otherwise turn "20" into "020". */
   const [growthDraft, setGrowthDraft] = useState<string | null>(null);
+  const [growthTouched, setGrowthTouched] = useState(false);
   const { ref, inView } = useInViewOnce<HTMLDivElement>();
 
   const revenues = local.revenues || [];
@@ -198,7 +208,12 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
                 scrolls into view, and this box is most of a screen below that, so
                 its two rings had already played by the time anyone could see it.
                 This one keeps going. */}
-            <div className="ds-field-pulse ds-card mt-1 ml-auto flex items-center rounded-lg border border-[#e5e7eb] bg-white px-3 py-1.5 w-28">
+            <div
+              onPointerDown={() => setGrowthTouched(true)}
+              className={`ds-card mt-1 ml-auto flex items-center rounded-lg border border-[#e5e7eb] bg-white px-3 py-1.5 w-28 shadow-[0_6px_20px_-8px_rgba(12,16,34,0.25)] ${
+                growthTouched ? '' : 'ds-field-pulse'
+              }`}
+            >
               {/* text + inputMode, never type="number": the wheel rewrites a
                   type="number" field, so scrolling past this box changed the
                   founder's growth rate on the way past. */}

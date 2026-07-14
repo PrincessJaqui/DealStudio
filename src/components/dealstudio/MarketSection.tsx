@@ -210,7 +210,9 @@ export function IndustryReadingSection({ market }: { market: DealMarket }) {
       {articles.length > 2 && (
         <button
           onClick={() => setShowAll(s => !s)}
-          className="mt-3 ml-auto block text-sm font-semibold text-[var(--ds-brand)] hover:underline"
+          className={`mt-5 ml-auto flex w-fit items-center rounded-lg px-3 py-1.5 text-sm font-semibold text-[var(--ds-brand)] hover:bg-[var(--ds-tint)] transition ${
+            showAll ? '' : 'ds-field-pulse'
+          }`}
         >
           {showAll ? 'Show less' : `Show all ${articles.length} Articles`}
         </button>

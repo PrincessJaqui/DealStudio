@@ -14,7 +14,7 @@ import { statSlotValue } from '../dealstudio/StatSlotField';
 import { DEFAULT_STAT_SLOTS, resolveSectionOrder, scheduleSlots, type StatSlot, type SectionKey } from '../../lib/dealStudio';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
-import { MapPin, Calendar as CalIcon, Share2, Check, LogOut } from 'lucide-react';
+import { MapPin, Share2, Check, LogOut } from 'lucide-react';
 import { Button } from '../ui/button';
 import { EventsCalendar } from '../EventsCalendar';
 import { DealDocumentCard } from '../dealstudio/DealDocumentCard';
@@ -592,7 +592,15 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
                       {(docsExpanded ? room.documents : room.documents.slice(0, 2)).map(d => <DealDocumentCard key={d.id} doc={d} onOpen={openDoc} />)}
                     </div>
                     {room.documents.length > 2 && (
-                      <button onClick={() => setDocsExpanded(e => !e)} className="mt-3 ml-auto block text-sm font-semibold text-[var(--ds-accent-ink)] hover:underline">
+                      /* Brand blue, like Show all Articles. It was accent teal, so the
+                         same control in two sections was two different colours and
+                         neither read as a button. */
+                      <button
+                        onClick={() => setDocsExpanded(e => !e)}
+                        className={`mt-5 ml-auto flex w-fit items-center rounded-lg px-3 py-1.5 text-sm font-semibold text-[var(--ds-brand)] hover:bg-[var(--ds-tint)] transition ${
+                          docsExpanded ? '' : 'ds-field-pulse'
+                        }`}
+                      >
                         {docsExpanded ? 'Show less' : `Show all ${room.documents.length} documents`}
                       </button>
                     )}
@@ -702,7 +710,9 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
 
           {mapSrc && (
             <div data-section="hq" className="order-11 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2">Headquartered</p>
+              {/* Same header as Deal Information: bold 14px, sentence case. It was an
+                  uppercase grey caption, which is this codebase's FIELD label style. */}
+              <h2 className="text-sm font-bold text-[#191f1d] mb-3">Headquarters</h2>
               {/* The radius goes on a wrapper, not the iframe: iOS Safari does not
                   clip an iframe's own content to its border-radius, so the map
                   spilled past the rounded corners. `block` also kills the inline
@@ -742,7 +752,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
 
           {room.meeting_enabled && (
             <div data-section="calendar" className="order-12 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
-              <p className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2"><span className="flex items-center gap-1"><CalIcon className="w-3.5 h-3.5" /> Availability</span></p>
+              <h2 className="text-sm font-bold text-[#191f1d] mb-3">Availability Calendar</h2>
               <EventsCalendar events={availabilityEvents} selectedDate={selectedDate} onSelectDate={(d) => setSelectedDate(d)} currentMonth={new Date()} onChangeMonth={() => {}} />
 
               {/* Picking a date used to do nothing: selectedDate was stored and
