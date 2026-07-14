@@ -549,6 +549,17 @@ export function DealStudioScreen() {
           {/* Left: tab content */}
           <div className="min-w-0">
 
+            {/* Mobile only. On the Deal Flow tab the funnel LEADS: it is the
+                summary of everything the table below spells out, and on a phone
+                the table is a wide scroll you would otherwise have to get to the
+                end of before seeing the shape of the raise. On every other tab it
+                sits below the content, so a phone is not asked to scroll past a
+                chart to reach the fields it came for. Rendered once either way,
+                never twice. */}
+            {tab === 'dealflow' && (
+              <div className="lg:hidden mb-5">{funnelPanel}</div>
+            )}
+
             {/* MARKET */}
             <TabsContent value="articles" className="space-y-4">
               <IndustryReadingEditor
@@ -934,11 +945,10 @@ export function DealStudioScreen() {
             </TabsContent>
 
             {/* Mobile only. Desktop shows these in the right rail beside every tab.
-                They used to be injected into the Deal Flow tab on a phone, which is
-                the one tab that is now a single table, so they sit below the tab
-                content instead. Same panels, rendered once, not copies. */}
+                The funnel is up top on the Deal Flow tab, so it is not repeated
+                here. Same panels, rendered once, not copies. */}
             <div className="lg:hidden space-y-5 mt-5">
-              {funnelPanel}
+              {tab !== 'dealflow' && funnelPanel}
               {calendarPanel}
             </div>
           </div>
