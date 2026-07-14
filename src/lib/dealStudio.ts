@@ -1152,6 +1152,42 @@ export async function createDealPerson(
   return { ok: false, message: error.message };
 }
 
+/**
+ * The access row for this person, creating it if they only ever existed as a
+ * visit.
+ *
+ * Someone who opened the room has no dealstudio_access row until a founder adds
+ * them by hand, and every write in the people table hangs off that row: notes,
+ * stage, committed amount, their name. So the table showed them, and then refused
+ * to let anyone touch them ("This viewer has no pipeline record yet"), which is
+ * backwards. Opening the deck IS being in the pipeline.
+ *
+ * The stage passed in is the one already showing on their row, so making them
+ * writable never silently moves them: a viewer stays Viewed deal.
+ */
+export async function ensureDealPerson(
+  dealId: string, email: string, stage: DealStage = 'viewed',
+): Promise<string | null> {
+  const addr = email.trim().toLowerCase();
+  if (!addr) return null;
+
+  const { data: found } = await supabase
+    .from('dealstudio_access')
+    .select('id')
+    .eq('dealstudio_id', dealId)
+    .ilike('email', addr)
+    .maybeSingle();
+  if (found?.id) return found.id as string;
+
+  const { data, error } = await supabase
+    .from('dealstudio_access')
+    .insert({ dealstudio_id: dealId, email: addr, stage, status: 'pending' })
+    .select('id')
+    .single();
+  if (error) { console.warn('[dealStudio] ensurePerson', error); return null; }
+  return (data?.id as string) ?? null;
+}
+
 /** Change someone's stage. A note is required, and the change is recorded. */
 export async function setDealStage(
   accessId: string, stage: DealStage, note: string,

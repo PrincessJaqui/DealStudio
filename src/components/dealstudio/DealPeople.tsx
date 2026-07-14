@@ -25,7 +25,7 @@ import { toast } from 'sonner@2.0.3';
 import {
   fetchDealPeople, setDealStage, fetchDealNotes, addDealNote, editDealNote,
   deleteDealNote, saveDealPerson, createDealPerson, setDealCommitted, deleteDealPerson,
-  adminResetVisit, inviteUrl, formatDuration,
+  ensureDealPerson, adminResetVisit, inviteUrl, formatDuration,
   STAGE_LABEL, STAGE_ORDER,
   type DealPerson, type DealStage, type DealNote, type DealDocument,
 } from '../../lib/dealStudio';
@@ -76,6 +76,14 @@ type SortKey =
   | 'email' | 'name' | 'company_name' | 'stage' | 'committed' | 'visits'
   | 'total_seconds' | 'deck_views' | 'doc_views' | 'forwards'
   | 'last_seen' | 'last_note_at';
+
+/**
+ * The access row, created on first write if this person only ever visited.
+ * Every dialog below goes through this, so "no pipeline record yet" cannot come
+ * back in one of them and not the others.
+ */
+const useAccessId = (dealId: string) => async (person: DealPerson): Promise<string | null> =>
+  person.access_id ?? (person.email ? await ensureDealPerson(dealId, person.email, person.stage) : null);
 
 /** The one control that opens a breakdown, so all five of them cannot drift.
  *  An eye, not an arrow: an arrow reads as "go somewhere", and these open a
@@ -370,10 +378,9 @@ export function DealPeople({
                     <td className="px-4 py-3">
                       <select
                         value={p.stage}
-                        disabled={!p.access_id}
                         onChange={(e) => setStageFor({ person: p, next: e.target.value as DealStage })}
-                        title={p.access_id ? 'Change status' : 'Add details first to track this person'}
-                        className={`h-7 rounded-full border px-2 text-xs font-semibold cursor-pointer disabled:cursor-not-allowed ${stageClass(p.stage)}`}
+                        title="Change status"
+                        className={`h-7 rounded-full border px-2 text-xs font-semibold cursor-pointer ${stageClass(p.stage)}`}
                       >
                         {stageOptions(p.stage).map(s => <option key={s} value={s}>{STAGE_LABEL[s]}</option>)}
                       </select>
@@ -382,11 +389,7 @@ export function DealPeople({
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                       <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
                         {p.committed ? <span className="font-semibold text-[#191f1d]">{money(p.committed)}</span> : DASH}
-                        <Drill
-                          label="Set the committed amount"
-                          onClick={() => setCommittedFor(p)}
-                          disabled={!p.access_id}
-                        />
+                        <Drill label="Set the committed amount" onClick={() => setCommittedFor(p)} />
                       </span>
                     </td>
 
@@ -428,11 +431,7 @@ export function DealPeople({
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                       <span className="inline-flex items-center gap-2 text-[#7f8c85]">
                         {p.note_count ? fmtDate(p.last_note_at) : DASH}
-                        <Drill
-                          label="Notes history"
-                          onClick={() => setNotesFor(p)}
-                          disabled={!p.access_id}
-                        />
+                        <Drill label="Notes history" onClick={() => setNotesFor(p)} />
                       </span>
                     </td>
 
@@ -547,15 +546,17 @@ export function DealPeople({
       {stageFor && (
         <StageDialog
           person={stageFor.person}
+          dealId={dealId}
           next={stageFor.next}
           onClose={() => setStageFor(null)}
           onSaved={async () => { setStageFor(null); await load(); onChanged(); }}
         />
       )}
 
-      {notesFor?.access_id && (
+      {notesFor && (
         <NotesDialog
           person={notesFor}
+          dealId={dealId}
           onClose={() => setNotesFor(null)}
           onChanged={async () => { await load(); onChanged(); }}
         />
@@ -570,9 +571,10 @@ export function DealPeople({
         />
       )}
 
-      {committedFor?.access_id && (
+      {committedFor && (
         <CommittedDialog
           person={committedFor}
+          dealId={dealId}
           onClose={() => setCommittedFor(null)}
           onSaved={async () => { setCommittedFor(null); await load(); onChanged(); }}
         />
@@ -603,15 +605,25 @@ export function DealPeople({
 
 /* Dialogs */
 
-function Shell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+function Shell({ title, subtitle, onClose, children }: {
+  title: string;
+  /** Who this is about. A form with five fields and no name on it is a form you
+   *  can fill in for the wrong person. */
+  subtitle?: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
   return createPortal(
     <>
       <div className="fixed inset-0 z-[70] bg-black/40" onClick={onClose} />
       <div className="fixed inset-0 z-[71] flex items-start justify-center p-4 overflow-y-auto">
         <div className="w-full max-w-lg mt-16 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_24px_60px_-16px_rgba(12,16,34,0.35)]">
-          <div className="flex items-center gap-3 p-5 border-b border-[#edf0f3]">
-            <h2 className="font-bold text-[#191f1d]">{title}</h2>
-            <button onClick={onClose} aria-label="Close" className="ml-auto w-8 h-8 rounded-lg flex items-center justify-center text-[#9ca3af] hover:bg-[#f5f6f8] hover:text-[#191f1d]">
+          <div className="flex items-start gap-3 p-5 border-b border-[#edf0f3]">
+            <div className="min-w-0">
+              <h2 className="font-bold text-[#191f1d]">{title}</h2>
+              {subtitle && <p className="text-xs text-[#7f8c85] mt-0.5 truncate">{subtitle}</p>}
+            </div>
+            <button onClick={onClose} aria-label="Close" className="ml-auto shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-[#9ca3af] hover:bg-[#f5f6f8] hover:text-[#191f1d]">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -672,13 +684,14 @@ function AddInvestorDialog({
 /** The committed amount. This is what the Raised tile adds up, so it lives on the
  *  row, not in a card that no longer exists. */
 function CommittedDialog({
-  person, onClose, onSaved,
-}: { person: DealPerson; onClose: () => void; onSaved: () => void }) {
+  person, dealId, onClose, onSaved,
+}: { person: DealPerson; dealId: string; onClose: () => void; onSaved: () => void }) {
   const [amount, setAmount] = useState(person.committed ? String(person.committed) : '');
   const [busy, setBusy] = useState(false);
+  const accessId = useAccessId(dealId);
 
   return (
-    <Shell title={`Committed: ${person.name || person.email}`} onClose={onClose}>
+    <Shell title="Committed" subtitle={person.email ?? undefined} onClose={onClose}>
       <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1">Amount</label>
       <input
         value={amount}
@@ -695,8 +708,10 @@ function CommittedDialog({
       <button
         onClick={async () => {
           setBusy(true);
+          const id = await accessId(person);
+          if (!id) { setBusy(false); toast.error('Could not save'); return; }
           const n = amount.trim() === '' ? null : Number(amount);
-          const ok = await setDealCommitted(person.access_id!, Number.isFinite(n as number) ? n : null);
+          const ok = await setDealCommitted(id, Number.isFinite(n as number) ? n : null);
           setBusy(false);
           if (ok) { toast.success('Saved'); onSaved(); }
           else toast.error('Could not save');
@@ -713,13 +728,14 @@ function CommittedDialog({
 /** Changing a status always costs a sentence. Three weeks later, "why is this
  *  one marked passed" needs an answer. */
 function StageDialog({
-  person, next, onClose, onSaved,
-}: { person: DealPerson; next: DealStage; onClose: () => void; onSaved: () => void }) {
+  person, dealId, next, onClose, onSaved,
+}: { person: DealPerson; dealId: string; next: DealStage; onClose: () => void; onSaved: () => void }) {
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
+  const accessId = useAccessId(dealId);
 
   return (
-    <Shell title={`${STAGE_LABEL[person.stage]} to ${STAGE_LABEL[next]}`} onClose={onClose}>
+    <Shell title={`${STAGE_LABEL[person.stage]} to ${STAGE_LABEL[next]}`} subtitle={person.email ?? undefined} onClose={onClose}>
       <p className="text-sm text-[#7f8c85] mb-3">
         Why is this changing? It goes into their notes history.
       </p>
@@ -732,9 +748,10 @@ function StageDialog({
       />
       <button
         onClick={async () => {
-          if (!person.access_id) return;
           setBusy(true);
-          const r = await setDealStage(person.access_id, next, note);
+          const id = await accessId(person);
+          if (!id) { setBusy(false); toast.error('Could not update'); return; }
+          const r = await setDealStage(id, next, note);
           setBusy(false);
           if (r.ok) { toast.success('Status updated'); onSaved(); }
           else toast.error(r.message || 'Could not update');
@@ -750,18 +767,21 @@ function StageDialog({
 }
 
 function NotesDialog({
-  person, onClose, onChanged,
-}: { person: DealPerson; onClose: () => void; onChanged: () => void }) {
+  person, dealId, onClose, onChanged,
+}: { person: DealPerson; dealId: string; onClose: () => void; onChanged: () => void }) {
   const [notes, setNotes] = useState<DealNote[] | null>(null);
   const [draft, setDraft] = useState('');
   const [editing, setEditing] = useState<string | null>(null);
   const [editBody, setEditBody] = useState('');
+  const accessId = useAccessId(dealId);
 
-  const load = async () => setNotes(await fetchDealNotes(person.access_id!));
+  // A viewer with no access row has no notes yet, which is not the same as
+  // failing to load them. Do not call the RPC with a null id.
+  const load = async () => setNotes(person.access_id ? await fetchDealNotes(person.access_id) : []);
   useEffect(() => { void load(); }, [person.access_id]);
 
   return (
-    <Shell title={`Notes: ${person.name || person.email}`} onClose={onClose}>
+    <Shell title="Notes" subtitle={person.email ?? undefined} onClose={onClose}>
       <textarea
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
@@ -771,8 +791,11 @@ function NotesDialog({
       <button
         onClick={async () => {
           if (!draft.trim()) return;
-          if (await addDealNote(person.access_id!, draft)) {
-            setDraft(''); await load(); onChanged();
+          const id = await accessId(person);
+          if (id && await addDealNote(id, draft)) {
+            setDraft('');
+            setNotes(await fetchDealNotes(id));
+            onChanged();
           } else toast.error('Could not add the note');
         }}
         disabled={!draft.trim()}
@@ -853,10 +876,17 @@ function DetailsDialog({
 
   const field = 'w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
   const label = 'block text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1';
+  const accessId = useAccessId(dealId);
 
   return (
-    <Shell title="Details" onClose={onClose}>
+    <Shell title="Details" subtitle={person.email ?? undefined} onClose={onClose}>
       <div className="space-y-3">
+        <div>
+          <label className={label}>Email</label>
+          {/* Read-only. The email is the key the visit rows join on, so editing it
+              here would silently split one person into two. */}
+          <p className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm text-[#7f8c85] truncate">{person.email}</p>
+        </div>
         <div><label className={label}>Contact name</label>
           <input value={name} onChange={e => setName(e.target.value)} className={field} placeholder="Contact name" /></div>
         <div><label className={label}>Company</label>
@@ -871,12 +901,10 @@ function DetailsDialog({
 
       <button
         onClick={async () => {
-          if (!person.access_id) {
-            toast.error('This viewer has no pipeline record yet.');
-            return;
-          }
           setBusy(true);
-          const ok = await saveDealPerson(person.access_id, {
+          const id = await accessId(person);
+          if (!id) { setBusy(false); toast.error('Could not save'); return; }
+          const ok = await saveDealPerson(id, {
             name: name.trim() || null,
             company_name: company.trim() || null,
             company_logo: logo.trim() || null,
