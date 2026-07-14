@@ -20,6 +20,7 @@ import {
   Search, ChevronUp, ChevronDown, MoreVertical, Eye, Share2,
   Ban, Mail, Pencil, X, Loader2, Check, Download, RefreshCw, Plus,
   RotateCcw, Trash2, Maximize2, Minimize2, UploadCloud, ImageOff,
+  ChevronsRight, ChevronsLeft, GripVertical,
 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import {
@@ -69,6 +70,16 @@ const PIPELINE: DealStage[] = ['lead', 'viewed', 'negotiating', 'committed', 'pa
  *  render blank and the first change would silently move them. */
 const stageOptions = (current: DealStage): DealStage[] =>
   PIPELINE.includes(current) ? PIPELINE : [current, ...PIPELINE];
+
+/**
+ * The columns, as data.
+ *
+ * 'views' is not one column, it is the seven analytics columns folded into one.
+ * Keeping the table's shape in an array is what makes the headers draggable and
+ * the leftmost one freezable without eleven special cases in the markup.
+ */
+type ColId = 'email' | 'name' | 'company' | 'stage' | 'committed' | 'views';
+const DEFAULT_ORDER: ColId[] = ['email', 'name', 'company', 'stage', 'committed', 'views'];
 
 type SortKey =
   | 'email' | 'name' | 'company_name' | 'stage' | 'committed' | 'visits'
@@ -129,6 +140,47 @@ export function DealPeople({
   /** Full screen. Eleven columns do not fit beside a 320px rail, so the table was
    *  a horizontal scroll with Last Note permanently off the end. */
   const [expanded, setExpanded] = useState(false);
+
+  /**
+   * Column order, and whether the analytics are unfolded.
+   *
+   * The seven analytics columns travel together as one block, 'views'. Collapsed,
+   * they are a single column you click to unfold. That is the default, because a
+   * founder opening Deal Flow wants to see WHO is in the raise; the reading data
+   * is the second question, not the first.
+   *
+   * Persisted per deal: rearranging your columns and losing it on the next reload
+   * is worse than not being able to rearrange them.
+   */
+  const ORDER_KEY = `ds-dealflow-cols:${dealId}`;
+  const [order, setOrder] = useState<ColId[]>(() => {
+    try {
+      const raw = localStorage.getItem(ORDER_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw) as ColId[];
+        // Only trust it if it still names exactly the columns that exist. A stale
+        // order from an older build must not drop a column off the table.
+        const ok = saved.length === DEFAULT_ORDER.length && DEFAULT_ORDER.every(c => saved.includes(c));
+        if (ok) return saved;
+      }
+    } catch { /* a bad value in storage is not worth a broken table */ }
+    return DEFAULT_ORDER;
+  });
+  const [viewsOpen, setViewsOpen] = useState(false);
+  const [dragCol, setDragCol] = useState<ColId | null>(null);
+
+  useEffect(() => {
+    try { localStorage.setItem(ORDER_KEY, JSON.stringify(order)); } catch { /* private mode */ }
+  }, [ORDER_KEY, order]);
+
+  const moveCol = (from: ColId, to: ColId) => {
+    if (from === to) return;
+    setOrder(prev => {
+      const next = prev.filter(c => c !== from);
+      next.splice(next.indexOf(to), 0, from);
+      return next;
+    });
+  };
   const [sections, setSections] = useState<DealPerson | null>(null);
   const [deckFor, setDeckFor] = useState<DealPerson | null>(null);
   const [docsFor, setDocsFor] = useState<DealPerson | null>(null);
@@ -228,23 +280,200 @@ export function DealPeople({
    * tells you what IS sorted and gives no hint that the other ten can be. The
    * pair is always there, and the active direction is the one in brand blue.
    */
-  const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => {
-    const on = sort === k;
+  /**
+   * Both arrows, always. A single chevron that appears only on the sorted column
+   * tells you what IS sorted and gives no hint that the other ten can be. The
+   * active direction is the one in brand blue.
+   *
+   * The header is also the drag handle. `frozen` pins the leftmost column so it
+   * stays put while the rest scrolls under it: bg-inherit, so the pinned cell
+   * picks up the row's own stripe and hover colour rather than punching a white
+   * hole through them.
+   */
+  const Th = ({
+    col, k, children, right, frozen, lead,
+  }: {
+    col: ColId;
+    k?: SortKey;
+    children: React.ReactNode;
+    right?: boolean;
+    frozen?: boolean;
+    /** The first header of a group carries the drag handle for the whole group. */
+    lead?: boolean;
+  }) => {
+    const on = k && sort === k;
     return (
-      <th className={`font-semibold px-4 py-2.5 whitespace-nowrap ${right ? 'text-right' : ''}`}>
-        <button
-          onClick={() => { if (on) setDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSort(k); setDir('desc'); } }}
-          className={`inline-flex items-center gap-1 hover:text-[#191f1d] ${right ? 'flex-row-reverse' : ''}`}
-        >
-          {children}
-          <span className="flex flex-col leading-none">
-            <ChevronUp className={`w-3 h-3 ${on && dir === 'asc' ? 'text-[var(--ds-brand)]' : 'text-[#c7cdd4]'}`} />
-            <ChevronDown className={`w-3 h-3 -mt-1 ${on && dir === 'desc' ? 'text-[var(--ds-brand)]' : 'text-[#c7cdd4]'}`} />
-          </span>
-        </button>
+      <th
+        draggable={!!lead}
+        onDragStart={() => lead && setDragCol(col)}
+        onDragEnd={() => setDragCol(null)}
+        onDragOver={(e) => { if (dragCol && dragCol !== col) e.preventDefault(); }}
+        onDrop={() => { if (dragCol) { moveCol(dragCol, col); setDragCol(null); } }}
+        className={`font-semibold px-4 py-2.5 whitespace-nowrap bg-inherit ${right ? 'text-right' : ''} ${
+          frozen ? 'sticky left-0 z-20 shadow-[6px_0_10px_-8px_rgba(12,16,34,0.35)]' : ''
+        } ${lead ? 'cursor-grab active:cursor-grabbing' : ''} ${dragCol === col ? 'opacity-40' : ''}`}
+      >
+        <span className={`inline-flex items-center gap-1 ${right ? 'flex-row-reverse' : ''}`}>
+          {lead && <GripVertical className="w-3 h-3 text-[#d7dbe0] shrink-0" />}
+          {k ? (
+            <button
+              onClick={() => { if (on) setDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSort(k); setDir('desc'); } }}
+              className={`inline-flex items-center gap-1 hover:text-[#191f1d] ${right ? 'flex-row-reverse' : ''}`}
+            >
+              {children}
+              <span className="flex flex-col leading-none">
+                <ChevronUp className={`w-3 h-3 ${on && dir === 'asc' ? 'text-[var(--ds-brand)]' : 'text-[#c7cdd4]'}`} />
+                <ChevronDown className={`w-3 h-3 -mt-1 ${on && dir === 'desc' ? 'text-[var(--ds-brand)]' : 'text-[#c7cdd4]'}`} />
+              </span>
+            </button>
+          ) : children}
+        </span>
       </th>
     );
   };
+
+  const Td = ({ children, right, frozen }: { children: React.ReactNode; right?: boolean; frozen?: boolean }) => (
+    <td className={`px-4 py-3 whitespace-nowrap bg-inherit ${right ? 'text-right' : ''} ${
+      frozen ? 'sticky left-0 z-10 shadow-[6px_0_10px_-8px_rgba(12,16,34,0.35)]' : ''
+    }`}>
+      {children}
+    </td>
+  );
+
+  /* ── The five identity columns ─────────────────────────────────────────── */
+  const CORE: Record<Exclude<ColId, 'views'>, {
+    label: string; sort: SortKey; right?: boolean; cell: (p: DealPerson) => React.ReactNode;
+  }> = {
+    email: {
+      label: 'Email', sort: 'email',
+      cell: (p) => (
+        <span className="flex items-center gap-2 font-medium text-[#191f1d]">
+          {p.blocked && (
+            <span title="Blocked from the room" className="shrink-0">
+              <Ban className="w-3.5 h-3.5 text-red-600" />
+            </span>
+          )}
+          {p.email}
+        </span>
+      ),
+    },
+    name: {
+      label: 'Contact', sort: 'name',
+      cell: (p) => <span className="text-[#7f8c85]">{p.name || DASH}</span>,
+    },
+    company: {
+      label: 'Company', sort: 'company_name',
+      cell: (p) => p.company_name ? (
+        <span className="flex items-center gap-2">
+          <span className="w-7 h-7 shrink-0 rounded-full overflow-hidden ring-2 ring-white bg-white shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
+            {p.company_logo
+              ? <img src={p.company_logo} alt="" className="w-full h-full object-cover" />
+              : <span className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white text-[10px] font-semibold">
+                  {p.company_name.trim().charAt(0).toUpperCase()}
+                </span>}
+          </span>
+          <span className="text-[#191f1d]">{p.company_name}</span>
+        </span>
+      ) : <span className="text-[#c7cdd4]">{DASH}</span>,
+    },
+    stage: {
+      label: 'Status', sort: 'stage',
+      cell: (p) => (
+        <select
+          value={p.stage}
+          onChange={(e) => setStageFor({ person: p, next: e.target.value as DealStage })}
+          title="Change status"
+          className={`h-7 rounded-full border px-2 text-xs font-semibold cursor-pointer ${stageClass(p.stage)}`}
+        >
+          {stageOptions(p.stage).map(st => <option key={st} value={st}>{STAGE_LABEL[st]}</option>)}
+        </select>
+      ),
+    },
+    committed: {
+      label: 'Committed', sort: 'committed', right: true,
+      cell: (p) => (
+        <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
+          {p.committed ? <span className="font-semibold text-[#191f1d]">{money(p.committed)}</span> : DASH}
+          <Drill label="Set the committed amount" onClick={() => setCommittedFor(p)} />
+        </span>
+      ),
+    },
+  };
+
+  /* ── The seven that live behind Views ──────────────────────────────────── */
+  const VIEW_COLS: {
+    key: string; label: string; sort: SortKey; cell: (p: DealPerson) => React.ReactNode;
+  }[] = [
+    {
+      key: 'visits', label: 'Visits', sort: 'visits',
+      cell: (p) => <span className="tabular-nums text-[#7f8c85]">{num(p.visits)}</span>,
+    },
+    {
+      key: 'total', label: 'Total Time', sort: 'total_seconds',
+      cell: (p) => (
+        <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
+          {formatDuration(Math.round(p.total_seconds))}
+          <Drill label="Time per section" onClick={() => setSections(p)} />
+        </span>
+      ),
+    },
+    {
+      key: 'deck', label: 'Deck View', sort: 'deck_views',
+      cell: (p) => (
+        <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
+          {num(p.deck_views)}
+          <Drill label="Time on the deck, page by page" onClick={() => setDeckFor(p)} />
+        </span>
+      ),
+    },
+    {
+      key: 'docs', label: 'Document Views', sort: 'doc_views',
+      cell: (p) => (
+        <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
+          {num(p.doc_views)}
+          <Drill label="Time per document" onClick={() => setDocsFor(p)} />
+        </span>
+      ),
+    },
+    {
+      key: 'forwards', label: 'Forwards', sort: 'forwards',
+      cell: (p) => (
+        <span
+          className="inline-flex items-center gap-1.5 tabular-nums text-[#7f8c85]"
+          title="Distinct browsers other than theirs that opened their personal link. Evidence of a forward, not an exact count of shares."
+        >
+          {num(p.forwards)}
+          <Share2 className="w-3.5 h-3.5 text-[#c7cdd4]" />
+        </span>
+      ),
+    },
+    {
+      key: 'seen', label: 'Last Viewed', sort: 'last_seen',
+      cell: (p) => <span className="text-[#7f8c85]">{fmtDate(p.last_seen)}</span>,
+    },
+    {
+      key: 'note', label: 'Last Note', sort: 'last_note_at',
+      cell: (p) => (
+        <span className="inline-flex items-center gap-2 text-[#7f8c85]">
+          {p.note_count ? fmtDate(p.last_note_at) : DASH}
+          <Drill label="Notes history" onClick={() => setNotesFor(p)} />
+        </span>
+      ),
+    },
+  ];
+
+  /** The pill that says: there is more here, and it opens. */
+  const viewsToggle = (
+    <button
+      onClick={() => setViewsOpen(v => !v)}
+      title={viewsOpen ? 'Fold the reading data away' : 'Visits, time, deck and document views, forwards, last seen, last note'}
+      className="inline-flex items-center gap-1 rounded-full bg-[var(--ds-tint)] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-[var(--ds-brand)] hover:brightness-95 transition"
+    >
+      {viewsOpen ? <ChevronsLeft className="w-3.5 h-3.5" /> : null}
+      Views
+      {viewsOpen ? null : <ChevronsRight className="w-3.5 h-3.5" />}
+    </button>
+  );
 
   const openMenu = (id: string, e: React.MouseEvent<HTMLButtonElement>) => {
     if (menu === id) { setMenu(null); setMenuAt(null); return; }
@@ -277,11 +506,15 @@ export function DealPeople({
       <div className="min-w-0">
         <h3 className="text-sm font-bold text-[#191f1d]">Deal Flow</h3>
         <p className="text-xs text-[#7f8c85] mt-0.5">
-          Everyone in the pipeline and everyone who has opened the room, and what they read.
+          Add and manage your investment pipeline.
         </p>
       </div>
 
       <div className="sm:ml-auto flex flex-wrap items-center gap-2 shrink-0">
+        <button onClick={() => void refresh()} className={iconBtn} title="Reload this table" aria-label="Reload this table">
+          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+        </button>
+
         <button onClick={exportReport} className={iconBtn} title="Export this report as CSV" aria-label="Export this report as CSV">
           <Download className="w-4 h-4" />
         </button>
@@ -357,20 +590,48 @@ export function DealPeople({
         <div className="rounded-2xl border border-[#edf0f3] overflow-x-auto ds-scroll-x">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wide text-[#7f8c85] border-b border-[#edf0f3]">
-                <Th k="email">Email</Th>
-                <Th k="name">Contact</Th>
-                <Th k="company_name">Company</Th>
-                <Th k="stage">Status</Th>
-                <Th k="committed" right>Committed</Th>
-                <Th k="visits" right>Visits</Th>
-                <Th k="total_seconds" right>Total Time</Th>
-                <Th k="deck_views" right>Deck View</Th>
-                <Th k="doc_views" right>Document Views</Th>
-                <Th k="forwards" right>Forwards</Th>
-                <Th k="last_seen" right>Last Viewed</Th>
-                <Th k="last_note_at" right>Last Note</Th>
-                <th className="px-4 py-2.5" />
+              {/* bg-white on the row, bg-inherit on the cells: the frozen column
+                  needs an opaque background of its own, and inheriting the row's
+                  is the only way it keeps the stripe and the hover colour instead
+                  of punching a white hole through them. */}
+              <tr className="bg-white text-left text-[11px] uppercase tracking-wide text-[#7f8c85] border-b border-[#edf0f3]">
+                {order.map((col, idx) => {
+                  const frozen = idx === 0;
+
+                  if (col !== 'views') {
+                    const c = CORE[col];
+                    return (
+                      <Th key={col} col={col} k={c.sort} right={c.right} frozen={frozen} lead>
+                        {c.label}
+                      </Th>
+                    );
+                  }
+
+                  // Folded: one column, and it is obviously a door.
+                  if (!viewsOpen) {
+                    return (
+                      <Th key="views" col="views" right frozen={frozen} lead>
+                        {viewsToggle}
+                      </Th>
+                    );
+                  }
+
+                  // Unfolded: seven columns. The first carries the drag handle for
+                  // the whole block and the control that folds it back up.
+                  return VIEW_COLS.map((vc, j) => (
+                    <Th
+                      key={vc.key}
+                      col="views"
+                      k={vc.sort}
+                      right
+                      frozen={frozen && j === 0}
+                      lead={j === 0}
+                    >
+                      {j === 0 ? <span className="inline-flex items-center gap-2">{viewsToggle}{vc.label}</span> : vc.label}
+                    </Th>
+                  ));
+                })}
+                <th className="px-4 py-2.5 bg-inherit" />
               </tr>
             </thead>
 
@@ -378,96 +639,37 @@ export function DealPeople({
               {rows.map((p) => {
                 const id = p.access_id || p.visit_id || p.email || '';
                 return (
-                  <tr key={id} className="border-b border-[#f5f6f8] last:border-0 odd:bg-[#fafbfc] hover:bg-[#f5f6f8]">
-                    <td className="px-4 py-3 font-medium text-[#191f1d] whitespace-nowrap">
-                      <span className="flex items-center gap-2">
-                        {p.blocked && (
-                          <span title="Blocked from the room" className="shrink-0">
-                            <Ban className="w-3.5 h-3.5 text-red-600" />
-                          </span>
-                        )}
-                        {p.email}
-                      </span>
-                    </td>
+                  <tr key={id} className="bg-white odd:bg-[#fafbfc] hover:bg-[#f5f6f8] border-b border-[#f5f6f8] last:border-0">
+                    {order.map((col, idx) => {
+                      const frozen = idx === 0;
 
-                    <td className="px-4 py-3 text-[#7f8c85] whitespace-nowrap">{p.name || DASH}</td>
+                      if (col !== 'views') {
+                        const c = CORE[col];
+                        return <Td key={col} right={c.right} frozen={frozen}>{c.cell(p)}</Td>;
+                      }
 
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {p.company_name ? (
-                        <span className="flex items-center gap-2">
-                          <span className="w-7 h-7 shrink-0 rounded-full overflow-hidden ring-2 ring-white bg-white shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
-                            {p.company_logo
-                              ? <img src={p.company_logo} alt="" className="w-full h-full object-cover" />
-                              : <span className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white text-[10px] font-semibold">
-                                  {p.company_name.trim().charAt(0).toUpperCase()}
-                                </span>}
-                          </span>
-                          <span className="text-[#191f1d]">{p.company_name}</span>
-                        </span>
-                      ) : <span className="text-[#c7cdd4]">{DASH}</span>}
-                    </td>
+                      if (!viewsOpen) {
+                        return (
+                          <Td key="views" right frozen={frozen}>
+                            {/* The cell opens it too. Nobody hunts for a header. */}
+                            <button
+                              onClick={() => setViewsOpen(true)}
+                              title="Open the reading data"
+                              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 tabular-nums text-[#7f8c85] hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)] transition"
+                            >
+                              {num(p.visits)}
+                              <ChevronsRight className="w-3.5 h-3.5" />
+                            </button>
+                          </Td>
+                        );
+                      }
 
-                    <td className="px-4 py-3">
-                      <select
-                        value={p.stage}
-                        onChange={(e) => setStageFor({ person: p, next: e.target.value as DealStage })}
-                        title="Change status"
-                        className={`h-7 rounded-full border px-2 text-xs font-semibold cursor-pointer ${stageClass(p.stage)}`}
-                      >
-                        {stageOptions(p.stage).map(s => <option key={s} value={s}>{STAGE_LABEL[s]}</option>)}
-                      </select>
-                    </td>
+                      return VIEW_COLS.map((vc, j) => (
+                        <Td key={vc.key} right frozen={frozen && j === 0}>{vc.cell(p)}</Td>
+                      ));
+                    })}
 
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
-                        {p.committed ? <span className="font-semibold text-[#191f1d]">{money(p.committed)}</span> : DASH}
-                        <Drill label="Set the committed amount" onClick={() => setCommittedFor(p)} />
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-right tabular-nums text-[#7f8c85]">{num(p.visits)}</td>
-
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
-                        {formatDuration(Math.round(p.total_seconds))}
-                        <Drill label="Time per section" onClick={() => setSections(p)} />
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
-                        {num(p.deck_views)}
-                        <Drill label="Time on the deck, page by page" onClick={() => setDeckFor(p)} />
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
-                        {num(p.doc_views)}
-                        <Drill label="Time per document" onClick={() => setDocsFor(p)} />
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <span
-                        className="inline-flex items-center gap-1.5 tabular-nums text-[#7f8c85]"
-                        title="Distinct browsers other than theirs that opened their personal link. Evidence of a forward, not an exact count of shares."
-                      >
-                        {num(p.forwards)}
-                        <Share2 className="w-3.5 h-3.5 text-[#c7cdd4]" />
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-right text-[#7f8c85] whitespace-nowrap">{fmtDate(p.last_seen)}</td>
-
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <span className="inline-flex items-center gap-2 text-[#7f8c85]">
-                        {p.note_count ? fmtDate(p.last_note_at) : DASH}
-                        <Drill label="Notes history" onClick={() => setNotesFor(p)} />
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right bg-inherit">
                       <button
                         onClick={(e) => openMenu(id, e)}
                         aria-label={`Actions for ${p.email}`}
@@ -514,8 +716,7 @@ export function DealPeople({
 
                             {/* Reset is for your own test views. Block revokes them at
                                 the gate, it is not cosmetic. Delete is permanent and
-                                takes their analytics with it. All three came off the
-                                old View List, which this table replaced. */}
+                                takes their analytics with it. */}
                             <button
                               disabled={!p.visit_id}
                               onClick={async () => {
@@ -570,6 +771,13 @@ export function DealPeople({
           </table>
         </div>
       )}
+
+      {/* Drag a header to reorder. The leftmost column stays put while the rest
+          scrolls under it, so a wide table never leaves you looking at numbers
+          with no idea whose they are. */}
+      <p className="mt-2 text-xs text-[#99a1af]">
+        Drag a column header to reorder. The first column stays pinned while you scroll.
+      </p>
 
       {adding && (
         <AddInvestorDialog
