@@ -240,6 +240,8 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   };
   const [openIndustry, setOpenIndustry] = useState<number | null>(null);
   const [docsExpanded, setDocsExpanded] = useState(false);
+  // The map is inert until clicked, so it cannot swallow the sidebar's scroll.
+  const [mapLive, setMapLive] = useState(false);
 
   // dwell tracking
   const sectionsRef = useRef<Record<string, number>>({});
@@ -268,9 +270,10 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
         const r = await fetchDealStudioPublic(SLUG);
         if (!alive) return;
         setRoom(r);
-        // The room paints itself in the deal's colours, falling back to the
-        // company's. Without this a customer's investor page showed our blue.
-        applyDealTheme((r as any).theme);
+        // r is null for a slug that does not exist or is inactive, and reading
+        // .theme off null throws. A bad link then white-screens instead of showing
+        // the "DealStudio unavailable" page that is sitting right there.
+        if (r) applyDealTheme((r as any).theme);
         void fetchDealFieldLabels(SLUG).then(fl => { if (alive) setFieldLabels(fl); });
         const ex = await fetchDealExtras(SLUG);
         if (!alive) return;
@@ -282,7 +285,14 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
       setLoading(false);
     })();
     return () => { alive = false; };
-  }, [isMasterAdmin]);
+
+    // SLUG belongs here, and its absence broke the canonical URL.
+    //
+    // On /{handle}/{deck} the slug is resolved asynchronously, so the first render
+    // has SLUG = '' and this effect returns at the guard above. With deps of
+    // [isMasterAdmin] it never ran again, so the room never loaded and a handle
+    // link spun forever.
+  }, [isMasterAdmin, SLUG]);
 
   // Gate logic: master admins always skip it. Otherwise open only when the room
   // has an access requirement and we haven't been granted yet. A granted session
@@ -656,13 +666,31 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
                   spilled past the rounded corners. `block` also kills the inline
                   baseline gap that left a sliver under it. Height scales with the
                   viewport rather than sitting at a fixed 224px on a narrow phone. */}
-              <div className="overflow-hidden rounded-xl">
+              {/* The map does not get the wheel until you ask it for the wheel.
+                  An iframe captures wheel events, and this one is a large target
+                  sitting in the middle of the sidebar: putting the pointer over it
+                  sent your scroll to Google Maps instead of the rail, which made
+                  the whole sidebar feel like it would not scroll.
+                  pointer-events-none lets the wheel pass through to the rail.
+                  Clicking the map turns interaction back on, so it is still a real
+                  map, just not a scroll trap. */}
+              <div
+                className="relative overflow-hidden rounded-xl group"
+                onClick={() => setMapLive(true)}
+              >
                 <iframe
                   src={mapSrc}
                   title="Headquarters"
                   loading="lazy"
-                  className="block w-full h-44 sm:h-56 border-0"
+                  className={`block w-full h-44 sm:h-56 border-0 ${mapLive ? '' : 'pointer-events-none'}`}
                 />
+                {!mapLive && (
+                  <span className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-[#191f1d] shadow-sm">
+                      Click to interact
+                    </span>
+                  </span>
+                )}
               </div>
             </div>
           )}
