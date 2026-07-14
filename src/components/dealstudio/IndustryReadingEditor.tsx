@@ -123,7 +123,10 @@ export function IndustryReadingEditor({
       )}
       <div className={card}>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-sm font-bold text-[#191f1d]">Industry &amp; market reading</span>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-[#191f1d]">Industry &amp; market reading</p>
+            <p className="text-xs text-[#7f8c85] mt-0.5">The reports and articles that make your market case. Link them or upload them.</p>
+          </div>
 
           <div className="flex items-center gap-4">
             {/* Upload a report you hold. The analyst PDFs an investor most wants
@@ -150,7 +153,7 @@ export function IndustryReadingEditor({
             </button>
           </div>
         </div>
-        <p className="mt-1 text-xs text-[#99a1af]">Paste a link and tab out — the title, source, summary, and image fill in automatically. Or upload an industry report as a PDF. Use the toggle on each article to hide just that image for investors.</p>
+        <p className="mt-2 text-xs text-[#99a1af]">Paste a link and tab out and the title, source, summary, and image fill in automatically. Use the toggle on each item to hide just that image.</p>
         {m.articles.length === 0 ? (
           <p className="mt-3 text-sm text-[#99a1af]">No articles yet.</p>
         ) : (

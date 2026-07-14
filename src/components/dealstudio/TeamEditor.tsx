@@ -105,14 +105,19 @@ export function TeamEditor({ value, onChange }: { value: DealTeamMember[] | null
     <>
       <div className="space-y-4">
       <div className={card}>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-[#191f1d]">Team members</span>
-          <button type="button" onClick={() => onChange([...team, { ...EMPTY_MEMBER }])}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-brand)] hover:underline">
-            <Plus className="w-3.5 h-3.5" /> Add member
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-[#191f1d]">Team members</p>
+            <p className="text-xs text-[#7f8c85] mt-0.5">The people investors are backing. The order here is the order they see.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onChange([...team, { ...EMPTY_MEMBER }])}
+            className="shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] hover:brightness-110 transition"
+          >
+            <Plus className="w-4 h-4" /> Member
           </button>
         </div>
-        <p className="mt-2 text-xs text-[#99a1af]">Upload a photo for each member. Order here is the order investors see. Changes save automatically.</p>
       </div>
 
       {team.length === 0 ? (

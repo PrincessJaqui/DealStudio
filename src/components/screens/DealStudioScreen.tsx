@@ -618,7 +618,7 @@ export function DealStudioScreen() {
                 )}
               </div>
 
-              <Card title="Deal Information">
+              <Card title="Deal Information" summary="The headline numbers an investor sees first: raise, stage, and your key stats.">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <EditableLabelField value={(room.field_labels as any)?.round ?? ''} fallback="Round" onChange={v => update({ field_labels: { ...((room.field_labels as any) || {}), round: v } } as any)}><input value={room.round} onChange={e => update({ round: e.target.value })} className={inputCls} placeholder="Seed" /></EditableLabelField>
                   <EditableLabelField value={(room.field_labels as any)?.raise_amount ?? ''} fallback="Raise Amount" onChange={v => update({ field_labels: { ...((room.field_labels as any) || {}), raise_amount: v } } as any)}><input value={room.raise_amount} onChange={e => update({ raise_amount: e.target.value })} className={inputCls} placeholder="$750K" /></EditableLabelField>
@@ -652,15 +652,15 @@ export function DealStudioScreen() {
                 <Field label="Tags (comma separated)"><input value={room.tags?.join(', ') || ''} onChange={e => update({ tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} className={inputCls} placeholder="Marketplace, Sports, B2B2C" /></Field>
               </Card>
 
-              <Card title="Company Summary">
+              <Card title="Company Summary" summary="The short paragraph that opens your deal room.">
                 <RichTextEditor value={room.summary_html} onChange={(html) => update({ summary_html: html })} placeholder="Describe for public visitors…" />
               </Card>
 
-              <Card title="Industries">
+              <Card title="Industries" summary="The sectors you operate in. Investors filter on these.">
                 <IndustryEditor value={room.industries || []} onChange={ind => update({ industries: ind })} />
               </Card>
 
-              <Card title="Meeting Calendar">
+              <Card title="Meeting Calendar" summary="The times investors can book with you. They pick a slot from the deal room.">
                 <ToggleRow label="Enable meeting calendar" checked={room.meeting_enabled} onChange={v => update({ meeting_enabled: v })} />
                 {room.meeting_enabled && (() => {
                   const sch = room.availability as DealSchedule;
@@ -682,11 +682,9 @@ export function DealStudioScreen() {
             <TabsContent value="documents">
               <Card
                 title="Documents"
+                summary="The deck, the model, the data room. Investors open these from the deal room."
                 action={!selectMode && !reorderMode ? (
-                  <button onClick={() => setDocModal({ open: true, existing: null })} aria-label="Add documents"
-                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shadow-sm hover:opacity-90">
-                    <Plus className="w-5 h-5" />
-                  </button>
+                  <AddButton label="Document" onClick={() => setDocModal({ open: true, existing: null })} />
                 ) : null}
               >
                 {(selectMode || reorderMode || docs.length > 0) && (
@@ -797,13 +795,13 @@ export function DealStudioScreen() {
                 }}
                 onChange={(patch) => update(patch as any)}
               />
-              <Card title="Requirements">
+              <Card title="Requirements" summary="What an investor must provide before they can open the room.">
                 <ToggleRow label="Require email" checked={room.require_email} onChange={v => update({ require_email: v })} />
                 <ToggleRow label="Require password" checked={room.require_password} onChange={v => update({ require_password: v })} />
                 <ToggleRow label="Invite only (only approved emails)" checked={room.invite_only} onChange={v => update({ invite_only: v })} />
               </Card>
 
-              <Card title="Sharing">
+              <Card title="Sharing" summary="Who can reach this deal room, and what they need to get in.">
                 <ToggleRow label="Anyone with the link (skip approval)" checked={room.anyone_with_link} onChange={v => update({ anyone_with_link: v })} />
                 <ToggleRow label="Investors can share the link" checked={room.allow_share} onChange={v => update({ allow_share: v })} />
                 <div className="mt-3">
@@ -822,7 +820,7 @@ export function DealStudioScreen() {
                   </div>
                 </div>
               </Card>
-              <Card title="Shared room password">
+              <Card title="Shared room password" summary="One password for everyone you send the link to.">
                 <p className="text-xs text-[#7f8c85] mb-2">
                   Optional single password any investor can use, alongside per-investor approvals.
                 </p>
@@ -875,7 +873,7 @@ export function DealStudioScreen() {
                   </Button>
                 </div>
               </Card>
-              <Card title="Status">
+              <Card title="Status" summary="Live rooms are reachable by anyone with the link. Drafts are not.">
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-[#191f1d]">DealStudio is <span className={room.is_active ? 'text-[var(--ds-brand)] font-semibold' : 'text-[#99a1af] font-semibold'}>{room.is_active ? 'active' : 'inactive'}</span></p>
                   <Switch checked={room.is_active} onCheckedChange={toggleActive} />
@@ -1032,12 +1030,48 @@ export function DealStudioScreen() {
 
 const inputCls = 'w-full h-11 rounded-xl bg-[#f5f6f8] px-3 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/40';
 
-function Card({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
+/**
+ * Every Deal Studio tab is a Card. Giving it the summary line here is what makes
+ * the tabs uniform: each one now has a title, a line saying what the section is
+ * for, and its action on the right -- the shape the Business Model page already
+ * had and the others had each invented separately.
+ *
+ * The type scale matches the View List container exactly: bold 14px title, 12px
+ * muted summary.
+ */
+function Card({ title, summary, action, children }: {
+  title: string;
+  /** One line on what this section is for. If it needs two, the section is doing too much. */
+  summary?: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5">
-      <div className="flex items-center justify-between gap-3 mb-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"><h3 className="shrink-0 text-sm font-bold text-[#191f1d]">{title}</h3>{action && <div className="shrink-0">{action}</div>}</div>
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div className="min-w-0">
+          <h3 className="text-sm font-bold text-[#191f1d]">{title}</h3>
+          {summary && <p className="text-xs text-[#7f8c85] mt-0.5">{summary}</p>}
+        </div>
+        {action && <div className="shrink-0">{action}</div>}
+      </div>
       <div className="space-y-3">{children}</div>
     </div>
+  );
+}
+
+/** The add button every tab uses, so "+ Document" and "+ Add member" cannot end
+ *  up as two different-looking controls. */
+function AddButton({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] hover:brightness-110 transition disabled:opacity-50"
+    >
+      <Plus className="w-4 h-4" /> {label}
+    </button>
   );
 }
 
