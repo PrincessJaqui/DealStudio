@@ -102,9 +102,12 @@ export function DealPeople({
   onChanged: () => void;
 }) {
   const [people, setPeople] = useState<DealPerson[] | null>(null);
+  /** The FIRST load only. After that the table keeps what it has and shows the
+   *  failure inline, rather than throwing the rows away. */
+  const [loading, setLoading] = useState(true);
   /** Distinct from "no people". The RPC can fail, and that must not read as an
-   *  empty pipeline. */
-  const [failed, setFailed] = useState(false);
+   *  empty pipeline, nor as a spinner that never stops. */
+  const [failure, setFailure] = useState<string | null>(null);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [q, setQ] = useState('');
@@ -127,9 +130,10 @@ export function DealPeople({
   const deck = docs.find(d => d.is_deck);
 
   const load = async () => {
-    const rows = await fetchDealPeople(dealId);
-    setFailed(rows === null);
-    if (rows) setPeople(rows);
+    const r = await fetchDealPeople(dealId);
+    setFailure(r.people === null ? (r.message || 'The database rejected the request.') : null);
+    if (r.people) setPeople(r.people);
+    setLoading(false);
     setUpdatedAt(new Date());
   };
   useEffect(() => { void load(); }, [dealId]);
@@ -223,7 +227,9 @@ export function DealPeople({
   const card = 'bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]';
   const chip = 'inline-flex items-center gap-1.5 h-9 px-3 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] transition';
 
-  if (people === null) {
+  // Only a load that has neither finished nor failed spins. A failed first load
+  // used to leave people null forever, and the card span forever with it.
+  if (loading) {
     return <div className={`${card} p-8 flex justify-center`}><Loader2 className="w-5 h-5 animate-spin text-[var(--ds-brand)]" /></div>;
   }
 
@@ -280,13 +286,16 @@ export function DealPeople({
         </div>
       </div>
 
-      {failed ? (
+      {failure ? (
         <div className="py-10 text-center">
           <p className="text-sm font-semibold text-[#191f1d]">Could not load the people on this deal.</p>
-          <p className="mt-1 text-xs text-[#7f8c85] max-w-md mx-auto">
-            The table reads one function, admin_deal_people. If this deal is recording
-            visits but nobody appears here, that function is not in the database yet.
-            Run migrations 0036, 0037, 0040 and 0041 in order, then refresh.
+          <p className="mt-2 mx-auto max-w-lg rounded-xl bg-[#f5f6f8] border border-[#edf0f3] px-3 py-2 text-xs font-mono text-[#191f1d] break-words">
+            {failure}
+          </p>
+          <p className="mt-2 text-xs text-[#7f8c85] max-w-lg mx-auto">
+            That message is from Postgres, not the browser. This table reads one function,
+            admin_deal_people, and it depends on objects created in migrations 0035, 0036,
+            0037 and 0040. Run them in order, then run notify pgrst, reload schema.
           </p>
           <button onClick={() => void refresh()} className={`${chip} mt-4`}>
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} /> Try again
@@ -294,7 +303,7 @@ export function DealPeople({
         </div>
       ) : rows.length === 0 ? (
         <p className="py-10 text-sm text-[#99a1af] text-center">
-          {people.length === 0
+          {(people?.length ?? 0) === 0
             ? 'Nobody is on this deal yet. Add the first investor to start tracking your raise.'
             : 'Nothing matches that.'}
         </p>

@@ -1100,10 +1100,24 @@ export type DealNote = {
  * on this deal yet" over a deal with hundreds of recorded views. A missing
  * migration must not look like an empty pipeline.
  */
-export async function fetchDealPeople(dealId: string): Promise<DealPerson[] | null> {
+export type DealPeopleResult = {
+  /** Null means the call FAILED. Empty array means the deal genuinely has nobody. */
+  people: DealPerson[] | null;
+  /** The database's own words, so the screen can say what is wrong instead of spinning. */
+  message?: string;
+};
+
+export async function fetchDealPeople(dealId: string): Promise<DealPeopleResult> {
   const { data, error } = await supabase.rpc('admin_deal_people', { p_deal: dealId });
-  if (error) { console.warn('[dealStudio] people', error); return null; }
-  return (data ?? []) as DealPerson[];
+  if (error) {
+    console.warn('[dealStudio] people', error);
+    // Postgres says exactly what is missing. Swallowing that and showing a
+    // spinner, or an empty pipeline, cost hours: "function owns_deal does not
+    // exist" and "relation dealstudio_notes does not exist" are the whole answer
+    // and they were only visible in a collapsed console object.
+    return { people: null, message: [error.code, error.message].filter(Boolean).join(': ') };
+  }
+  return { people: (data ?? []) as DealPerson[] };
 }
 
 /**
