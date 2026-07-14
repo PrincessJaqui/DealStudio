@@ -112,7 +112,19 @@ export function scheduleSlots(schedule: DealSchedule, dateKey: string): string[]
 
 export interface DealSource { label: string; url: string; }
 export interface DealMetric { value: string; note: string; sources: DealSource[]; }
-export interface DealArticle { title: string; source: string; url: string; date: string; description?: string; image?: string; hideImage?: boolean; }
+export interface DealArticle {
+  title: string; source: string; url: string; date: string;
+  description?: string; image?: string; hideImage?: boolean;
+  /**
+   * Set when the founder uploaded a report rather than linking one.
+   *
+   * It matters: an uploaded PDF has no page to scrape, so the link-preview
+   * fetch must not run against it, and the investor card should read as a
+   * document rather than as an outbound link to a website.
+   */
+  file?: boolean;
+  fileName?: string;
+}
 export type CalcUnit = 'currency' | 'percentage';
 export type CalcFreq = 'monthly' | 'yearly' | 'per_event';
 export interface ImpactedTier { id: string; tierName: string; unitType: CalcUnit; presetAmount: number; frequency: CalcFreq; }

@@ -545,6 +545,7 @@ export function DealStudioScreen() {
               <IndustryReadingEditor
                 value={(room as any).market ?? null}
                 onChange={(mk) => update({ market: mk } as any)}
+                dealId={room.id}
               />
             </TabsContent>
 

@@ -82,7 +82,7 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                     desktop but stacks on mobile as: problem title, arrow,
                     solution title, problem body, solution body -- so the body was
                     two cards away from the thing it described. */}
-                <span className="block min-w-0 rounded-xl border border-[#edf0f3] bg-[#fafbfc] p-3 text-center md:text-left">
+                <span className="block min-w-0 rounded-xl border border-[#edf0f3] bg-white p-3 text-center md:text-left shadow-[0_2px_10px_-2px_rgba(12,16,34,0.10)]">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-[#9ca3af] mb-0.5">
                     Problem
                   </span>
@@ -107,7 +107,7 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                   <ArrowDown className="md:hidden w-3.5 h-3.5" />
                 </span>
 
-                <span className="block min-w-0 rounded-xl border border-[#edf0f3] bg-[#fafbfc] p-3 text-center md:text-left">
+                <span className="block min-w-0 rounded-xl border border-[#edf0f3] bg-white p-3 text-center md:text-left shadow-[0_2px_10px_-2px_rgba(12,16,34,0.10)]">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-0.5">
                     Solution
                   </span>

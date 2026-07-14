@@ -61,11 +61,19 @@ function ArticleCard({ a, textOnly }: { a: DealArticle; textOnly?: boolean }) {
         <div className="p-3">
           <div className="flex items-start gap-2">
             {!showImage && (
-              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--ds-tint)] text-[var(--ds-brand)]"><FileText className="w-4 h-4" /></span>
+              <span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                a.file
+                  ? 'bg-[var(--ds-accent-tint)] text-[var(--ds-accent-ink)]'
+                  : 'bg-[var(--ds-tint)] text-[var(--ds-brand)]'
+              }`}><FileText className="w-4 h-4" /></span>
             )}
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold text-[#191f1d] line-clamp-2 group-hover:text-[var(--ds-brand)]">{a.title || a.source || hostOf(a.url) || 'Untitled'}</span>
-              <span className="mt-0.5 block truncate text-xs text-[#99a1af]">{[a.source, a.date].filter(Boolean).join(' · ')}</span>
+              <span className="mt-0.5 block truncate text-xs text-[#99a1af]">
+                {a.file
+                  ? [a.source || 'Report', 'PDF', a.date].filter(Boolean).join(' · ')
+                  : [a.source, a.date].filter(Boolean).join(' · ')}
+              </span>
             </span>
             <ArrowUpRight className="w-4 h-4 shrink-0 text-[#cbd5cf] group-hover:text-[var(--ds-brand)]" />
           </div>
