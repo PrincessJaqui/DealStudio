@@ -1115,9 +1115,9 @@ export async function fetchDealPeople(dealId: string): Promise<DealPerson[] | nu
  * insert is used and the duplicate comes back as 23505, which is the honest
  * answer anyway: that person is already on this deal.
  *
- * Stage defaults to 'prospect' because the founder added them by hand and
- * nothing has happened yet. Access status stays 'pending': adding someone to
- * your pipeline is not the same as letting them into the room.
+ * Stage defaults to 'lead': the founder added them by hand, and that is what a
+ * lead is. Access status stays 'pending': adding someone to your pipeline is not
+ * the same as letting them into the room.
  */
 export async function createDealPerson(
   dealId: string,
@@ -1128,7 +1128,9 @@ export async function createDealPerson(
     email: patch.email.trim().toLowerCase(),
     name: patch.name?.trim() || null,
     company_name: patch.company_name?.trim() || null,
-    stage: 'prospect',
+    // Lead, not prospect: the pipeline Jaqui works is lead, viewed, negotiating,
+    // committed, passed. Adding someone by hand IS the lead.
+    stage: 'lead',
     status: 'pending',
   });
   if (!error) return { ok: true };
@@ -1180,6 +1182,42 @@ export async function saveDealPerson(
 ): Promise<boolean> {
   const { error } = await supabase.from('dealstudio_access').update(patch).eq('id', accessId);
   return !error;
+}
+
+/**
+ * What they committed. This is the number the Raised tile adds up, and the one
+ * the investor room shows when the founder chose to display it, so it has to be
+ * editable from the people table: the old pipeline card was the only place it
+ * could be set, and that card is gone.
+ *
+ * Clearing it clears the date with it. A commitment with no amount and an amount
+ * with no date are both half a record.
+ */
+export async function setDealCommitted(accessId: string, amount: number | null): Promise<boolean> {
+  const { error } = await supabase
+    .from('dealstudio_access')
+    .update({
+      committed_amount: amount,
+      committed_at: amount == null ? null : new Date().toISOString(),
+    })
+    .eq('id', accessId);
+  return !error;
+}
+
+/**
+ * Remove someone entirely: their pipeline row AND their analytics.
+ *
+ * Two tables, because a person can exist in either. Deleting only the access row
+ * would leave their visits behind, and they would reappear in the table on the
+ * next load as a viewer with no name.
+ */
+export async function deleteDealPerson(
+  accessId: string | null, visitId: string | null,
+): Promise<boolean> {
+  let ok = true;
+  if (visitId) ok = await adminDeleteVisit(visitId) && ok;
+  if (accessId) ok = (await adminDeleteInvestor(accessId)).success && ok;
+  return ok;
 }
 
 /**

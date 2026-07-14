@@ -19,11 +19,13 @@ import { createPortal } from 'react-dom';
 import {
   Search, ChevronUp, ChevronDown, MoreVertical, ArrowUpRight, Share2,
   Ban, Mail, Pencil, X, Loader2, Check, Download, RefreshCw, Plus,
+  RotateCcw, Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import {
   fetchDealPeople, setDealStage, fetchDealNotes, addDealNote, editDealNote,
-  deleteDealNote, saveDealPerson, createDealPerson, inviteUrl, formatDuration,
+  deleteDealNote, saveDealPerson, createDealPerson, setDealCommitted, deleteDealPerson,
+  adminResetVisit, inviteUrl, formatDuration,
   STAGE_LABEL, STAGE_ORDER,
   type DealPerson, type DealStage, type DealNote, type DealDocument,
 } from '../../lib/dealStudio';
@@ -33,6 +35,7 @@ import { DeckPageBars } from './DeckPageBars';
 
 const num = (n: number | null | undefined) => (n || 0).toLocaleString();
 const DASH = '\u2013';
+const money = (n: number) => `$${(n || 0).toLocaleString()}`;
 
 /** Passed is red. Everything else is quiet: a pipeline that shouts is unreadable. */
 const stageClass = (s: DealStage) =>
@@ -54,18 +57,23 @@ const fmtClock = (d: Date) =>
   d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
 
 /**
- * The stages the filter bar offers. Met, Interested and Closed are not on it.
+ * The pipeline, as Jaqui works it: Lead, Viewed deal, Negotiating, Committed,
+ * Passed. Prospect, Met, Interested and Closed are off both the filter bar and
+ * the Status dropdown.
  *
- * They are still valid stages: the database allows all nine, existing people keep
- * theirs, and the Status dropdown on each row still offers them. This list is
- * only what the filter bar shows.
+ * The database still allows all nine, so anyone already sitting on one of the
+ * retired stages keeps it and still renders (see stageOptions below). Nothing is
+ * rewritten underneath them without being asked.
  */
-const FILTER_STAGES: DealStage[] = STAGE_ORDER.filter(
-  s => s !== 'met' && s !== 'interested' && s !== 'closed',
-);
+const PIPELINE: DealStage[] = ['lead', 'viewed', 'negotiating', 'committed', 'passed'];
+
+/** A person on a retired stage keeps it in their dropdown, or the select would
+ *  render blank and the first change would silently move them. */
+const stageOptions = (current: DealStage): DealStage[] =>
+  PIPELINE.includes(current) ? PIPELINE : [current, ...PIPELINE];
 
 type SortKey =
-  | 'email' | 'name' | 'company_name' | 'stage' | 'visits'
+  | 'email' | 'name' | 'company_name' | 'stage' | 'committed' | 'visits'
   | 'total_seconds' | 'deck_views' | 'doc_views' | 'forwards'
   | 'last_seen' | 'last_note_at';
 
@@ -113,6 +121,7 @@ export function DealPeople({
   const [docsFor, setDocsFor] = useState<DealPerson | null>(null);
   const [notesFor, setNotesFor] = useState<DealPerson | null>(null);
   const [detailsFor, setDetailsFor] = useState<DealPerson | null>(null);
+  const [committedFor, setCommittedFor] = useState<DealPerson | null>(null);
   const [stageFor, setStageFor] = useState<{ person: DealPerson; next: DealStage } | null>(null);
 
   const deck = docs.find(d => d.is_deck);
@@ -164,7 +173,7 @@ export function DealPeople({
   /** The rows on screen, as a CSV. What you filtered to is what you export. */
   const exportReport = () => {
     const head = [
-      'Email', 'Contact', 'Company', 'Status', 'Visits', 'Total time',
+      'Email', 'Contact', 'Company', 'Status', 'Committed', 'Visits', 'Total time',
       'Deck views', 'Document views', 'Forwards', 'Last viewed', 'Last note',
     ];
     const cell = (v: string | number) => `"${String(v ?? '').replace(/"/g, '""')}"`;
@@ -172,6 +181,7 @@ export function DealPeople({
     for (const p of rows) {
       lines.push([
         p.email || '', p.name || '', p.company_name || '', STAGE_LABEL[p.stage],
+        p.committed || 0,
         p.visits || 0, formatDuration(Math.round(p.total_seconds)),
         p.deck_views || 0, p.doc_views || 0, p.forwards || 0,
         p.last_seen ? fmtDate(p.last_seen) : '',
@@ -251,7 +261,7 @@ export function DealPeople({
       <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
         <div className="min-w-0 lg:flex-1">
           <PillTabs
-            tabs={[['all', 'All'] as [string, string], ...FILTER_STAGES.map(s => [s, STAGE_LABEL[s]] as [string, string])]}
+            tabs={[['all', 'All'] as [string, string], ...PIPELINE.map(s => [s, STAGE_LABEL[s]] as [string, string])]}
             value={filter}
             onChange={(v) => setFilter(v as DealStage | 'all')}
             hintKey="dealflow-status"
@@ -297,6 +307,7 @@ export function DealPeople({
                 <Th k="name">Contact</Th>
                 <Th k="company_name">Company</Th>
                 <Th k="stage">Status</Th>
+                <Th k="committed" right>Committed</Th>
                 <Th k="visits" right>Visits</Th>
                 <Th k="total_seconds" right>Total Time</Th>
                 <Th k="deck_views" right>Deck View</Th>
@@ -349,8 +360,19 @@ export function DealPeople({
                         title={p.access_id ? 'Change status' : 'Add details first to track this person'}
                         className={`h-7 rounded-full border px-2 text-xs font-semibold cursor-pointer disabled:cursor-not-allowed ${stageClass(p.stage)}`}
                       >
-                        {STAGE_ORDER.map(s => <option key={s} value={s}>{STAGE_LABEL[s]}</option>)}
+                        {stageOptions(p.stage).map(s => <option key={s} value={s}>{STAGE_LABEL[s]}</option>)}
                       </select>
+                    </td>
+
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <span className="inline-flex items-center gap-2 tabular-nums text-[#7f8c85]">
+                        {p.committed ? <span className="font-semibold text-[#191f1d]">{money(p.committed)}</span> : DASH}
+                        <Drill
+                          label="Set the committed amount"
+                          onClick={() => setCommittedFor(p)}
+                          disabled={!p.access_id}
+                        />
+                      </span>
                     </td>
 
                     <td className="px-4 py-3 text-right tabular-nums text-[#7f8c85]">{num(p.visits)}</td>
@@ -440,6 +462,22 @@ export function DealPeople({
 
                             <div className="my-1 border-t border-[#edf0f3]" />
 
+                            {/* Reset is for your own test views. Block revokes them at
+                                the gate, it is not cosmetic. Delete is permanent and
+                                takes their analytics with it. All three came off the
+                                old View List, which this table replaced. */}
+                            <button
+                              disabled={!p.visit_id}
+                              onClick={async () => {
+                                setMenu(null);
+                                if (await adminResetVisit(p.visit_id!)) { toast.success('Counts reset'); await load(); onChanged(); }
+                                else toast.error('Could not reset');
+                              }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d] disabled:opacity-40"
+                            >
+                              <RotateCcw className="w-4 h-4" /> Reset counts
+                            </button>
+
                             <button
                               disabled={!p.email}
                               onClick={async () => {
@@ -457,6 +495,18 @@ export function DealPeople({
                               }`}
                             >
                               <Ban className="w-4 h-4" /> {p.blocked ? 'Unblock' : 'Block access'}
+                            </button>
+
+                            <button
+                              onClick={async () => {
+                                setMenu(null);
+                                if (!confirm(`Permanently delete ${p.email || 'this person'} and their analytics? This cannot be undone.`)) return;
+                                if (await deleteDealPerson(p.access_id, p.visit_id)) { toast.success('Deleted'); await load(); onChanged(); }
+                                else toast.error('Could not delete');
+                              }}
+                              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" /> Delete
                             </button>
                           </div>
                         </>,
@@ -502,6 +552,14 @@ export function DealPeople({
           dealId={dealId}
           onClose={() => setDetailsFor(null)}
           onSaved={async () => { setDetailsFor(null); await load(); onChanged(); }}
+        />
+      )}
+
+      {committedFor?.access_id && (
+        <CommittedDialog
+          person={committedFor}
+          onClose={() => setCommittedFor(null)}
+          onSaved={async () => { setCommittedFor(null); await load(); onChanged(); }}
         />
       )}
 
@@ -591,6 +649,47 @@ function AddInvestorDialog({
         className="mt-5 w-full inline-flex items-center justify-center gap-1.5 h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
       >
         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Add investor
+      </button>
+    </Shell>
+  );
+}
+
+/** The committed amount. This is what the Raised tile adds up, so it lives on the
+ *  row, not in a card that no longer exists. */
+function CommittedDialog({
+  person, onClose, onSaved,
+}: { person: DealPerson; onClose: () => void; onSaved: () => void }) {
+  const [amount, setAmount] = useState(person.committed ? String(person.committed) : '');
+  const [busy, setBusy] = useState(false);
+
+  return (
+    <Shell title={`Committed: ${person.name || person.email}`} onClose={onClose}>
+      <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1">Amount</label>
+      <input
+        value={amount}
+        onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))}
+        inputMode="decimal"
+        autoFocus
+        placeholder="250000"
+        className="w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+      />
+      <p className="mt-2 text-xs text-[#7f8c85]">
+        Adds to Raised on this deal. Clear the field to remove the commitment.
+      </p>
+
+      <button
+        onClick={async () => {
+          setBusy(true);
+          const n = amount.trim() === '' ? null : Number(amount);
+          const ok = await setDealCommitted(person.access_id!, Number.isFinite(n as number) ? n : null);
+          setBusy(false);
+          if (ok) { toast.success('Saved'); onSaved(); }
+          else toast.error('Could not save');
+        }}
+        disabled={busy}
+        className="mt-5 w-full inline-flex items-center justify-center gap-1.5 h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
+      >
+        {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Save
       </button>
     </Shell>
   );

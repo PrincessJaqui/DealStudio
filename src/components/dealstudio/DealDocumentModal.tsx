@@ -115,9 +115,12 @@ export function DealDocumentModal({ roomId, existing, defaultIsDeck, onClose, on
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#7f8c85] mb-1">Replace file (optional)</label>
-                <label className="flex items-center gap-3 rounded-xl border border-dashed border-[#d7dde2] bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-4 py-3 cursor-pointer hover:border-[var(--ds-brand)]">
-                  <UploadCloud className="w-5 h-5 text-[var(--ds-brand)]" />
-                  <span className="text-sm text-[#7f8c85] truncate">{replaceFile ? replaceFile.name : existing?.file_name || 'Keep current file'}</span>
+                {/* The box is a brand gradient, so the contents are white. They
+                    were still the muted gray and the brand-blue icon from when
+                    this box was white, which put blue on blue. */}
+                <label className="flex items-center gap-3 rounded-xl border border-dashed border-white/50 bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-4 py-3 cursor-pointer hover:border-white">
+                  <UploadCloud className="w-5 h-5 text-white shrink-0" />
+                  <span className="text-sm font-medium text-white truncate">{replaceFile ? replaceFile.name : existing?.file_name || 'Keep current file'}</span>
                   <input type="file" accept="application/pdf,image/*" className="hidden" onChange={e => setReplaceFile(e.target.files?.[0] || null)} />
                 </label>
                 {replaceFile && <p className="text-[11px] text-[#b45309] mt-1">The current version will be archived and stays viewable in history.</p>}
