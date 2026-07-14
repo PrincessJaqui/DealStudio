@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Presentation, Plus, ExternalLink, Copy, Check, Power, CheckCircle2, Users, FileText, Trash2, RefreshCw, UploadCloud, GripVertical, Globe, X, LogOut, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Presentation, Plus, ExternalLink, Copy, Check, Power, CheckCircle2, Users, FileText, Trash2, RefreshCw, UploadCloud, GripVertical, Globe, X, LogOut, Eye, EyeOff, Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { Switch } from '../ui/switch';
@@ -776,6 +776,38 @@ export function DealStudioScreen() {
 
             {/* SETTINGS */}
             <TabsContent value="settings" className="space-y-4">
+
+              <Card
+                title="Deal name"
+                summary="What this deal is called across your console. Investors see it at the top of the room."
+              >
+                <Field label="Deal name">
+                  <input
+                    value={room.company_name || ''}
+                    onChange={(e) => update({ company_name: e.target.value })}
+                    placeholder="Series A"
+                    className={inputCls}
+                  />
+                </Field>
+
+                {/* The link is deliberately NOT derived from the name after creation.
+                    Investors are already holding /d/{slug}, the gate looks them up by
+                    slug, and their saved access grant is keyed on it. Re-slugging on a
+                    rename would 404 every link already in an inbox and silently log
+                    those investors out. So the name is yours to change; the link is
+                    frozen. */}
+                <div className="rounded-xl bg-[#f5f6f8] border border-[#edf0f3] p-3">
+                  <p className="flex items-start gap-2 text-xs text-[#7f8c85]">
+                    <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                    <span>
+                      Renaming does not change the share link. It stays{' '}
+                      <span className="font-mono text-[#191f1d]">/d/{room.slug}</span>, so
+                      links you have already sent keep working.
+                    </span>
+                  </p>
+                </div>
+              </Card>
+
               {/* Mobile only: display order is a setting, so on a phone it sits
                   with the other settings rather than in a rail that is not there. */}
               <div className="lg:hidden">{displayOrderPanel}</div>
