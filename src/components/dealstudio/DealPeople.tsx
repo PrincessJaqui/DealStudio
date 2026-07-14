@@ -17,7 +17,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Search, ChevronUp, ChevronDown, MoreVertical, ArrowUpRight, Share2,
+  Search, ChevronUp, ChevronDown, MoreVertical, Eye, Share2,
   Ban, Mail, Pencil, X, Loader2, Check, Download, RefreshCw, Plus,
   RotateCcw, Trash2,
 } from 'lucide-react';
@@ -77,7 +77,9 @@ type SortKey =
   | 'total_seconds' | 'deck_views' | 'doc_views' | 'forwards'
   | 'last_seen' | 'last_note_at';
 
-/** The one control that opens a breakdown, so the four of them cannot drift. */
+/** The one control that opens a breakdown, so all five of them cannot drift.
+ *  An eye, not an arrow: an arrow reads as "go somewhere", and these open a
+ *  panel in place. */
 function Drill({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) {
   return (
     <button
@@ -85,9 +87,9 @@ function Drill({ label, onClick, disabled }: { label: string; onClick: () => voi
       disabled={disabled}
       title={label}
       aria-label={label}
-      className="text-[#191f1d] hover:text-[var(--ds-brand)] disabled:text-[#d7dbe0] disabled:cursor-not-allowed"
+      className="text-[#c7cdd4] hover:text-[var(--ds-brand)] disabled:text-[#e6e9ec] disabled:cursor-not-allowed"
     >
-      <ArrowUpRight className="w-4 h-4" />
+      <Eye className="w-4 h-4" />
     </button>
   );
 }
