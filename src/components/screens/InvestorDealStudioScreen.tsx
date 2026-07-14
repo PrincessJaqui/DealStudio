@@ -131,6 +131,17 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   const docsView = useInViewOnce<HTMLDivElement>();
   const [room, setRoom] = useState<DealStudioPublic | null>(null);
 
+  const [granted, setGranted] = useState(() => readPersistedAccess(SLUG));
+
+  // On a /{handle}/{deck} URL the slug is not known on the first render, so the
+  // initialiser above reads the storage key "dealstudio_access_" and gets false.
+  // Without this, an investor holding a valid 30-day grant is re-prompted by the
+  // gate on every single visit to a handle link.
+  useEffect(() => {
+    if (!SLUG) return;
+    if (readPersistedAccess(SLUG)) setGranted(true);
+  }, [SLUG]);
+
   /**
    * The sticky sidebar's height, measured rather than guessed.
    *
@@ -148,32 +159,57 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
     const el = sideRef.current;
     if (!el) return;
 
+    let frame = 0;
     const fit = () => {
-      // Below lg the sidebar is not sticky and must keep its natural height.
-      if (window.innerWidth < 1024) { el.style.height = ''; return; }
-      const top = el.getBoundingClientRect().top;
-      el.style.height = `${Math.max(280, window.innerHeight - top - 16)}px`;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        // Below lg the rail is part of the normal page stack and keeps its
+        // natural height.
+        if (window.innerWidth < 1024) { el.style.height = ''; return; }
+
+        const rect = el.getBoundingClientRect();
+        const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+
+        // The app renders with body { zoom: 0.9 } (see index.css).
+        //
+        // That matters more than it looks. getBoundingClientRect returns VISUAL
+        // pixels, which are scaled by the zoom. offsetHeight returns LAYOUT
+        // pixels, which are not. And style.height sets LAYOUT pixels. Measuring in
+        // one space and writing in the other is wrong by exactly the zoom factor,
+        // so every height set here was 10 percent off.
+        const visualScale = el.offsetHeight > 0 ? rect.height / el.offsetHeight : 1;
+        const availableVisual = viewportHeight - rect.top - 16;
+        const layoutHeight = availableVisual / (visualScale || 1);
+
+        el.style.height = `${Math.max(280, layoutHeight)}px`;
+      });
     };
 
     fit();
     window.addEventListener('scroll', fit, { passive: true });
     window.addEventListener('resize', fit);
-
-    // The sidebar's own content decides whether it needs to scroll, and that
-    // content arrives late (documents, availability). Re-measure when it changes
-    // size instead of assuming the first measurement holds.
-    const ro = new ResizeObserver(fit);
-    ro.observe(el);
+    window.visualViewport?.addEventListener('resize', fit);
 
     return () => {
-      ro.disconnect();
+      cancelAnimationFrame(frame);
       window.removeEventListener('scroll', fit);
       window.removeEventListener('resize', fit);
+      window.visualViewport?.removeEventListener('resize', fit);
     };
-    // room is the dependency that matters: the sidebar does not exist in the DOM
-    // until the deal has loaded, so an effect keyed on [] runs once against a null
-    // ref, gives up, and never runs again. That is why no height was ever set.
-  }, [room]);
+
+    // `granted` is the dependency that was missing, and it is the whole bug.
+    //
+    // A gated investor sees InvestorGate, which returns EARLY -- the rail is not
+    // in the DOM. `room` loads while the gate is still up, the effect fires,
+    // sideRef.current is null, it gives up. Access is then granted, the rail
+    // mounts, but `room` has not changed, so the effect never runs again and no
+    // height is ever set. Without a bounded height, overflow-y-auto has nothing
+    // to scroll.
+    //
+    // There is deliberately no ResizeObserver here: it would be watching the same
+    // element whose height this effect sets, which is a feedback loop. The height
+    // depends on rect.top and the viewport, not on the content.
+  }, [room, granted]);
   const [fieldLabels, setFieldLabels] = useState<Record<string, string>>({});
   const [market, setMarket] = useState<DealMarket | null>(null);
   const [team, setTeam] = useState<DealTeamMember[] | null>(null);
@@ -181,7 +217,6 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   const [competition, setCompetition] = useState<DealCompetition | null>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(() => { try { return localStorage.getItem('dealstudio_email'); } catch { return null; } });
-  const [granted, setGranted] = useState(() => readPersistedAccess(SLUG));
   const [activeDoc, setActiveDoc] = useState<DealDocument | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
@@ -549,22 +584,22 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             draft banner and on how far you have scrolled, so a single fixed
             number always overhung the fold somewhere and cut off the calendar.
             See the fit() effect above. */}
+        {/* Two elements, two jobs.
+            OUTER: sticky, plus the measured viewport height. min-h-0 stops the grid
+                   item being stretched to its content height, which would leave
+                   nothing to scroll.
+            INNER: the scrolling.
+            One element doing both is what the last several attempts kept trying,
+            and it is fragile in Safari. */}
         <div
           ref={sideRef}
-          // overscroll-contain is gone on purpose: with it, reaching the bottom of
-          // the sidebar stops the wheel dead instead of handing the scroll back to
-          // the page, which is its own way of feeling stuck.
-          /* ONE scroll container, transparent. The cards stay cards.
-           *
-           * It is sticky, its height is measured to reach the bottom of the current
-           * view, and the sections scroll INSIDE it.
-           *
-           * The px/-mx pair is not cosmetic. Setting overflow-y also makes overflow-x
-           * a clip box, so without side padding the cards' drop shadows get sliced off
-           * at the left and right edges. The padding gives them room inside the clip;
-           * the negative margin puts the column back where it was. */
-          className="contents lg:block lg:self-start lg:space-y-6 lg:sticky lg:top-[84px] lg:overflow-y-auto lg:-mx-3 lg:px-3 ds-scroll-y"
+          className="contents lg:block lg:self-start lg:sticky lg:top-[84px] lg:min-h-0"
         >
+          {/* The px/-mx pair is not cosmetic. Setting overflow-y also makes
+              overflow-x a clip box, so without side padding the cards' drop shadows
+              get sliced flat at the left and right edges. The padding gives them
+              room inside the clip; the negative margin puts the column back. */}
+          <div className="contents lg:block lg:h-full lg:min-h-0 lg:space-y-6 lg:overflow-y-auto lg:-mx-3 lg:px-3 ds-scroll-y">
           <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 text-center">
             {/* A white ring plus a soft shadow, so the mark sits ON the card
                 rather than flat against it. The hairline border alone left it
@@ -695,6 +730,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
               padding-bottom at the end of the scroll, so the calendar would sit
               flush against the edge. An element cannot be ignored. */}
           <div className="hidden lg:block h-6" aria-hidden="true" />
+          </div>
         </div>
       </div>
 
