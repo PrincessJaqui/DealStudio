@@ -6,6 +6,7 @@
  */
 import type { ReactNode } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { SectionHeader, AddButton } from './SectionHeader';
 import {
   computeBusinessModel,
   type DealBusinessModel, type RevenueStream, type PricingTier, type ImpactedTier,
@@ -79,18 +80,26 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
 
   return (
     <div>
-      <div className="flex items-start justify-between gap-3 mb-5">
-        <div>
-          <h2 className="text-lg font-bold text-[#191f1d]">Revenue Model Calculator</h2>
-          <p className="text-sm text-[#7f8c85]">Set quantities and pricing to model your revenue mix</p>
+      {/* Two headers, on purpose. The admin console uses the shared Deal Studio
+          section header so this tab matches every other tab. The investor room
+          keeps the heading it always had: this component renders on the public
+          page too, and nobody asked to change what investors see. */}
+      {admin ? (
+        <div className="mb-4">
+          <SectionHeader
+            title="Revenue Model Calculator"
+            summary="Set quantities and pricing to model your revenue mix."
+            action={<AddButton label="Revenue" onClick={() => onChange({ ...m, revenues: [...m.revenues, newRevenue()] })} />}
+          />
         </div>
-        {admin && (
-          <button type="button" onClick={() => onChange({ ...m, revenues: [...m.revenues, newRevenue()] })}
-            className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-4 py-2 text-sm font-semibold text-white shadow-sm shrink-0">
-            <Plus className="w-4 h-4" /> New Revenue
-          </button>
-        )}
-      </div>
+      ) : (
+        <div className="flex items-start justify-between gap-3 mb-5">
+          <div>
+            <h2 className="text-lg font-bold text-[#191f1d]">Revenue Model Calculator</h2>
+            <p className="text-sm text-[#7f8c85]">Set quantities and pricing to model your revenue mix</p>
+          </div>
+        </div>
+      )}
 
       {m.revenues.length === 0 ? (
         <div className="rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-8 text-center">
@@ -164,7 +173,7 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
                             ))}
                           </div>
                           {admin && (
-                            <button type="button" onClick={() => setTier(ri, ti, { impactedTiers: [...(t.impactedTiers || []), newImpacted()] })} className="mt-2 ml-auto block text-xs font-semibold text-[var(--ds-brand)] hover:underline">+ Add More Impacted Tiers</button>
+                            <button type="button" onClick={() => setTier(ri, ti, { impactedTiers: [...(t.impactedTiers || []), newImpacted()] })} className="mt-2 ml-auto flex w-fit items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] transition"><Plus className="w-4 h-4" /> Impacted Tier</button>
                           )}
                         </div>
                       )}
@@ -173,7 +182,7 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
                 </div>
 
                 {admin && (
-                  <button type="button" onClick={() => setRev(ri, { tiers: [...r.tiers, newTier()] })} className="mt-3 ml-auto block text-xs font-semibold text-[var(--ds-brand)] hover:underline">+ Add Pricing Tier</button>
+                  <button type="button" onClick={() => setRev(ri, { tiers: [...r.tiers, newTier()] })} className="mt-3 ml-auto flex w-fit items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] transition"><Plus className="w-4 h-4" /> Pricing Tier</button>
                 )}
 
                 <div className="mt-4 border-t border-[#edf0f3] pt-3 space-y-2">

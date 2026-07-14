@@ -1,5 +1,5 @@
 /**
- * IndustryReadingEditor — the articles an investor reads alongside the market.
+ * IndustryReadingEditor: the articles an investor reads alongside the market.
  *
  * Split out of MarketEditor because Industry Reading is now its own section in
  * the investor room and its own tab here. One thing, one place.
@@ -9,8 +9,9 @@
  */
 
 import {
-  Plus, Trash2, Loader2, Image as ImageIcon, EyeOff, Eye, ChevronUp, ChevronDown, RefreshCw, UploadCloud, FileText,
+  Trash2, Loader2, Image as ImageIcon, ChevronUp, ChevronDown, RefreshCw, UploadCloud,
 } from 'lucide-react';
+import { SectionHeader, AddButton } from './SectionHeader';
 import { EMPTY_MARKET, fetchLinkPreviewResult, uploadDealFile, type DealMarket, type DealArticle } from '../../lib/dealStudio';
 import { useState } from 'react';
 import { toast } from 'sonner@2.0.3';
@@ -121,22 +122,21 @@ export function IndustryReadingEditor({
           {note}
         </p>
       )}
-      <div className={card}>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-[#191f1d]">Industry &amp; market reading</p>
-            <p className="text-xs text-[#7f8c85] mt-0.5">The reports and articles that make your market case. Link them or upload them.</p>
-          </div>
 
-          <div className="flex items-center gap-4">
+      <SectionHeader
+        title="Industry and market reading"
+        summary="The reports and articles that make your market case. Link them or upload them."
+        action={
+          <div className="flex items-center gap-2">
             {/* Upload a report you hold. The analyst PDFs an investor most wants
-                are exactly the ones with no public URL to paste. */}
-            <label className={`inline-flex items-center gap-1 text-xs font-semibold cursor-pointer ${
-              uploading ? 'text-[#99a1af] cursor-wait' : 'text-[var(--ds-brand)] hover:underline'
+                are exactly the ones with no public URL to paste. It adds an item,
+                so it is a button, not a text link. */}
+            <label className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] transition ${
+              uploading ? 'opacity-60 cursor-wait' : 'cursor-pointer'
             }`}>
               {uploading
-                ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading</>
-                : <><UploadCloud className="w-3.5 h-3.5" /> Upload report</>}
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading</>
+                : <><UploadCloud className="w-4 h-4" /> Upload report</>}
               <input
                 type="file"
                 accept="application/pdf"
@@ -147,85 +147,91 @@ export function IndustryReadingEditor({
               />
             </label>
 
-            <button type="button" onClick={() => onChange({ ...m, articles: [...m.articles, { title: '', source: '', url: '', date: '', description: '', image: '' }] })}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-brand)] hover:underline">
-              <Plus className="w-3.5 h-3.5" /> Add link
-            </button>
+            <AddButton
+              label="Link"
+              onClick={() => onChange({ ...m, articles: [...m.articles, { title: '', source: '', url: '', date: '', description: '', image: '' }] })}
+            />
           </div>
+        }
+      >
+        <p className="text-xs text-[#99a1af]">
+          Paste a link and tab out and the title, source, summary, and image fill in automatically. Use the toggle on each item to hide just that image.
+        </p>
+      </SectionHeader>
+
+      {m.articles.length === 0 ? (
+        <div className={card}>
+          <p className="text-sm text-[#99a1af]">No reading yet. Link the report that makes your market case.</p>
         </div>
-        <p className="mt-2 text-xs text-[#99a1af]">Paste a link and tab out and the title, source, summary, and image fill in automatically. Use the toggle on each item to hide just that image.</p>
-        {m.articles.length === 0 ? (
-          <p className="mt-3 text-sm text-[#99a1af]">No articles yet.</p>
-        ) : (
-          <div className="mt-3 space-y-3">
-            {m.articles.map((a, i) => (
-              <div key={i} className="rounded-xl border border-[#edf0f3] p-3">
-                {/* Link first — pasting it pulls the rest. */}
-                <div className="flex items-center gap-2">
-                  <div className="flex shrink-0 flex-col">
-                    <button type="button" onClick={() => moveArticle(i, -1)} disabled={i === 0}
-                      className="rounded p-0.5 text-[#99a1af] hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)] disabled:opacity-30" aria-label="Move article up">
-                      <ChevronUp className="w-4 h-4" />
-                    </button>
-                    <button type="button" onClick={() => moveArticle(i, 1)} disabled={i === m.articles.length - 1}
-                      className="rounded p-0.5 text-[#99a1af] hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)] disabled:opacity-30" aria-label="Move article down">
-                      <ChevronDown className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <input className={input} placeholder="https://..." value={a.url}
-                    onChange={e => setArticle(i, { url: e.target.value })}
-                    onBlur={e => pull(i, e.target.value.trim())} />
-                  <button type="button" onClick={() => pull(i, a.url)} disabled={!a.url || !!fetching[i]}
-                    className="shrink-0 rounded-lg p-2 text-[#7f8c85] hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)] disabled:opacity-40" aria-label="Refetch preview">
-                    {fetching[i] ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                  </button>
-                  <button type="button" onClick={() => onChange({ ...m, articles: m.articles.filter((_, j) => j !== i) })}
-                    className="shrink-0 rounded-lg p-2 text-[#99a1af] hover:bg-[#fef2f2] hover:text-[#dc2626]" aria-label="Remove article">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="mt-2 flex gap-3">
-                  <div className="h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-[#edf0f3] bg-[#f5f6f8] flex items-center justify-center">
-                    {a.image ? (
-                      <img src={a.image} alt="" className="h-full w-full object-cover"
-                        onError={e => { e.currentTarget.style.display = 'none'; }} />
-                    ) : (
-                      <ImageIcon className="w-4 h-4 text-[#c7cdd4]" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <input className={input} placeholder="Title" value={a.title} onChange={e => setArticle(i, { title: e.target.value })} />
-                    <div className="grid grid-cols-2 gap-2">
-                      <input className={input} placeholder="Source" value={a.source} onChange={e => setArticle(i, { source: e.target.value })} />
-                      <input className={input} placeholder="Date (e.g. Mar 2025)" value={a.date} onChange={e => setArticle(i, { date: e.target.value })} />
-                    </div>
-                    {/* Auto-fill needs the link-preview function. This field means an
-                        article can still carry an image without it. */}
-                    <input
-                      className={input}
-                      placeholder="Image URL (https://... , optional)"
-                      value={a.image ?? ''}
-                      onChange={e => setArticle(i, { image: e.target.value.trim() })}
-                    />
-                  </div>
-                </div>
-                {!!a.image && (
-                  <label className="mt-2 flex items-center gap-2 text-xs font-medium text-[#191f1d] cursor-pointer select-none">
-                    <input type="checkbox" checked={!!a.hideImage} onChange={e => setArticle(i, { hideImage: e.target.checked })}
-                      className="h-4 w-4 rounded border-[var(--ds-brd)] text-[var(--ds-brand)] focus:ring-[var(--ds-brand)]" />
-                    Hide this image for investors
-                  </label>
-                )}
-                {fetching[i] && <p className="mt-2 text-xs text-[#99a1af] inline-flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> Reading the link…</p>}
-                {!!a.description && (
-                  <textarea className={input + ' mt-2 min-h-[56px]'} placeholder="Summary (auto-filled)" value={a.description}
-                    onChange={e => setArticle(i, { description: e.target.value })} />
+      ) : (
+        m.articles.map((a, i) => (
+          <div key={i} className={card}>
+            {/* Link first: pasting it pulls the rest. */}
+            <div className="flex items-center gap-2">
+              <div className="flex shrink-0 flex-col">
+                <button type="button" onClick={() => moveArticle(i, -1)} disabled={i === 0}
+                  className="rounded p-0.5 text-[#99a1af] hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)] disabled:opacity-30" aria-label="Move article up">
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <button type="button" onClick={() => moveArticle(i, 1)} disabled={i === m.articles.length - 1}
+                  className="rounded p-0.5 text-[#99a1af] hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)] disabled:opacity-30" aria-label="Move article down">
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
+              <input className={input} placeholder="https://..." value={a.url}
+                onChange={e => setArticle(i, { url: e.target.value })}
+                onBlur={e => pull(i, e.target.value.trim())} />
+              <button type="button" onClick={() => pull(i, a.url)} disabled={!a.url || !!fetching[i]}
+                className="shrink-0 rounded-lg p-2 text-[#7f8c85] hover:bg-[var(--ds-tint)] hover:text-[var(--ds-brand)] disabled:opacity-40" aria-label="Refetch preview">
+                {fetching[i] ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+              </button>
+              <button type="button" onClick={() => onChange({ ...m, articles: m.articles.filter((_, j) => j !== i) })}
+                className="shrink-0 rounded-lg p-2 text-[#99a1af] hover:bg-[#fef2f2] hover:text-[#dc2626]" aria-label="Remove article">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="mt-3 flex gap-3">
+              <div className="h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-[#edf0f3] bg-[#f5f6f8] flex items-center justify-center">
+                {a.image ? (
+                  <img src={a.image} alt="" className="h-full w-full object-cover"
+                    onError={e => { e.currentTarget.style.display = 'none'; }} />
+                ) : (
+                  <ImageIcon className="w-4 h-4 text-[#c7cdd4]" />
                 )}
               </div>
-            ))}
+              <div className="min-w-0 flex-1 space-y-2">
+                <input className={input} placeholder="Title" value={a.title} onChange={e => setArticle(i, { title: e.target.value })} />
+                <div className="grid grid-cols-2 gap-2">
+                  <input className={input} placeholder="Source" value={a.source} onChange={e => setArticle(i, { source: e.target.value })} />
+                  <input className={input} placeholder="Date (e.g. Mar 2025)" value={a.date} onChange={e => setArticle(i, { date: e.target.value })} />
+                </div>
+                {/* Auto-fill needs the link-preview function. This field means an
+                    article can still carry an image without it. */}
+                <input
+                  className={input}
+                  placeholder="Image URL (https://... , optional)"
+                  value={a.image ?? ''}
+                  onChange={e => setArticle(i, { image: e.target.value.trim() })}
+                />
+              </div>
+            </div>
+
+            {!!a.image && (
+              <label className="mt-3 flex items-center gap-2 text-xs font-medium text-[#191f1d] cursor-pointer select-none">
+                <input type="checkbox" checked={!!a.hideImage} onChange={e => setArticle(i, { hideImage: e.target.checked })}
+                  className="h-4 w-4 rounded border-[var(--ds-brd)] text-[var(--ds-brand)] focus:ring-[var(--ds-brand)]" />
+                Hide this image for investors
+              </label>
+            )}
+            {fetching[i] && <p className="mt-2 text-xs text-[#99a1af] inline-flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> Reading the link...</p>}
+            {!!a.description && (
+              <textarea className={input + ' mt-2 min-h-[56px]'} placeholder="Summary (auto-filled)" value={a.description}
+                onChange={e => setArticle(i, { description: e.target.value })} />
+            )}
           </div>
-        )}
-      </div>
+        ))
+      )}
     </div>
   );
 }

@@ -27,6 +27,7 @@ import dsMark from '../../assets/dealstudio-mark.png';
 import { DealDocViewer } from '../dealstudio/DealDocViewer';
 import { DealPeople } from '../dealstudio/DealPeople';
 import { PillTabs } from '../dealstudio/PillTabs';
+import { AddButton } from '../dealstudio/SectionHeader';
 import { MarketEditor } from '../dealstudio/MarketEditor';
 import { ValuePropEditor } from '../dealstudio/ValuePropEditor';
 import { ProblemSolutionEditor } from '../dealstudio/ProblemSolutionEditor';
@@ -516,10 +517,12 @@ export function DealStudioScreen() {
         {tiles.map(([l, v]) => <StatTile key={l} label={l} value={v} />)}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start">
-        {/* Left: tabs + content */}
+      {/* The tab bar spans the full page, and the rail starts BELOW it. It used to
+          sit inside the left column, so a 320px sidebar was stealing width from a
+          bar that has eleven tabs in it, and half of them fell off the end. */}
+      <Tabs value={tab} onValueChange={setTab}>
         <div className="min-w-0">
-          <Tabs value={tab} onValueChange={setTab}>
+          <div>
             {/* Deal Studio has more tabs than fit on a phone, and nothing said the
                 bar scrolls. PillTabs nudges it once, on the first visit. */}
             <PillTabs
@@ -539,6 +542,12 @@ export function DealStudioScreen() {
               onChange={setTab}
               hintKey="dealstudio"
             />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start">
+          {/* Left: tab content */}
+          <div className="min-w-0">
 
             {/* MARKET */}
             <TabsContent value="articles" className="space-y-4">
@@ -923,28 +932,25 @@ export function DealStudioScreen() {
                 </button>
               </div>
             </TabsContent>
-          </Tabs>
 
-          {/* Mobile only. Desktop shows these in the right rail beside every tab.
-              They used to be injected into the Deal Flow tab on a phone, which is
-              the one tab that is now a single table, so they sit below the tab
-              content instead. Same panels, rendered once, not copies. */}
-          <div className="lg:hidden space-y-5 mt-5">
+            {/* Mobile only. Desktop shows these in the right rail beside every tab.
+                They used to be injected into the Deal Flow tab on a phone, which is
+                the one tab that is now a single table, so they sit below the tab
+                content instead. Same panels, rendered once, not copies. */}
+            <div className="lg:hidden space-y-5 mt-5">
+              {funnelPanel}
+              {calendarPanel}
+            </div>
+          </div>
+
+          {/* Right rail. Starts below the tab bar, not beside it. */}
+          <div className="hidden lg:block space-y-5 lg:sticky lg:top-6">
             {funnelPanel}
+            {displayOrderPanel}
             {calendarPanel}
           </div>
         </div>
-
-        {/* Right rail */}
-        {/* Right rail. On mobile these three panels move into the tabs they
-            belong to, so a phone is not asked to scroll past a funnel chart to
-            reach the fields it came for. Same panels, rendered once, not copies. */}
-        <div className="hidden lg:block space-y-5 lg:sticky lg:top-6">
-          {funnelPanel}
-          {displayOrderPanel}
-          {calendarPanel}
-        </div>
-      </div>
+      </Tabs>
 
       {docModal.open && (
         <DealDocumentModal roomId={room.id} existing={docModal.existing} defaultIsDeck={docModal.deck} onClose={() => setDocModal({ open: false, existing: null })} onSaved={() => reloadDocs(room.id)} />
@@ -1094,20 +1100,6 @@ function Card({ title, summary, action, children }: {
   );
 }
 
-/** The add button every tab uses, so "+ Document" and "+ Add member" cannot end
- *  up as two different-looking controls. */
-function AddButton({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] hover:brightness-110 transition disabled:opacity-50"
-    >
-      <Plus className="w-4 h-4" /> {label}
-    </button>
-  );
-}
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <label className="block"><span className="block text-xs font-semibold text-[#7f8c85] mb-1">{label}</span>{children}</label>;
