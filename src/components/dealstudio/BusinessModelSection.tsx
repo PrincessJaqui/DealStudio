@@ -35,7 +35,7 @@ function AssumptionRow({ row }: { row: Row }) {
   return (
     <div
       onPointerDown={() => setTouched(true)}
-      className={`ds-card flex items-center gap-3 rounded-xl border border-[#eceef0] bg-white p-3 shadow-[0_6px_20px_-8px_rgba(12,16,34,0.25)] ${
+      className={`ds-card flex items-center gap-3 rounded-xl bg-white p-3 shadow-[0_4px_14px_-6px_rgba(12,16,34,0.22)] ${
         touched ? '' : 'ds-field-pulse'
       }`}
     >
@@ -210,7 +210,7 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
                 This one keeps going. */}
             <div
               onPointerDown={() => setGrowthTouched(true)}
-              className={`ds-card mt-1 ml-auto flex items-center rounded-lg border border-[#e5e7eb] bg-white px-3 py-1.5 w-28 shadow-[0_6px_20px_-8px_rgba(12,16,34,0.25)] ${
+              className={`ds-card mt-1 ml-auto flex items-center rounded-lg bg-white px-3 py-1.5 w-28 shadow-[0_4px_14px_-6px_rgba(12,16,34,0.22)] ${
                 growthTouched ? '' : 'ds-field-pulse'
               }`}
             >

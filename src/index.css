@@ -156,17 +156,17 @@ body {
    ds-pulse rings twice when its section scrolls into view and then stops. That is
    right for a card you click. It is wrong for an input three screens down: by the
    time you reach the growth rate, its two rings played to an empty room. This one
-   keeps going, quietly. */
+   keeps going, quietly, until the field is touched.
+
+   A SHADOW, not an outline. The first version animated outline-width, and an
+   outline is a line: it read as a border drawn round every field, which is the
+   opposite of the depth it was supposed to suggest. This lifts the card off the
+   page and sets it back down. */
 @keyframes dsFieldPulse {
-  0%, 100% { outline-width: 0; }
-  50%      { outline-width: 4px; }
+  0%, 100% { box-shadow: 0 4px 14px -6px rgba(12, 16, 34, 0.22); }
+  50%      { box-shadow: 0 12px 30px -8px rgba(var(--ds-pulse-rgb), 0.45); }
 }
-.ds-field-pulse {
-  outline-style: solid;
-  outline-color: rgba(var(--ds-pulse-rgb), 0.22);
-  outline-offset: 1px;
-  animation: dsFieldPulse 2.4s ease-in-out infinite;
-}
+.ds-field-pulse { animation: dsFieldPulse 2.4s ease-in-out infinite; }
 
 @keyframes dsPulseScaleLoop {
   0%, 100% { transform: scale(1); }
