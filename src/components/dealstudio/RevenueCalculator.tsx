@@ -8,8 +8,8 @@ import type { ReactNode } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { SectionHeader, AddButton } from './SectionHeader';
 import {
-  computeBusinessModel,
-  type DealBusinessModel, type RevenueStream, type PricingTier, type ImpactedTier,
+  computeBusinessModel, addonQuantity,
+  type DealBusinessModel, type RevenueStream, type PricingTier, type ImpactedTier, type TierAddon,
   type CalcUnit, type CalcFreq,
 } from '../../lib/dealStudio';
 
@@ -18,6 +18,9 @@ const fmtUsd = (n: number) => `$${Math.round(isFinite(n) ? n : 0).toLocaleString
 const fmtWhole = (n: number) => `$${Math.round(isFinite(n) ? n : 0).toLocaleString()}`;
 
 const newImpacted = (): ImpactedTier => ({ id: genId(), tierName: '', unitType: 'percentage', presetAmount: 0, frequency: 'per_event' });
+/** Attach rate starts at 0, not 100: an add-on nobody has bought yet must not
+ *  silently add revenue the moment it is created. */
+const newAddon = (): TierAddon => ({ id: genId(), tierName: '', unitType: 'currency', presetAmount: 0, frequency: 'monthly', attachRate: 0 });
 const newTier = (): PricingTier => ({ id: genId(), tierName: '', unitType: 'currency', presetAmount: 0, frequency: 'monthly', customerName: '', quantity: 0, avgValue: 0, impacts: false, impactedTiers: [] });
 const newRevenue = (): RevenueStream => ({ id: genId(), name: '', details: '', target: 0, tiers: [newTier()] });
 
@@ -77,6 +80,7 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
   const setRev = (ri: number, patch: Partial<RevenueStream>) => onChange({ ...m, revenues: m.revenues.map((r, i) => i === ri ? { ...r, ...patch } : r) });
   const setTier = (ri: number, ti: number, patch: Partial<PricingTier>) => setRev(ri, { tiers: m.revenues[ri].tiers.map((t, i) => i === ti ? { ...t, ...patch } : t) });
   const setImp = (ri: number, ti: number, ii: number, patch: Partial<ImpactedTier>) => setTier(ri, ti, { impactedTiers: (m.revenues[ri].tiers[ti].impactedTiers || []).map((x, i) => i === ii ? { ...x, ...patch } : x) });
+  const setAdd = (ri: number, ti: number, ai: number, patch: Partial<TierAddon>) => setTier(ri, ti, { addons: (m.revenues[ri].tiers[ti].addons || []).map((x, i) => i === ai ? { ...x, ...patch } : x) });
 
   return (
     <div>
@@ -174,6 +178,59 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
                           </div>
                           {admin && (
                             <button type="button" onClick={() => setTier(ri, ti, { impactedTiers: [...(t.impactedTiers || []), newImpacted()] })} className="mt-2 ml-auto flex w-fit items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] transition"><Plus className="w-4 h-4" /> Impacted Tier</button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Add-ons. The second checkbox, and NOT a copy of the first
+                          one: an impacted tier is billed to every customer in the
+                          tier, an add-on only to the share of them who buy it. The
+                          attach rate is that share, and it is the only field that
+                          separates the two. */}
+                      <label className="mt-2 flex items-center gap-2 text-xs text-[#4a5565] cursor-pointer">
+                        <input type="checkbox" checked={!!t.hasAddons} disabled={!admin} onChange={e => setTier(ri, ti, { hasAddons: e.target.checked })} />
+                        This tier has add-ons
+                      </label>
+
+                      {t.hasAddons && (
+                        <div className="mt-2 rounded-xl bg-[var(--ds-tint)] border border-[var(--ds-brand)] p-3">
+                          <div className="mb-2 flex items-baseline justify-between gap-2">
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--ds-brand)]">Add-on</p>
+                            <p className="text-[11px] text-[#7f8c85]">
+                              {(t.quantity || 0).toLocaleString()} customers on this tier
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            {(t.addons || []).map((a, ai) => {
+                              const buyers = addonQuantity(t, a);
+                              return (
+                                <div key={a.id}>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <Box label="Add-on Name"><TextInput value={a.tierName} placeholder="Extra Seat" disabled={!admin} onChange={v => setAdd(ri, ti, ai, { tierName: v })} /></Box>
+                                    <Box label="Unit Type"><Select value={a.unitType} opts={UNIT_OPTS} disabled={!admin} onChange={v => setAdd(ri, ti, ai, { unitType: v })} /></Box>
+                                    <Box label="Preset Amount"><NumInput value={a.presetAmount} suffix={unitSuffix(a.unitType)} step={0.01} onChange={v => setAdd(ri, ti, ai, { presetAmount: v })} /></Box>
+                                    <Box label="Frequency"><Select value={a.frequency} opts={FREQ_OPTS} disabled={!admin} onChange={v => setAdd(ri, ti, ai, { frequency: v })} /></Box>
+                                    <Box label="Attach Rate"><NumInput value={a.attachRate} suffix="%" step={1} onChange={v => setAdd(ri, ti, ai, { attachRate: Math.min(100, Math.max(0, v)) })} /></Box>
+                                    <div className="flex items-stretch gap-1">
+                                      <div className="flex-1">
+                                        <Box label="Buyers">
+                                          {/* Derived, not typed. The attach rate is the input; this
+                                              is what it means, so a founder can see that 10% of 5,000
+                                              is 500 people before the number reaches an investor. */}
+                                          <p className="text-sm font-medium text-[#191f1d] tabular-nums">{Math.round(buyers).toLocaleString()}</p>
+                                        </Box>
+                                      </div>
+                                      {admin && <button type="button" onClick={() => setTier(ri, ti, { addons: (t.addons || []).filter((_, i) => i !== ai) })} className="rounded-lg px-1 text-[#99a1af] hover:text-[#dc2626]" aria-label="Remove add-on"><Trash2 className="w-4 h-4" /></button>}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {admin && (
+                            <button type="button" onClick={() => setTier(ri, ti, { addons: [...(t.addons || []), newAddon()] })} className="mt-2 ml-auto flex w-fit items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] transition"><Plus className="w-4 h-4" /> Add-on</button>
                           )}
                         </div>
                       )}

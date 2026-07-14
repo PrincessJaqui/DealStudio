@@ -128,10 +128,34 @@ export interface DealArticle {
 export type CalcUnit = 'currency' | 'percentage';
 export type CalcFreq = 'monthly' | 'yearly' | 'per_event';
 export interface ImpactedTier { id: string; tierName: string; unitType: CalcUnit; presetAmount: number; frequency: CalcFreq; }
+
+/**
+ * An add-on, and how it differs from an impacted tier. They look alike on screen
+ * and they are not the same thing.
+ *
+ * An IMPACTED TIER is charged to every customer in its parent tier: the maths
+ * multiplies it by the parent's full quantity. 5,000 founders on Pro, and an
+ * Additional Seat impacted tier, bills 5,000 additional seats.
+ *
+ * An ADD-ON is optional, so it is charged to a SHARE of them. attachRate is that
+ * share, as a percentage of the parent tier's quantity. 5,000 founders and a 10%
+ * attach rate is 500 paying customers, and 500 more users.
+ *
+ * These add-ons have nothing to do with plan_addons and org_addons, which are the
+ * billable extras a PLATFORM admin grants a customer. Same word, different half
+ * of the product.
+ */
+export interface TierAddon {
+  id: string; tierName: string; unitType: CalcUnit; presetAmount: number; frequency: CalcFreq;
+  /** Percent of the parent tier's customers who buy it. 0 to 100. */
+  attachRate: number;
+}
+
 export interface PricingTier {
   id: string; tierName: string; unitType: CalcUnit; presetAmount: number; frequency: CalcFreq;
   customerName: string; quantity: number; avgValue?: number;
   impacts?: boolean; impactedTiers?: ImpactedTier[];
+  hasAddons?: boolean; addons?: TierAddon[];
 }
 export interface RevenueStream { id: string; name: string; details: string; target: number; tiers: PricingTier[]; }
 export interface DealBusinessModel { revenues: RevenueStream[]; annualGrowthRate: number; }
@@ -141,14 +165,38 @@ const periodToMonthly = (freq: CalcFreq, totalPerPeriod: number): number =>
 const unitRevenue = (unit: CalcUnit, amount: number, avgValue: number): number =>
   unit === 'percentage' ? (amount / 100) * avgValue : amount;
 
+/** How many customers take a given add-on. Clamped: a 140% attach rate is a typo,
+ *  and it would otherwise quietly inflate both revenue and the user count. */
+export function addonQuantity(t: PricingTier, a: TierAddon): number {
+  const rate = Math.min(100, Math.max(0, a.attachRate || 0));
+  return (t.quantity || 0) * (rate / 100);
+}
+
 export function tierMonthlyRevenue(t: PricingTier): number {
   const q = t.quantity || 0;
   const av = t.avgValue || 0;
   let monthly = periodToMonthly(t.frequency, unitRevenue(t.unitType, t.presetAmount || 0, av) * q);
+
+  // Impacted tiers: every customer in the tier pays.
   if (t.impacts) for (const it of (t.impactedTiers || [])) {
     monthly += periodToMonthly(it.frequency, unitRevenue(it.unitType, it.presetAmount || 0, av) * q);
   }
+
+  // Add-ons: only the share of them given by the attach rate pays.
+  if (t.hasAddons) for (const a of (t.addons || [])) {
+    monthly += periodToMonthly(a.frequency, unitRevenue(a.unitType, a.presetAmount || 0, av) * addonQuantity(t, a));
+  }
+
   return monthly;
+}
+
+/** Customers on a tier, plus the add-on customers it carries. Add-on buyers count
+ *  as users, so they are in the denominator of Revenue per User as well as the
+ *  numerator, which is the only way that figure stays honest. */
+export function tierUsers(t: PricingTier): number {
+  const base = t.quantity || 0;
+  if (!t.hasAddons) return base;
+  return base + (t.addons || []).reduce((s, a) => s + addonQuantity(t, a), 0);
 }
 export function revenueMonthly(r: RevenueStream): number {
   return (r.tiers || []).reduce((s, t) => s + tierMonthlyRevenue(t), 0);
@@ -165,7 +213,7 @@ export function computeBusinessModel(m: DealBusinessModel): ModelTotals {
   });
   const totalMonthly = revs.reduce((s, r) => s + r.monthly, 0);
   const totalAnnual = totalMonthly * 12;
-  const totalUsers = (m.revenues || []).reduce((s, r) => s + (r.tiers || []).reduce((q, t) => q + (t.quantity || 0), 0), 0);
+  const totalUsers = (m.revenues || []).reduce((s, r) => s + (r.tiers || []).reduce((q, t) => q + tierUsers(t), 0), 0);
   const revenuePerUser = totalUsers > 0 ? totalAnnual / totalUsers : 0;
   const revenues = revs.map(r => ({ ...r, pctOfTotal: totalAnnual > 0 ? (r.annual / totalAnnual) * 100 : 0 }));
   const g = (m.annualGrowthRate || 0) / 100;

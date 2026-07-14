@@ -63,6 +63,8 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
     setLocal(m => ({ ...m, revenues: m.revenues.map((r, i) => i === ri ? { ...r, tiers: r.tiers.map((t, j) => j === ti ? { ...t, ...patch } : t) } : r) }));
   const updateImpacted = (ri: number, ti: number, ii: number, patch: any) =>
     setLocal(m => ({ ...m, revenues: m.revenues.map((r, i) => i === ri ? { ...r, tiers: r.tiers.map((t, j) => j === ti ? { ...t, impactedTiers: (t.impactedTiers || []).map((x, k) => k === ii ? { ...x, ...patch } : x) } : t) } : r) }));
+  const updateAddon = (ri: number, ti: number, ai: number, patch: any) =>
+    setLocal(m => ({ ...m, revenues: m.revenues.map((r, i) => i === ri ? { ...r, tiers: r.tiers.map((t, j) => j === ti ? { ...t, addons: (t.addons || []).map((x, k) => k === ai ? { ...x, ...patch } : x) } : t) } : r) }));
 
   const stream = revenues[active];
   const rows: Row[] = [];
@@ -72,6 +74,13 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
     if (t.unitType === 'percentage') rows.push({ icon: '$', label: `Average Value${t.tierName ? ` (${t.tierName})` : ''}`, value: t.avgValue || 0, onChange: n => updateTier(active, ti, { avgValue: n }) });
     (t.impactedTiers || []).forEach((it, ii) => {
       rows.push({ icon: it.unitType === 'percentage' ? '%' : '$', suffix: it.unitType === 'percentage' ? '%' : undefined, label: it.tierName || 'Impacted', value: it.presetAmount, onChange: n => updateImpacted(active, ti, ii, { presetAmount: n }) });
+    });
+    // Add-ons are two assumptions, not one: the price, and the share of customers
+    // who take it. An investor moving the price without being able to move the
+    // attach rate is being handed half the model.
+    if (t.hasAddons) (t.addons || []).forEach((a, ai) => {
+      rows.push({ icon: a.unitType === 'percentage' ? '%' : '$', suffix: a.unitType === 'percentage' ? '%' : undefined, label: a.tierName || 'Add-on', value: a.presetAmount, onChange: n => updateAddon(active, ti, ai, { presetAmount: n }) });
+      rows.push({ icon: '%', suffix: '%', label: `${a.tierName || 'Add-on'} attach rate`, value: a.attachRate, onChange: n => updateAddon(active, ti, ai, { attachRate: Math.min(100, Math.max(0, n)) }) });
     });
   });
 
