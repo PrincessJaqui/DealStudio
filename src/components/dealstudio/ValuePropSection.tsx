@@ -5,7 +5,7 @@
  * never shows a hollow heading.
  */
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, X, ExternalLink, ArrowRight, ArrowDown } from 'lucide-react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
 import { psHeader } from '../../lib/dealStudio';
@@ -36,13 +36,26 @@ export function ValuePropSection({ value }: { value: DealValueProp }) {
 
 export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
   const { ref, inView } = useInViewOnce<HTMLDivElement>();
+  /** The first pair is open. A column of closed titles reads as a table of
+   *  contents: an investor has to guess which one is worth a tap, and on a phone
+   *  most of them never tapped at all. Opening the first one shows what a pair
+   *  actually is, and the rest follow. */
   const [open, setOpen] = useState<string | null>(null);
+  const openedFirst = useRef(false);
 
   const pairs = (value.pairs ?? []).filter(p => p.problem || p.solution || p.problem_title);
   const legacy = !pairs.length && (value.problem || value.solution)
     ? [{ id: 'legacy', problem: value.problem, solution: value.solution }]
     : [];
   const rows: ProblemSolution[] = pairs.length ? pairs : legacy;
+
+  // Seeded in an effect, not in useState: the rows are derived from props, and on
+  // the first render of a room that is still loading there are none to open.
+  useEffect(() => {
+    if (openedFirst.current || !rows.length) return;
+    openedFirst.current = true;
+    setOpen(rows[0].id || '0');
+  }, [rows]);
 
   if (!rows.length && !value.statement) return null;
 
@@ -354,15 +367,21 @@ function ValuePropWheel({
         role="img"
         aria-label="Value proposition pillars"
       >
+        {/* The rotation is an SVG transform ATTRIBUTE, not a CSS transform.
+            translate to the centre, rotate, scale, translate back: the origin is
+            written into the transform itself, so it does not depend on
+            transform-box being interpreted the way we hope.
+
+            It used to be CSS with transform-box: view-box and a 150px origin. On
+            iOS that origin was being resolved against the group's own bounding
+            box instead of the viewBox, so the wheel rotated about a point that
+            was not its centre, and every selection slid the whole wheel sideways
+            in the card. On desktop it looked perfect. Attribute transforms cannot
+            drift, because there is nothing left to interpret. */}
         <g
+          transform={`translate(${CX} ${CY}) rotate(${inView ? rot : -385}) scale(${inView ? 1 : 0.86}) translate(${-CX} ${-CY})`}
           style={{
-            // A full turn, not a 25-degree nudge. The wheel now visibly spins
-            // into place when it scrolls into view, which is the cue that it is
-            // something you can interact with rather than a static chart.
-            transform: inView ? `rotate(${rot}deg) scale(1)` : 'rotate(-385deg) scale(0.86)',
             opacity: inView ? 1 : 0,
-            transformBox: 'view-box',
-            transformOrigin: '150px 150px',
             transition: 'transform 1100ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease-out',
           }}
         >
@@ -387,13 +406,14 @@ function ValuePropWheel({
                    wedges are live. Once they have clicked, the cue has done its
                    job and it stops. */
                 className={`cursor-pointer ${sel === null && hover === null ? 'ds-wedge-pulse' : ''}`}
+                /* Attribute, for the same reason as the wheel above. */
+                transform={`translate(${hx} ${hy})`}
                 style={{
                   // One style object. There were two, and in JSX the last one
                   // silently wins -- so animationDelay was being thrown away and
                   // every wedge pulsed in unison instead of rippling round.
                   animationDelay: `${i * 180}ms`,
                   opacity: dim ? 0.4 : 1,
-                  transform: `translate(${hx}px, ${hy}px)`,
                   filter: lifted ? 'drop-shadow(0 6px 14px rgba(12,16,34,0.28))' : 'none',
                   transition: 'opacity 300ms, transform 250ms ease-out, filter 250ms',
                 }}
@@ -402,12 +422,8 @@ function ValuePropWheel({
 
                 {/* Counter-rotate, or the labels turn upside down as it spins. */}
                 <g
-                  style={{
-                    transform: `rotate(${-rot}deg)`,
-                    transformBox: 'view-box',
-                    transformOrigin: `${sg.label[0]}px ${sg.label[1]}px`,
-                    transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  }}
+                  transform={`rotate(${-rot} ${sg.label[0]} ${sg.label[1]})`}
+                  style={{ transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)' }}
                 >
                   <text
                     x={sg.label[0]}

@@ -108,9 +108,22 @@ body {
   50%      { transform: scale(1.028); }
 }
 .ds-wedge-pulse {
-  transform-box: view-box;
-  transform-origin: 150px 150px;
+  /* fill-box, not view-box: each wedge breathes about ITS OWN centre. Scaling
+     about the wheel's centre needs the viewBox origin, and every browser that
+     gets transform-box slightly wrong turns that into a wedge that drifts
+     sideways as it pulses. A wedge scaling in place cannot drift. */
+  transform-box: fill-box;
+  transform-origin: center;
   animation: dsWedgePulse 2.6s ease-in-out infinite;
+}
+
+/* iOS Safari sizes an iframe to its CONTENT and ignores width: 100%. The map
+   therefore stopped short of the right edge of its card on a phone and left a
+   white strip, while looking perfect on desktop. width: 1px with a min-width of
+   100% is the one incantation iOS honours. */
+.ds-iframe-fill {
+  width: 1px;
+  min-width: 100%;
 }
 
 /* The problem/solution arrow. An HTML element, so it gets its own keyframe

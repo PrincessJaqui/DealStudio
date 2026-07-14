@@ -240,7 +240,21 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(() => { try { return localStorage.getItem('dealstudio_email'); } catch { return null; } });
   const [activeDoc, setActiveDoc] = useState<DealDocument | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  /**
+   * Today, not null. The calendar opened with no date chosen, so the panel showed
+   * a month grid and nothing else: an investor had to work out that the dots were
+   * tappable before they ever saw a bookable time. Landing on today shows real
+   * slots immediately, and if today has none the panel says so, which is also an
+   * answer.
+   *
+   * Local date, built by hand. toISOString() is UTC, so anyone west of Greenwich
+   * gets yesterday after 6pm.
+   */
+  const [selectedDate, setSelectedDate] = useState<string | null>(() => {
+    const d = new Date();
+    const p2 = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+  });
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [aboutExpanded, setAboutExpanded] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
@@ -708,7 +722,10 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
                   src={mapSrc}
                   title="Headquarters"
                   loading="lazy"
-                  className={`block w-full h-44 sm:h-56 border-0 ${mapLive ? '' : 'pointer-events-none'}`}
+                  /* ds-iframe-fill, not w-full: iOS Safari sizes an iframe to its
+                     content and ignores width: 100%, so the map stopped short of
+                     the card's right edge on a phone and left a white strip. */
+                  className={`ds-iframe-fill block h-44 sm:h-56 border-0 ${mapLive ? '' : 'pointer-events-none'}`}
                 />
                 {!mapLive && (
                   <span className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 transition-opacity">

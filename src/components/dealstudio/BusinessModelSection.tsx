@@ -117,7 +117,10 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
         {/* RIGHT: tabs + assumptions */}
         <div>
           {revenues.length > 1 && (
-            <div className="inline-flex w-full items-center gap-1 rounded-full bg-[#f5f5f5] p-1 overflow-x-auto [&::-webkit-scrollbar]:hidden mb-4">
+            /* ds-pulse: the stream switcher is the one control that changes what
+               the whole assumptions panel is about, and nothing said it was a
+               control. It rings twice when the section scrolls into view. */
+            <div className="ds-pulse inline-flex w-full items-center gap-1 rounded-full bg-[#f5f5f5] p-1 overflow-x-auto [&::-webkit-scrollbar]:hidden mb-4">
               {revenues.map((r, i) => (
                 <button key={r.id} type="button" onClick={() => setActive(i)}
                   className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${active === i ? 'bg-gradient-to-br from-[var(--ds-accent)] to-[var(--ds-accent-to)] text-[var(--ds-on-accent)] shadow-sm' : 'text-[#7f8c85] hover:text-[#191f1d]'}`}>
@@ -180,7 +183,10 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
           </div>
           <div className="text-right w-fit">
             <p className="text-[11px] font-bold uppercase tracking-wider text-[#7f8c85]">Set Annual Growth Rate</p>
-            <div className="ds-card mt-1 ml-auto flex items-center rounded-lg border border-[#e5e7eb] bg-white px-3 py-1.5 w-28">
+            {/* ds-pulse: an investor is meant to type their own growth rate in
+                here and watch the projection move. It looked like a read-only
+                figure. */}
+            <div className="ds-pulse ds-card mt-1 ml-auto flex items-center rounded-lg border border-[#e5e7eb] bg-white px-3 py-1.5 w-28">
               <input type="number" min={0} value={Number.isFinite(local.annualGrowthRate) ? local.annualGrowthRate : 0}
                 onChange={e => setLocal(m => ({ ...m, annualGrowthRate: parseFloat(e.target.value) || 0 }))}
                 className="w-full bg-transparent text-sm font-medium text-[#191f1d] outline-none text-right" />
