@@ -518,7 +518,9 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             {room.headquarters && <p className="flex items-center gap-1 text-sm text-[var(--ds-accent-ink)] lg:mt-2"><MapPin className="w-4 h-4" /> {room.headquarters}</p>}
             {(room.tags?.length > 0 || room.industries?.length > 0) && (
               <div className="flex flex-wrap gap-2 mt-3">
-                {room.tags?.map(t => <span key={t} className="rounded-full bg-[var(--ds-accent-tint)] text-[var(--ds-accent-ink)] text-xs font-medium px-3 py-1">{t}</span>)}
+                {/* Solid brand, white text. A tint-on-tint pill reads as a disabled
+                    chip, and this is the first thing that says what the company IS. */}
+                {room.tags?.map(t => <span key={t} className="rounded-full bg-[var(--ds-brand)] text-white text-xs font-semibold px-3 py-1">{t}</span>)}
                 {room.industries?.map((ind, i) => (
                   <button
                     key={`ind-${i}`}

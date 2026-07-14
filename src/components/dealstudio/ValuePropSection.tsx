@@ -81,7 +81,7 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
             <div
               key={key}
               className={`ds-card rounded-2xl border bg-white overflow-hidden transition-colors ${
-                isOpen ? 'border-[var(--ds-accent)]' : 'border-[#edf0f3]'
+                isOpen ? 'border-[var(--ds-accent)] ds-open-ring' : 'border-[#edf0f3]'
               }`}
               style={{ animationDelay: `${i * 60}ms` }}
             >

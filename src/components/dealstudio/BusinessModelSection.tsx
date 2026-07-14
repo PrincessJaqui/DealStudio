@@ -29,7 +29,7 @@ function AssumptionRow({ row }: { row: Row }) {
   const [draft, setDraft] = useState('');
   const display = editing ? draft : (Number.isFinite(row.value) ? row.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '0');
   return (
-    <div className="ds-pulse ds-card flex items-center gap-3 rounded-xl border border-[#eceef0] bg-white p-3">
+    <div className="ds-field-pulse ds-card flex items-center gap-3 rounded-xl border border-[#eceef0] bg-white p-3">
       <div className="w-11 h-11 rounded-xl bg-[var(--ds-brand)] text-white flex items-center justify-center text-lg font-bold shrink-0">{row.icon}</div>
       <div className="min-w-0 flex-1">
         <p className="text-[11px] text-[#7f8c85] leading-tight">{row.label}</p>
@@ -192,10 +192,11 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
           </div>
           <div className="text-right w-fit">
             <p className="text-[11px] font-bold uppercase tracking-wider text-[#7f8c85]">Set Annual Growth Rate</p>
-            {/* ds-pulse: an investor is meant to type their own growth rate in
-                here and watch the projection move. It looked like a read-only
-                figure. */}
-            <div className="ds-pulse ds-card mt-1 ml-auto flex items-center rounded-lg border border-[#e5e7eb] bg-white px-3 py-1.5 w-28">
+            {/* ds-field-pulse, not ds-pulse. ds-pulse fires twice when the SECTION
+                scrolls into view, and this box is most of a screen below that, so
+                its two rings had already played by the time anyone could see it.
+                This one keeps going. */}
+            <div className="ds-field-pulse ds-card mt-1 ml-auto flex items-center rounded-lg border border-[#e5e7eb] bg-white px-3 py-1.5 w-28">
               <input type="number" min={0} value={Number.isFinite(local.annualGrowthRate) ? local.annualGrowthRate : 0}
                 onChange={e => setLocal(m => ({ ...m, annualGrowthRate: parseFloat(e.target.value) || 0 }))}
                 className="w-full bg-transparent text-sm font-medium text-[#191f1d] outline-none text-right" />
