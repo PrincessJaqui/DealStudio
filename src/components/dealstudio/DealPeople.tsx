@@ -19,7 +19,7 @@ import { createPortal } from 'react-dom';
 import {
   Search, ChevronUp, ChevronDown, MoreVertical, Eye, Share2,
   Ban, Mail, Pencil, X, Loader2, Check, Download, RefreshCw, Plus,
-  RotateCcw, Trash2,
+  RotateCcw, Trash2, Maximize2, Minimize2,
 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import {
@@ -52,9 +52,6 @@ const fmtDate = (iso: string | null) => {
   const d = new Date(iso);
   return isNaN(d.getTime()) ? DASH : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 };
-
-const fmtClock = (d: Date) =>
-  d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
 
 /**
  * The pipeline, as Jaqui works it: Lead, Viewed deal, Negotiating, Committed,
@@ -118,7 +115,6 @@ export function DealPeople({
   /** Distinct from "no people". The RPC can fail, and that must not read as an
    *  empty pipeline, nor as a spinner that never stops. */
   const [failure, setFailure] = useState<string | null>(null);
-  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<DealStage | 'all'>('all');
@@ -129,6 +125,9 @@ export function DealPeople({
   const [menuAt, setMenuAt] = useState<{ top: number; right: number } | null>(null);
 
   const [adding, setAdding] = useState(false);
+  /** Full screen. Eleven columns do not fit beside a 320px rail, so the table was
+   *  a horizontal scroll with Last Note permanently off the end. */
+  const [expanded, setExpanded] = useState(false);
   const [sections, setSections] = useState<DealPerson | null>(null);
   const [deckFor, setDeckFor] = useState<DealPerson | null>(null);
   const [docsFor, setDocsFor] = useState<DealPerson | null>(null);
@@ -144,9 +143,18 @@ export function DealPeople({
     setFailure(r.people === null ? (r.message || 'The database rejected the request.') : null);
     if (r.people) setPeople(r.people);
     setLoading(false);
-    setUpdatedAt(new Date());
   };
   useEffect(() => { void load(); }, [dealId]);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setExpanded(false); };
+    window.addEventListener('keydown', esc);
+    // The page behind must not scroll while a full-screen panel is open.
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', esc); document.body.style.overflow = prev; };
+  }, [expanded]);
 
   const refresh = async () => {
     setRefreshing(true);
@@ -247,35 +255,47 @@ export function DealPeople({
     return <div className={`${card} p-8 flex justify-center`}><Loader2 className="w-5 h-5 animate-spin text-[var(--ds-brand)]" /></div>;
   }
 
-  return (
-    <div className={`${card} p-5`}>
-      {/* Page header: title, one line on what the section is for, actions right. */}
-      <div className="flex flex-col sm:flex-row sm:items-start gap-3 mb-4">
-        <div className="min-w-0">
-          <h3 className="text-sm font-bold text-[#191f1d]">Deal Flow</h3>
-          <p className="text-xs text-[#7f8c85] mt-0.5">
-            Everyone in the pipeline and everyone who has opened the room, and what they read.
-          </p>
-        </div>
+  // The same circle as the deck's full-screen control, so the gesture is one
+  // gesture in two places rather than two conventions.
+  const iconBtn = 'w-9 h-9 rounded-full bg-[#f5f6f8] hover:bg-[#edf0f3] border border-[#edf0f3] flex items-center justify-center text-[#191f1d] transition shrink-0';
 
-        <div className="sm:ml-auto flex flex-wrap items-center gap-2 shrink-0">
-          <button onClick={exportReport} className={chip}>
-            <Download className="w-4 h-4" /> Export Report
-          </button>
-
-          <button onClick={() => void refresh()} className={chip} title="Reload this table">
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            {updatedAt ? `Updated ${fmtClock(updatedAt)}` : 'Refresh'}
-          </button>
-
-          <button
-            onClick={() => setAdding(true)}
-            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] hover:brightness-110 transition"
-          >
-            <Plus className="w-4 h-4" /> New Investor
-          </button>
-        </div>
+  const header = (
+    /* Title, one line on what the section is for, actions right. */
+    <div className="flex flex-col sm:flex-row sm:items-start gap-3 mb-4">
+      <div className="min-w-0">
+        <h3 className="text-sm font-bold text-[#191f1d]">Deal Flow</h3>
+        <p className="text-xs text-[#7f8c85] mt-0.5">
+          Everyone in the pipeline and everyone who has opened the room, and what they read.
+        </p>
       </div>
+
+      <div className="sm:ml-auto flex flex-wrap items-center gap-2 shrink-0">
+        <button onClick={exportReport} className={iconBtn} title="Export this report as CSV" aria-label="Export this report as CSV">
+          <Download className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={() => setExpanded(v => !v)}
+          className={iconBtn}
+          title={expanded ? 'Close full screen' : 'Open full screen'}
+          aria-label={expanded ? 'Close full screen' : 'Open full screen'}
+        >
+          {expanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+        </button>
+
+        <button
+          onClick={() => setAdding(true)}
+          className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] hover:brightness-110 transition"
+        >
+          <Plus className="w-4 h-4" /> New Investor
+        </button>
+      </div>
+    </div>
+  );
+
+  const inner = (
+    <>
+      {header}
 
       {/* Status filter. Brand blue, so it cannot be mistaken for the teal page tabs. */}
       <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
@@ -446,9 +466,13 @@ export function DealPeople({
 
                       {menu === id && menuAt && createPortal(
                         <>
-                          <div className="fixed inset-0 z-[60]" onClick={() => setMenu(null)} />
+                          {/* Above the full-screen panel (z-65), below the dialogs
+                              (z-70). The menu is portalled to the body, so it does
+                              not inherit the panel's stacking context and would
+                              otherwise open behind it. */}
+                          <div className="fixed inset-0 z-[66]" onClick={() => setMenu(null)} />
                           <div
-                            className="fixed z-[61] w-56 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.18)] p-1.5 text-left"
+                            className="fixed z-[67] w-56 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.18)] p-1.5 text-left"
                             style={{ top: menuAt.top, right: menuAt.right }}
                           >
                             <button
@@ -599,8 +623,30 @@ export function DealPeople({
           )
           : <SectionsDialog person={deckFor} docs={docs} deckOnly onClose={() => setDeckFor(null)} />
       )}
-    </div>
+    </>
   );
+
+  /**
+   * Full screen is a portal, not a wider card.
+   *
+   * The table has eleven columns and lives beside a 320px rail, so Last Note was
+   * always off the right edge and the founder was managing a pipeline through a
+   * letterbox. Expanded, the same table gets the whole window.
+   *
+   * ONE scroll container, deliberately. The page behind is locked (see the effect
+   * above), the panel scrolls vertically, and the table scrolls horizontally
+   * inside it with no height cap of its own, so it never competes for the wheel.
+   */
+  if (expanded) {
+    return createPortal(
+      <div className="fixed inset-0 z-[65] bg-[#f5f6f8] overflow-y-auto ds-scroll-y p-3 sm:p-5">
+        <div className={`${card} p-5`}>{inner}</div>
+      </div>,
+      document.body,
+    );
+  }
+
+  return <div className={`${card} p-5`}>{inner}</div>;
 }
 
 /* Dialogs */
