@@ -63,12 +63,17 @@ export function MasterAdminScreen() {
         <p className="text-sm text-[#7f8c85]">Master Admin</p>
       </div>
 
-      <PillTabs
-        tabs={[['users', 'Users'], ['plans', 'Plans'], ['transactions', 'Transactions']] as const}
-        value={tab}
-        onChange={setTab}
-        hintKey="master"
-      />
+      {/* The gap belongs to the caller now: the pill bar stopped carrying its own
+          bottom padding when it became its own scroll box. Settings gets this from
+          a space-y-5, Deal Studio from an mb-5, and this screen had neither. */}
+      <div className="mb-5">
+        <PillTabs
+          tabs={[['users', 'Users'], ['plans', 'Plans'], ['transactions', 'Transactions']] as const}
+          value={tab}
+          onChange={setTab}
+          hintKey="master"
+        />
+      </div>
 
       {tab === 'users' ? <UsersTab />
         : tab === 'plans' ? <PricingSetup />

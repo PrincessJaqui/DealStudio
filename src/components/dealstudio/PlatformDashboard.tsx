@@ -65,17 +65,13 @@ export function PlatformDashboard() {
     );
   }
 
+  // No stats, no panel. An error card at the top of User Management told a
+  // platform admin about a migration in the middle of a screen about customers,
+  // which is not where that conversation belongs. It goes to the console instead,
+  // where a missing migration is actually actionable.
   if (!stats) {
-    return (
-      <div className={`${card} p-5`}>
-        <p className="font-bold text-[#191f1d]">Activity unavailable</p>
-        <p className="text-sm text-[#7f8c85] mt-1">
-          The platform stats function is not installed on the database. Run the
-          migration <span className="font-mono text-xs">0031_comped_and_dashboard.sql</span>{' '}
-          in the Supabase SQL editor and reload.
-        </p>
-      </div>
-    );
+    console.warn('[dealStudio] platform stats unavailable: admin_platform_stats is missing (migration 0031)');
+    return null;
   }
 
   const { users, companies, deals, engagement, per_deal } = stats;
