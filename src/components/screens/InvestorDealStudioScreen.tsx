@@ -113,6 +113,24 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
 
   const SLUG = resolvedSlug ?? '';
 
+
+  // The live committed total. Null unless the founder chose to show it.
+  const [committed, setCommitted] = useState<number | null>(null);
+  useEffect(() => {
+    if (!SLUG) return;
+    void (async () => setCommitted(await fetchCommittedTotal(SLUG)))();
+  }, [SLUG]);
+
+  // Opened via someone's personal link. Record which browser it was: the first
+  // is presumed to be them, any others are people the link was forwarded to.
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('i');
+    if (!token) return;
+    void trackInviteOpen(token, getOrCreateSessionToken());
+  }, []);
+  const docsView = useInViewOnce<HTMLDivElement>();
+  const [room, setRoom] = useState<DealStudioPublic | null>(null);
+
   /**
    * The sticky sidebar's height, measured rather than guessed.
    *
@@ -140,28 +158,22 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
     fit();
     window.addEventListener('scroll', fit, { passive: true });
     window.addEventListener('resize', fit);
+
+    // The sidebar's own content decides whether it needs to scroll, and that
+    // content arrives late (documents, availability). Re-measure when it changes
+    // size instead of assuming the first measurement holds.
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+
     return () => {
+      ro.disconnect();
       window.removeEventListener('scroll', fit);
       window.removeEventListener('resize', fit);
     };
-  }, []);
-
-  // The live committed total. Null unless the founder chose to show it.
-  const [committed, setCommitted] = useState<number | null>(null);
-  useEffect(() => {
-    if (!SLUG) return;
-    void (async () => setCommitted(await fetchCommittedTotal(SLUG)))();
-  }, [SLUG]);
-
-  // Opened via someone's personal link. Record which browser it was: the first
-  // is presumed to be them, any others are people the link was forwarded to.
-  useEffect(() => {
-    const token = new URLSearchParams(window.location.search).get('i');
-    if (!token) return;
-    void trackInviteOpen(token, getOrCreateSessionToken());
-  }, []);
-  const docsView = useInViewOnce<HTMLDivElement>();
-  const [room, setRoom] = useState<DealStudioPublic | null>(null);
+    // room is the dependency that matters: the sidebar does not exist in the DOM
+    // until the deal has loaded, so an effect keyed on [] runs once against a null
+    // ref, gives up, and never runs again. That is why no height was ever set.
+  }, [room]);
   const [fieldLabels, setFieldLabels] = useState<Record<string, string>>({});
   const [market, setMarket] = useState<DealMarket | null>(null);
   const [team, setTeam] = useState<DealTeamMember[] | null>(null);
@@ -253,7 +265,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
     trackDealView(room.id, 'page_view', { email });
     // Register this visitor immediately (a fresh email should show up in the
     // visitor count on arrival, not only when they leave). flush() updates it later.
-    void recordDealVisit(SLUG, email, {}, 0, 0);
+    void recordDealVisit(SLUG, email, {}, 0, 0, getOrCreateSessionToken());
     const deck = room.documents.find(d => d.is_deck);
     if (deck) { trackDealView(room.id, 'deck_view', { document_id: deck.id, title: deck.title }); deckViewsRef.current += 1; }
     startRef.current = Date.now();
@@ -296,7 +308,7 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
         (activeMsRef.current + (document.visibilityState === 'visible' ? (now - lastResumeRef.current) : 0)) / 1000,
         3 * 60 * 60 // hard cap: no single session logs more than 3 hours
       );
-      void recordDealVisit(SLUG, email, sectionsRef.current, total, deckViewsRef.current);
+      void recordDealVisit(SLUG, email, sectionsRef.current, total, deckViewsRef.current, getOrCreateSessionToken());
     };
     window.addEventListener('beforeunload', flush);
     window.addEventListener('pagehide', flush);

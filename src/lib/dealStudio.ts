@@ -488,8 +488,23 @@ export async function fetchDealFieldLabels(slug = 'investors'): Promise<Record<s
   }
 }
 
-/** Roll a visitor's session activity up into dealstudio_visits (best effort). */
-export async function recordDealVisit(slug: string, email: string | null, sections: Record<string, number>, totalSeconds: number, deckViews: number) {
+/**
+ * Roll a visitor's session activity up into dealstudio_visits (best effort).
+ *
+ * The session token is what makes this honest. The client flushes on every tab
+ * away, and each flush resends the session's RUNNING TOTAL. Keyed by session, the
+ * server replaces that session's figures rather than adding to them, so ten
+ * flushes in one sitting still count as one visit. Without the token, the same
+ * sitting was recorded as ten visits and the deck views were added ten times over.
+ */
+export async function recordDealVisit(
+  slug: string,
+  email: string | null,
+  sections: Record<string, number>,
+  totalSeconds: number,
+  deckViews: number,
+  session: string,
+) {
   try {
     await rpcAnon('dealstudio_record_visit', {
       p_slug: slug,
@@ -497,6 +512,7 @@ export async function recordDealVisit(slug: string, email: string | null, sectio
       p_sections: sections,
       p_total_seconds: Math.round(totalSeconds),
       p_deck_views: deckViews,
+      p_session: session,
     });
   } catch { /* non-critical */ }
 }
