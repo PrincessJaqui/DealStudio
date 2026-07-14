@@ -59,7 +59,16 @@ export function PillTabs<T extends string>({
   return (
     <div
       ref={rail}
-      className="mb-5 overflow-x-auto ds-scroll-x -mx-1 px-1"
+      /* The padding is what saves the shadow.
+       *
+       * Setting overflow-x on an element forces overflow-y to auto as well -- you
+       * cannot clip one axis and leave the other visible. So the rail was slicing
+       * the drop shadow off the top and bottom of the pill bar, which reads as the
+       * bar being tucked behind something.
+       *
+       * Padding gives the shadow room INSIDE the clip box; the negative margins
+       * cancel it out so nothing moves. Net vertical spacing is unchanged. */
+      className="-mt-4 pt-4 pb-5 -mx-3 px-3 overflow-x-auto ds-scroll-x"
     >
       <div className="inline-flex gap-1 rounded-full bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-1.5">
         {tabs.map(([id, label]) => (
