@@ -1092,9 +1092,17 @@ export type DealNote = {
   updated_at: string | null;
 };
 
-export async function fetchDealPeople(dealId: string): Promise<DealPerson[]> {
+/**
+ * Null means the call FAILED. An empty array means the deal genuinely has nobody
+ * on it. These were the same value, and that hid a real outage: when
+ * admin_deal_people is missing from the database (migrations 0036, 0037 and 0041
+ * install it), the RPC 404s, this returned [], and Deal Flow rendered "Nobody is
+ * on this deal yet" over a deal with hundreds of recorded views. A missing
+ * migration must not look like an empty pipeline.
+ */
+export async function fetchDealPeople(dealId: string): Promise<DealPerson[] | null> {
   const { data, error } = await supabase.rpc('admin_deal_people', { p_deal: dealId });
-  if (error) { console.warn('[dealStudio] people', error); return []; }
+  if (error) { console.warn('[dealStudio] people', error); return null; }
   return (data ?? []) as DealPerson[];
 }
 

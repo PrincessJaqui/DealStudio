@@ -53,6 +53,17 @@ const fmtDate = (iso: string | null) => {
 const fmtClock = (d: Date) =>
   d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
 
+/**
+ * The stages the filter bar offers. Met, Interested and Closed are not on it.
+ *
+ * They are still valid stages: the database allows all nine, existing people keep
+ * theirs, and the Status dropdown on each row still offers them. This list is
+ * only what the filter bar shows.
+ */
+const FILTER_STAGES: DealStage[] = STAGE_ORDER.filter(
+  s => s !== 'met' && s !== 'interested' && s !== 'closed',
+);
+
 type SortKey =
   | 'email' | 'name' | 'company_name' | 'stage' | 'visits'
   | 'total_seconds' | 'deck_views' | 'doc_views' | 'forwards'
@@ -83,6 +94,9 @@ export function DealPeople({
   onChanged: () => void;
 }) {
   const [people, setPeople] = useState<DealPerson[] | null>(null);
+  /** Distinct from "no people". The RPC can fail, and that must not read as an
+   *  empty pipeline. */
+  const [failed, setFailed] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [q, setQ] = useState('');
@@ -104,7 +118,9 @@ export function DealPeople({
   const deck = docs.find(d => d.is_deck);
 
   const load = async () => {
-    setPeople(await fetchDealPeople(dealId));
+    const rows = await fetchDealPeople(dealId);
+    setFailed(rows === null);
+    if (rows) setPeople(rows);
     setUpdatedAt(new Date());
   };
   useEffect(() => { void load(); }, [dealId]);
@@ -235,7 +251,7 @@ export function DealPeople({
       <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
         <div className="min-w-0 lg:flex-1">
           <PillTabs
-            tabs={[['all', 'All'] as [string, string], ...STAGE_ORDER.map(s => [s, STAGE_LABEL[s]] as [string, string])]}
+            tabs={[['all', 'All'] as [string, string], ...FILTER_STAGES.map(s => [s, STAGE_LABEL[s]] as [string, string])]}
             value={filter}
             onChange={(v) => setFilter(v as DealStage | 'all')}
             hintKey="dealflow-status"
@@ -254,7 +270,19 @@ export function DealPeople({
         </div>
       </div>
 
-      {rows.length === 0 ? (
+      {failed ? (
+        <div className="py-10 text-center">
+          <p className="text-sm font-semibold text-[#191f1d]">Could not load the people on this deal.</p>
+          <p className="mt-1 text-xs text-[#7f8c85] max-w-md mx-auto">
+            The table reads one function, admin_deal_people. If this deal is recording
+            visits but nobody appears here, that function is not in the database yet.
+            Run migrations 0036, 0037, 0040 and 0041 in order, then refresh.
+          </p>
+          <button onClick={() => void refresh()} className={`${chip} mt-4`}>
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} /> Try again
+          </button>
+        </div>
+      ) : rows.length === 0 ? (
         <p className="py-10 text-sm text-[#99a1af] text-center">
           {people.length === 0
             ? 'Nobody is on this deal yet. Add the first investor to start tracking your raise.'
