@@ -32,6 +32,7 @@ import {
   type DealPerson, type DealStage, type DealNote, type DealDocument,
 } from '../../lib/dealStudio';
 import { adminBlockViewer } from '../../lib/dealStudio';
+import { compressImage, fetchImageAsFile } from '../../lib/images';
 import { PillTabs } from './PillTabs';
 import { DeckPageBars } from './DeckPageBars';
 
@@ -367,7 +368,7 @@ export function DealPeople({
         <span className="flex items-center gap-2">
           <span className="w-7 h-7 shrink-0 rounded-full overflow-hidden ring-2 ring-white bg-white shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
             {p.company_logo
-              ? <img src={p.company_logo} alt="" className="w-full h-full object-cover" />
+              ? <img src={p.company_logo} alt="" loading="lazy" decoding="async" width={28} height={28} className="w-full h-full object-cover" />
               : <span className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white text-[10px] font-semibold">
                   {p.company_name.trim().charAt(0).toUpperCase()}
                 </span>}
@@ -1205,7 +1206,7 @@ function DetailsDialog({
                 product, so what you see here is what the table will show. */}
             <span className="w-12 h-12 shrink-0 rounded-full overflow-hidden ring-2 ring-white bg-[#f5f6f8] shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
               {logo && !imgBroken
-                ? <img src={logo} alt="" className="w-full h-full object-cover" onError={() => setImgBroken(true)} onLoad={() => setImgBroken(false)} />
+                ? <img src={logo} alt="" loading="lazy" decoding="async" width={48} height={48} className="w-full h-full object-cover" onError={() => setImgBroken(true)} onLoad={() => setImgBroken(false)} />
                 : <ImageOff className="w-4 h-4 text-[#c7cdd4]" />}
             </span>
 
@@ -1242,8 +1243,20 @@ function DetailsDialog({
                   if (w.ok && w.preview.image) { got = w.preview.image; from = 'their website'; }
                 }
 
+                if (got) {
+                  // Bring it into our own storage, compressed, so the row is not
+                  // downloading a 2MB hero image to draw a 28px circle. If the site
+                  // sends no CORS headers we cannot read the bytes, only display
+                  // them, so we keep their URL and move on.
+                  const local = await fetchImageAsFile(got, 'logo');
+                  if (local) {
+                    const up = await uploadDealFile(local, dealId);
+                    if (up?.url) got = up.url;
+                  }
+                }
+
                 setPulling(false);
-                if (got) { setLogo(got); toast.success(`Pulled from ${from}`); }
+                if (got) { setLogo(got); setImgBroken(false); toast.success(`Pulled from ${from}`); }
                 else toast.error('Nothing to pull. LinkedIn blocks this, and their site has no image.');
               }}
               className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] disabled:opacity-40"
@@ -1264,7 +1277,10 @@ function DetailsDialog({
                   e.currentTarget.value = '';
                   if (!file) return;
                   setUploading(true);
-                  const up = await uploadDealFile(file, dealId);
+                  // 512px WebP before it ever reaches the bucket. A 3MB headshot
+                  // becomes ~20KB, and the table renders it at 28 pixels anyway.
+                  const small = await compressImage(file);
+                  const up = await uploadDealFile(small, dealId);
                   setUploading(false);
                   if (up?.url) { setLogo(up.url); setImgBroken(false); toast.success('Image uploaded'); }
                   else toast.error('Could not upload that image');

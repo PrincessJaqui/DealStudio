@@ -123,7 +123,9 @@ export function InterfaceStudioScreen() {
     setCropFile(null);
     setError('');
     try {
-      const url = await uploadOrgLogo(org.id, new File([blob], 'logo.png', { type: 'image/png' }));
+      // Type from the blob: the cropper emits WebP where it can.
+      const ext = blob.type === 'image/webp' ? 'webp' : 'png';
+      const url = await uploadOrgLogo(org.id, new File([blob], `logo.${ext}`, { type: blob.type }));
       setLogo(url);   // auto-save picks it up
     } catch (e: any) {
       setError(e?.message || 'Logo upload failed');

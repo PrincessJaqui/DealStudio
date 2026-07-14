@@ -13,6 +13,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, X, ZoomIn, RotateCcw } from 'lucide-react';
 
+/** Asked once, not per crop. Old Safari cannot encode WebP; it falls back to PNG. */
+let webpOk: boolean | null = null;
+function canWebp(): boolean {
+  if (webpOk !== null) return webpOk;
+  const c = document.createElement('canvas');
+  c.width = 1; c.height = 1;
+  webpOk = c.toDataURL('image/webp').startsWith('data:image/webp');
+  return webpOk;
+}
+
 const SIZE = 320;       // on-screen crop window
 const EXPORT = 512;     // exported square, in pixels
 
@@ -127,13 +137,17 @@ export function LogoCropper({
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, pos.x * k, pos.y * k, img.width * zoom * k, img.height * zoom * k);
 
+    // WebP, not PNG. Same 512px square, same transparency, roughly a quarter of
+    // the bytes. Every team photo and company logo in the product comes through
+    // this one export, so this is the place to pay for it once.
+    const type = canWebp() ? 'image/webp' : 'image/png';
     out.toBlob(
       (blob) => {
         setBusy(false);
         if (blob) onCropped(blob);
       },
-      'image/png',
-      0.95,
+      type,
+      type === 'image/webp' ? 0.85 : 0.95,
     );
   };
 

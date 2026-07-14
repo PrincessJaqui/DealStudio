@@ -84,7 +84,9 @@ export function SystemSettingsScreen() {
     setCropFile(null);
     setLogoBusy(true);
     try {
-      const file = new File([blob], 'logo.png', { type: 'image/png' });
+      // Type from the blob: the cropper emits WebP where it can.
+      const ext = blob.type === 'image/webp' ? 'webp' : 'png';
+      const file = new File([blob], `logo.${ext}`, { type: blob.type });
       const url = await uploadOrgLogo(org.id, file);
       await saveOrgBranding(org.id, { logo_url: url });
       setLogoUrl(url);

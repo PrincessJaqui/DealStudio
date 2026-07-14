@@ -201,7 +201,11 @@ export function TeamEditor({ value, onChange }: { value: DealTeamMember[] | null
             const i = crop.index;
             setCrop(null);
             setUploading(u => ({ ...u, [i]: true }));
-            const file = new File([blob], 'photo.png', { type: 'image/png' });
+            // Name and type come from the BLOB, not from a guess. The cropper now
+            // exports WebP where the browser supports it, and uploading WebP bytes
+            // under a PNG content type gives you a file no browser will render.
+            const ext = blob.type === 'image/webp' ? 'webp' : 'png';
+            const file = new File([blob], `photo.${ext}`, { type: blob.type });
             const r = await uploadDealFile(file);
             setUploading(u => ({ ...u, [i]: false }));
             if (r) setMember(i, { photo_url: r.url });
