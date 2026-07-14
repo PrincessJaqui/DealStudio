@@ -25,7 +25,7 @@ import { toast } from 'sonner@2.0.3';
 import {
   fetchDealPeople, setDealStage, fetchDealNotes, addDealNote, editDealNote,
   deleteDealNote, saveDealPerson, createDealPerson, setDealCommitted, deleteDealPerson,
-  ensureDealPerson, adminResetVisit, inviteUrl, formatDuration,
+  ensureDealPerson, adminResetVisit, inviteUrl, formatDuration, fetchLinkPreviewResult,
   STAGE_LABEL, STAGE_ORDER,
   type DealPerson, type DealStage, type DealNote, type DealDocument,
 } from '../../lib/dealStudio';
@@ -731,18 +731,41 @@ function StageDialog({
   person, dealId, next, onClose, onSaved,
 }: { person: DealPerson; dealId: string; next: DealStage; onClose: () => void; onSaved: () => void }) {
   const [note, setNote] = useState('');
+  const [amount, setAmount] = useState(person.committed ? String(person.committed) : '');
   const [busy, setBusy] = useState(false);
   const accessId = useAccessId(dealId);
 
+  /** Committing IS the amount. Asking for the stage and then making the founder
+   *  hunt for a second control to say how much is how Raised stays at zero on a
+   *  deal that has commitments in it. */
+  const wantsAmount = next === 'committed' || next === 'closed';
+
   return (
     <Shell title={`${STAGE_LABEL[person.stage]} to ${STAGE_LABEL[next]}`} subtitle={person.email ?? undefined} onClose={onClose}>
+      {wantsAmount && (
+        <div className="mb-4">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1">
+            Amount committed
+          </label>
+          <input
+            value={amount}
+            onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))}
+            inputMode="decimal"
+            autoFocus
+            placeholder="250000"
+            className="w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+          />
+          <p className="mt-1 text-xs text-[#7f8c85]">Adds to Raised on this deal. Leave it blank to set it later.</p>
+        </div>
+      )}
+
       <p className="text-sm text-[#7f8c85] mb-3">
         Why is this changing? It goes into their notes history.
       </p>
       <textarea
         value={note}
         onChange={(e) => setNote(e.target.value)}
-        autoFocus
+        autoFocus={!wantsAmount}
         placeholder="Term sheet sent, waiting on their counsel."
         className="w-full min-h-[90px] resize-y rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
       />
@@ -751,6 +774,15 @@ function StageDialog({
           setBusy(true);
           const id = await accessId(person);
           if (!id) { setBusy(false); toast.error('Could not update'); return; }
+
+          // The amount goes first. If the stage saved and the amount failed, the
+          // pipeline would say committed and Raised would not move, which is the
+          // one inconsistency a founder will not forgive.
+          if (wantsAmount && amount.trim() !== '') {
+            const n = Number(amount);
+            if (Number.isFinite(n)) await setDealCommitted(id, n);
+          }
+
           const r = await setDealStage(id, next, note);
           setBusy(false);
           if (r.ok) { toast.success('Status updated'); onSaved(); }
@@ -760,7 +792,7 @@ function StageDialog({
         className="mt-4 w-full inline-flex items-center justify-center gap-1.5 h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
       >
         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-        Save status and note
+        {wantsAmount ? 'Save status, amount and note' : 'Save status and note'}
       </button>
     </Shell>
   );
@@ -815,7 +847,12 @@ function NotesDialog({
               {n.kind === 'stage' && (
                 <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">Status change</span>
               )}
-              <span className="text-[11px] text-[#9ca3af] ml-auto">
+              {/* Who said it. A note with a date and no name is half a record once
+                  more than one person is working the raise. */}
+              {n.author && (
+                <span className="text-[11px] font-semibold text-[#191f1d] truncate">{n.author}</span>
+              )}
+              <span className="text-[11px] text-[#9ca3af] ml-auto shrink-0">
                 {new Date(n.created_at).toLocaleString()}
                 {n.updated_at && ' (edited)'}
               </span>
@@ -873,6 +910,7 @@ function DetailsDialog({
   const [linkedin, setLinkedin] = useState(person.linkedin ?? '');
   const [website, setWebsite] = useState(person.website ?? '');
   const [busy, setBusy] = useState(false);
+  const [pulling, setPulling] = useState(false);
 
   const field = 'w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
   const label = 'block text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1';
@@ -891,8 +929,31 @@ function DetailsDialog({
           <input value={name} onChange={e => setName(e.target.value)} className={field} placeholder="Contact name" /></div>
         <div><label className={label}>Company</label>
           <input value={company} onChange={e => setCompany(e.target.value)} className={field} placeholder="Company" /></div>
-        <div><label className={label}>Company logo URL</label>
-          <input value={logo} onChange={e => setLogo(e.target.value)} className={field} placeholder="https://..." /></div>
+        <div>
+          <label className={label}>Company logo URL</label>
+          <div className="flex items-center gap-2">
+            <input value={logo} onChange={e => setLogo(e.target.value)} className={field} placeholder="https://..." />
+            {/* Pulls the og:image from their WEBSITE, through the same link-preview
+                function Industry Reading already uses. Deliberately NOT from
+                LinkedIn: LinkedIn serves a login wall to anything that is not a
+                signed-in browser, so there is no image on that page to fetch. */}
+            <button
+              type="button"
+              disabled={!website.trim() || pulling}
+              onClick={async () => {
+                setPulling(true);
+                const r = await fetchLinkPreviewResult(website.trim());
+                setPulling(false);
+                if (r.ok && r.preview.image) { setLogo(r.preview.image); toast.success('Pulled from their site'); }
+                else toast.error('No image found on that site');
+              }}
+              className="shrink-0 inline-flex items-center gap-1.5 h-10 px-3 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] disabled:opacity-40"
+            >
+              {pulling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Pull
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-[#99a1af]">Pulls the image from the Website field below. LinkedIn blocks this.</p>
+        </div>
         <div><label className={label}>LinkedIn</label>
           <input value={linkedin} onChange={e => setLinkedin(e.target.value)} className={field} placeholder="https://linkedin.com/in/..." /></div>
         <div><label className={label}>Website</label>

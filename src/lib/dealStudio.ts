@@ -1090,6 +1090,9 @@ export type DealNote = {
   kind: 'note' | 'stage';
   created_at: string;
   updated_at: string | null;
+  /** Who wrote it. Name if they set one, otherwise their email. Null on notes
+   *  written before the author was recorded. */
+  author: string | null;
 };
 
 /**
@@ -1205,11 +1208,18 @@ export async function fetchDealNotes(accessId: string): Promise<DealNote[]> {
   return (data ?? []) as DealNote[];
 }
 
+/**
+ * Through an RPC, not a table insert. A browser cannot set auth.uid(), so the
+ * client-side insert left `author` null on every hand-written note, and the notes
+ * history could not say who said it. The database writes the author now, and the
+ * client is no longer able to write a note without one.
+ */
 export async function addDealNote(accessId: string, body: string): Promise<boolean> {
-  const { error } = await supabase
-    .from('dealstudio_notes')
-    .insert({ access_id: accessId, body: body.trim(), kind: 'note' });
-  return !error;
+  const { data, error } = await supabase.rpc('admin_add_note', {
+    p_access: accessId, p_body: body,
+  });
+  if (error) { console.warn('[dealStudio] addNote', error); return false; }
+  return !!(data as { ok?: boolean })?.ok;
 }
 
 export async function editDealNote(noteId: string, body: string): Promise<boolean> {
