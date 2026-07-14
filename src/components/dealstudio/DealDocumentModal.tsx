@@ -129,9 +129,13 @@ export function DealDocumentModal({ roomId, existing, defaultIsDeck, onClose, on
             </>
           ) : (
             <>
-              <label className="flex items-center gap-3 rounded-xl border border-dashed border-[#d7dde2] bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-4 py-3 cursor-pointer hover:border-[var(--ds-brand)]">
-                <UploadCloud className="w-5 h-5 text-[var(--ds-brand)]" />
-                <span className="text-sm text-[#7f8c85]">Choose one or more files (PDF)</span>
+              {/* The label sits on the blue brand gradient, so everything on it has
+                  to be white. The icon was --ds-brand, which is dark blue ON blue:
+                  it was nearly invisible, and the dashed border was a pale grey
+                  meant for a white card. */}
+              <label className="flex items-center gap-3 rounded-xl border border-dashed border-white/40 bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] px-4 py-3 cursor-pointer hover:border-white/70">
+                <UploadCloud className="w-5 h-5 text-white" />
+                <span className="text-sm font-medium text-white">Choose one or more files (PDF)</span>
                 <input type="file" accept="application/pdf,image/*" multiple className="hidden" onChange={e => addFiles(e.target.files)} />
               </label>
 
