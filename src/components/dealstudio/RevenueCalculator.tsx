@@ -4,6 +4,7 @@
  * (admin=false, investors adjust the numbers as a what-if). Both drive the same
  * DealBusinessModel and the same math in lib/dealStudio.
  */
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { SectionHeader, AddButton } from './SectionHeader';
@@ -45,13 +46,38 @@ function Box({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function NumInput({ value, onChange, suffix, disabled, step }: { value: number; onChange: (n: number) => void; suffix?: string; disabled?: boolean; step?: number }) {
+/**
+ * A number field that behaves like a number field.
+ *
+ * Two bugs, one cause. It was type="number" bound straight to the value:
+ *
+ *   * The field showed 0, the caret sat after it, and typing 20 gave you 020.
+ *     Now it keeps a DRAFT string while focused, and a zero clears the moment you
+ *     click into it, so you type the number you meant.
+ *
+ *   * type="number" also means the mouse wheel changes the value. Scrolling past
+ *     a revenue model quietly rewrote the founder's pricing. text plus
+ *     inputMode="decimal" keeps the numeric keypad on a phone and takes the wheel
+ *     and the spinners away.
+ */
+function NumInput({ value, onChange, suffix, disabled }: { value: number; onChange: (n: number) => void; suffix?: string; disabled?: boolean; step?: number }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const shown = draft ?? (Number.isFinite(value) && value !== 0 ? String(value) : (value === 0 ? '0' : ''));
+
   return (
     <div className="flex items-center gap-1">
       <input
-        type="number" inputMode="decimal" min={0} step={step ?? 1} disabled={disabled}
-        value={Number.isFinite(value) ? value : 0}
-        onChange={e => onChange(parseFloat(e.target.value) || 0)}
+        type="text"
+        inputMode="decimal"
+        disabled={disabled}
+        value={draft === null ? shown : draft}
+        onFocus={() => setDraft(value ? String(value) : '')}
+        onBlur={() => setDraft(null)}
+        onChange={e => {
+          const raw = e.target.value.replace(/[^0-9.]/g, '');
+          setDraft(raw);
+          onChange(parseFloat(raw) || 0);
+        }}
         className="w-full bg-transparent text-sm font-medium text-[#191f1d] outline-none disabled:text-[#4a5565]"
       />
       {suffix && <span className="text-xs text-[#99a1af] shrink-0">{suffix}</span>}
@@ -193,44 +219,45 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
                       </label>
 
                       {t.hasAddons && (
-                        <div className="mt-2 rounded-xl bg-[var(--ds-tint)] border border-[var(--ds-brand)] p-3">
-                          <div className="mb-2 flex items-baseline justify-between gap-2">
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--ds-brand)]">Add-on</p>
-                            <p className="text-[11px] text-[#7f8c85]">
-                              {(t.quantity || 0).toLocaleString()} customers on this tier
-                            </p>
-                          </div>
+                        <div className="mt-2 space-y-2">
+                          {/* One container per add-on. They were sharing a single box,
+                              so three add-ons read as one twelve-field form. */}
+                          {(t.addons || []).map((a, ai) => (
+                            <div key={a.id} className="rounded-xl bg-[var(--ds-tint)] border border-[var(--ds-brand)] p-3">
+                              <div className="mb-2 flex items-baseline justify-between gap-2">
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--ds-brand)]">
+                                  Add-on {ai + 1}
+                                </p>
+                                <p className="text-[11px] text-[#7f8c85]">
+                                  {(t.quantity || 0).toLocaleString()} customers on this tier
+                                </p>
+                              </div>
 
-                          <div className="space-y-2">
-                            {(t.addons || []).map((a, ai) => {
-                              const buyers = addonQuantity(t, a);
-                              return (
-                                <div key={a.id}>
-                                  <div className="grid grid-cols-2 gap-2">
-                                    <Box label="Add-on Name"><TextInput value={a.tierName} placeholder="Extra Seat" disabled={!admin} onChange={v => setAdd(ri, ti, ai, { tierName: v })} /></Box>
-                                    <Box label="Unit Type"><Select value={a.unitType} opts={UNIT_OPTS} disabled={!admin} onChange={v => setAdd(ri, ti, ai, { unitType: v })} /></Box>
-                                    <Box label="Preset Amount"><NumInput value={a.presetAmount} suffix={unitSuffix(a.unitType)} step={0.01} onChange={v => setAdd(ri, ti, ai, { presetAmount: v })} /></Box>
-                                    <Box label="Frequency"><Select value={a.frequency} opts={FREQ_OPTS} disabled={!admin} onChange={v => setAdd(ri, ti, ai, { frequency: v })} /></Box>
-                                    <Box label="Attach Rate"><NumInput value={a.attachRate} suffix="%" step={1} onChange={v => setAdd(ri, ti, ai, { attachRate: Math.min(100, Math.max(0, v)) })} /></Box>
-                                    <div className="flex items-stretch gap-1">
-                                      <div className="flex-1">
-                                        <Box label="Buyers">
-                                          {/* Derived, not typed. The attach rate is the input; this
-                                              is what it means, so a founder can see that 10% of 5,000
-                                              is 500 people before the number reaches an investor. */}
-                                          <p className="text-sm font-medium text-[#191f1d] tabular-nums">{Math.round(buyers).toLocaleString()}</p>
-                                        </Box>
-                                      </div>
-                                      {admin && <button type="button" onClick={() => setTier(ri, ti, { addons: (t.addons || []).filter((_, i) => i !== ai) })} className="rounded-lg px-1 text-[#99a1af] hover:text-[#dc2626]" aria-label="Remove add-on"><Trash2 className="w-4 h-4" /></button>}
-                                    </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <Box label="Add-on Name"><TextInput value={a.tierName} placeholder="Extra Seat" disabled={!admin} onChange={v => setAdd(ri, ti, ai, { tierName: v })} /></Box>
+                                <Box label="Unit Type"><Select value={a.unitType} opts={UNIT_OPTS} disabled={!admin} onChange={v => setAdd(ri, ti, ai, { unitType: v })} /></Box>
+                                <Box label="Preset Amount"><NumInput value={a.presetAmount} suffix={unitSuffix(a.unitType)} onChange={v => setAdd(ri, ti, ai, { presetAmount: v })} /></Box>
+                                <Box label="Frequency"><Select value={a.frequency} opts={FREQ_OPTS} disabled={!admin} onChange={v => setAdd(ri, ti, ai, { frequency: v })} /></Box>
+                                <Box label="Attach Rate"><NumInput value={a.attachRate} suffix="%" onChange={v => setAdd(ri, ti, ai, { attachRate: Math.min(100, Math.max(0, v)) })} /></Box>
+                                <div className="flex items-stretch gap-1">
+                                  <div className="flex-1">
+                                    <Box label="Quantity">
+                                      {/* Derived, not typed. The attach rate is the input; this is
+                                          what it means, so a founder sees that 10% of 5,000 is 500
+                                          people before that number reaches an investor. */}
+                                      <p className="text-sm font-medium text-[#191f1d] tabular-nums">
+                                        {Math.round(addonQuantity(t, a)).toLocaleString()}
+                                      </p>
+                                    </Box>
                                   </div>
+                                  {admin && <button type="button" onClick={() => setTier(ri, ti, { addons: (t.addons || []).filter((_, i) => i !== ai) })} className="rounded-lg px-1 text-[#99a1af] hover:text-[#dc2626]" aria-label="Remove add-on"><Trash2 className="w-4 h-4" /></button>}
                                 </div>
-                              );
-                            })}
-                          </div>
+                              </div>
+                            </div>
+                          ))}
 
                           {admin && (
-                            <button type="button" onClick={() => setTier(ri, ti, { addons: [...(t.addons || []), newAddon()] })} className="mt-2 ml-auto flex w-fit items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] transition"><Plus className="w-4 h-4" /> Add-on</button>
+                            <button type="button" onClick={() => setTier(ri, ti, { addons: [...(t.addons || []), newAddon()] })} className="ml-auto flex w-fit items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] transition"><Plus className="w-4 h-4" /> Add-on</button>
                           )}
                         </div>
                       )}

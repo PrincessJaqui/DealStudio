@@ -53,6 +53,8 @@ function AssumptionRow({ row }: { row: Row }) {
 export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
   const [local, setLocal] = useState<DealBusinessModel>(() => model || { revenues: [], annualGrowthRate: 0 });
   const [active, setActive] = useState(0);
+  /** Null while not being edited. A 0 in the box would otherwise turn "20" into "020". */
+  const [growthDraft, setGrowthDraft] = useState<string | null>(null);
   const { ref, inView } = useInViewOnce<HTMLDivElement>();
 
   const revenues = local.revenues || [];
@@ -197,8 +199,20 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
                 its two rings had already played by the time anyone could see it.
                 This one keeps going. */}
             <div className="ds-field-pulse ds-card mt-1 ml-auto flex items-center rounded-lg border border-[#e5e7eb] bg-white px-3 py-1.5 w-28">
-              <input type="number" min={0} value={Number.isFinite(local.annualGrowthRate) ? local.annualGrowthRate : 0}
-                onChange={e => setLocal(m => ({ ...m, annualGrowthRate: parseFloat(e.target.value) || 0 }))}
+              {/* text + inputMode, never type="number": the wheel rewrites a
+                  type="number" field, so scrolling past this box changed the
+                  founder's growth rate on the way past. */}
+              <input
+                type="text"
+                inputMode="decimal"
+                value={growthDraft ?? (local.annualGrowthRate || 0)}
+                onFocus={() => setGrowthDraft(local.annualGrowthRate ? String(local.annualGrowthRate) : '')}
+                onBlur={() => setGrowthDraft(null)}
+                onChange={e => {
+                  const raw = e.target.value.replace(/[^0-9.]/g, '');
+                  setGrowthDraft(raw);
+                  setLocal(m => ({ ...m, annualGrowthRate: parseFloat(raw) || 0 }));
+                }}
                 className="w-full bg-transparent text-sm font-medium text-[#191f1d] outline-none text-right" />
               <span className="text-sm text-[#99a1af]">%</span>
             </div>

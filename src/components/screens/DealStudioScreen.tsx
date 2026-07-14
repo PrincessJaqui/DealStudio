@@ -125,7 +125,28 @@ export function DealStudioScreen() {
   const [docs, setDocs] = useState<DealDocument[]>([]);
   const [access, setAccess] = useState<DealAccessRow[]>([]);
   const [funnel, setFunnel] = useState<DealFunnel | null>(null);
-  const [tab, setTab] = useState('details');
+  /**
+   * The tab survives a refresh.
+   *
+   * Editing the Team tab, hitting reload, and landing back on Details is the kind
+   * of small thing that makes a tool feel like it is not listening. Kept in the
+   * URL hash rather than in storage, so the back button works and a tab can be
+   * linked to, and read straight out of the hash on first render rather than in an
+   * effect, or the page would flash Details before correcting itself.
+   */
+  const [tab, setTab] = useState(() => {
+    // Validated against the real tab ids, so a stale or hand-typed hash lands on
+    // Details rather than rendering an empty screen.
+    const valid = ['details', ...Object.keys(SECTION_LABELS), 'dealflow', 'settings'];
+    const h = window.location.hash.replace('#', '').trim();
+    return valid.includes(h) ? h : 'details';
+  });
+
+  useEffect(() => {
+    // replaceState, not a new entry: switching tabs should not fill the history
+    // stack, but the CURRENT url must always name the tab you are looking at.
+    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${tab}`);
+  }, [tab]);
   const [savedAt, setSavedAt] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [docModal, setDocModal] = useState<{ open: boolean; existing: DealDocument | null; deck?: boolean }>({ open: false, existing: null });

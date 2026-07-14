@@ -73,9 +73,12 @@ export function StatSlotField({
 
       {kind === 'team_size' ? (
         <input
-          type="number"
+          /* Not type="number". The wheel edits those, so scrolling the page past
+             this field changed the team size on the way past. */
+          type="text"
+          inputMode="numeric"
           value={teamSize || ''}
-          onChange={(e) => onTeamSize(parseInt(e.target.value) || 0)}
+          onChange={(e) => onTeamSize(parseInt(e.target.value.replace(/[^0-9]/g, ''), 10) || 0)}
           className={input}
           placeholder={PLACEHOLDER.team_size}
         />
