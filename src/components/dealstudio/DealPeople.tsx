@@ -145,7 +145,11 @@ export function DealPeople({
   };
 
   const rows = useMemo(() => {
-    let r = people ?? [];
+    // No email, no row. Nobody reaches a deal room without giving one, so an
+    // email-less row is a leftover from before dealstudio_record_visit required
+    // it, and rendering it as "Anonymous" put a person in the pipeline who is not
+    // a person.
+    let r = (people ?? []).filter(p => !!(p.email || '').trim());
     const needle = q.trim().toLowerCase();
     if (needle) {
       r = r.filter(p =>
@@ -340,7 +344,7 @@ export function DealPeople({
                             <Ban className="w-3.5 h-3.5 text-red-600" />
                           </span>
                         )}
-                        {p.email || 'Anonymous'}
+                        {p.email}
                       </span>
                     </td>
 
@@ -433,7 +437,7 @@ export function DealPeople({
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={(e) => openMenu(id, e)}
-                        aria-label={`Actions for ${p.email || 'this person'}`}
+                        aria-label={`Actions for ${p.email}`}
                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#7f8c85] hover:bg-white hover:text-[#191f1d]"
                       >
                         <MoreVertical className="w-4 h-4" />
@@ -509,7 +513,7 @@ export function DealPeople({
                             <button
                               onClick={async () => {
                                 setMenu(null);
-                                if (!confirm(`Permanently delete ${p.email || 'this person'} and their analytics? This cannot be undone.`)) return;
+                                if (!confirm(`Permanently delete ${p.email} and their analytics? This cannot be undone.`)) return;
                                 if (await deleteDealPerson(p.access_id, p.visit_id)) { toast.success('Deleted'); await load(); onChanged(); }
                                 else toast.error('Could not delete');
                               }}
