@@ -105,8 +105,8 @@ export function LandingEditor() {
       <div className={`${card} p-5`}>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div>
-            <h2 className="font-bold text-[#191f1d]">Landing page</h2>
-            <p className="text-sm text-[#7f8c85]">
+            <h3 className="text-sm font-bold text-[#191f1d]">Landing page</h3>
+            <p className="text-xs text-[#7f8c85] mt-0.5">
               {blocks.length === 0
                 ? 'No custom blocks. The built-in page is showing.'
                 : `${blocks.length} block${blocks.length === 1 ? '' : 's'}. Changes go live when you publish.`}
@@ -191,9 +191,11 @@ export function LandingEditor() {
       {mode === 'edit' && blocks.map((b, i) => (
         <div key={b.id} className={`${card} p-5`}>
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-accent-ink)]">
+            {/* Block title, in the one header style. It was an uppercase teal
+                caption, which is the style this file uses for FIELD labels. */}
+            <h4 className="text-sm font-bold text-[#191f1d]">
               {BLOCK_LABELS[b.type]}
-            </span>
+            </h4>
             <span className="text-xs text-[#c7cdd4]">#{i + 1}</span>
 
             <div className="ml-auto flex items-center gap-1">

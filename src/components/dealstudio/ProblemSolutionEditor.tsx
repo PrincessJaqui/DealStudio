@@ -6,7 +6,8 @@
  * pillars say why you win; these say what is broken and what you did.
  */
 
-import { Plus, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+import { SectionHeader, AddButton } from './SectionHeader';
 import {
   EMPTY_VALUE_PROP, newId,
   type DealValueProp, type ProblemSolution,
@@ -48,84 +49,79 @@ export function ProblemSolutionEditor({
 
   return (
     <div className="space-y-4">
-      <div className={card}>
-        <p className={labelCls}>Problem and solution</p>
-        <p className="text-xs text-[#9ca3af] mt-1 mb-2">
-          A statement to open with, then each problem paired with what you do about it.
-          The short titles are all an investor sees until they tap to expand, so make them
-          carry the point on their own.
-        </p>
+      {/* Header container: the title, the add button, and the statement, which is
+          the one field that belongs to the SECTION rather than to any one pair.
+          Every pair below gets its own container, like Team and Value Prop. */}
+      <SectionHeader
+        title="Problem and Solution"
+        summary="A statement to open with, then each problem paired with what you do about it."
+        action={<AddButton label="Pair" onClick={addPair} />}
+      >
         <textarea
           className={`${input} min-h-[80px] resize-y`}
           value={v.statement ?? ''}
           onChange={(e) => set({ statement: e.target.value })}
           placeholder="The statement that opens this section."
         />
+        <p className="mt-2 text-xs text-[#99a1af]">
+          The short titles are all an investor sees until they tap to expand, so make them
+          carry the point on their own.
+        </p>
+      </SectionHeader>
 
-        <div className="mt-4 space-y-3">
-          {pairs.map((pr, i) => (
-            <div key={pr.id} className="rounded-2xl bg-[#f5f6f8] border border-[#edf0f3] p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--ds-accent-ink)]">
-                  Pair {i + 1}
-                </span>
-                <button
-                  onClick={() => removePair(pr.id)}
-                  aria-label="Remove pair"
-                  className="ml-auto w-8 h-8 rounded-lg flex items-center justify-center text-[#7f8c85] hover:text-red-600 hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+      {pairs.length === 0 ? (
+        <div className={card}>
+          <p className="text-sm text-[#99a1af]">No pairs yet. Add the first problem you solve.</p>
+        </div>
+      ) : (
+        pairs.map((pr, i) => (
+          <div key={pr.id} className={card}>
+            <div className="flex items-center gap-2 mb-3">
+              <h4 className="text-sm font-bold text-[#191f1d]">Pair {i + 1}</h4>
+              <button
+                onClick={() => removePair(pr.id)}
+                aria-label="Remove pair"
+                className="ml-auto w-8 h-8 rounded-lg flex items-center justify-center text-[#7f8c85] hover:text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <div>
+                <label className={labelCls}>Problem</label>
+                <input
+                  className={`${input} mt-1 mb-2 font-semibold`}
+                  value={pr.problem_title ?? ''}
+                  onChange={(e) => setPair(pr.id, { problem_title: e.target.value })}
+                  placeholder="Short title, e.g. Fragmented assets"
+                />
+                <textarea
+                  className={`${input} min-h-[88px] resize-y`}
+                  value={pr.problem}
+                  onChange={(e) => setPair(pr.id, { problem: e.target.value })}
+                  placeholder="What is broken, and who feels it."
+                />
               </div>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <div>
-                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9ca3af] mb-1">
-                    Problem
-                  </label>
-                  <input
-                    className={`${input} bg-white mb-2 font-semibold`}
-                    value={pr.problem_title ?? ''}
-                    onChange={(e) => setPair(pr.id, { problem_title: e.target.value })}
-                    placeholder="Short title, e.g. Fragmented assets"
-                  />
-                  <textarea
-                    className={`${input} min-h-[88px] resize-y bg-white`}
-                    value={pr.problem}
-                    onChange={(e) => setPair(pr.id, { problem: e.target.value })}
-                    placeholder="What is broken, and who feels it."
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-[var(--ds-accent-ink)] mb-1">
-                    Solution
-                  </label>
-                  <input
-                    className={`${input} bg-white mb-2 font-semibold`}
-                    value={pr.solution_title ?? ''}
-                    onChange={(e) => setPair(pr.id, { solution_title: e.target.value })}
-                    placeholder="Short title, e.g. Central deal hub"
-                  />
-                  <textarea
-                    className={`${input} min-h-[88px] resize-y bg-white`}
-                    value={pr.solution}
-                    onChange={(e) => setPair(pr.id, { solution: e.target.value })}
-                    placeholder="What you do about it, in plain language."
-                  />
-                </div>
+              <div>
+                <label className={labelCls}>Solution</label>
+                <input
+                  className={`${input} mt-1 mb-2 font-semibold`}
+                  value={pr.solution_title ?? ''}
+                  onChange={(e) => setPair(pr.id, { solution_title: e.target.value })}
+                  placeholder="Short title, e.g. Central deal hub"
+                />
+                <textarea
+                  className={`${input} min-h-[88px] resize-y`}
+                  value={pr.solution}
+                  onChange={(e) => setPair(pr.id, { solution: e.target.value })}
+                  placeholder="What you do about it, in plain language."
+                />
               </div>
             </div>
-          ))}
-        </div>
-
-        <button
-          onClick={addPair}
-          className="mt-3 inline-flex items-center gap-1.5 h-10 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]"
-        >
-          <Plus className="w-4 h-4" /> Add problem and solution
-        </button>
-      </div>
-
+          </div>
+        ))
+      )}
     </div>
   );
 }

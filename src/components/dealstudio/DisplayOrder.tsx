@@ -38,10 +38,11 @@ export function DisplayOrder({
 
   return (
     <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85]">
-        Display Order
-      </p>
-      <p className="text-xs text-[#9ca3af] mt-0.5 mb-3">
+      {/* The one header. Bold 14px title, 12px muted line on what it is FOR.
+          This was an uppercase grey label, which is the style used for FIELD
+          labels, so a panel title and a form label looked like the same thing. */}
+      <h3 className="text-sm font-bold text-[#191f1d]">Display Order</h3>
+      <p className="text-xs text-[#7f8c85] mt-0.5 mb-3">
         The order investors scroll through your room.
       </p>
 

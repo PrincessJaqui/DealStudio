@@ -73,10 +73,16 @@ export function MarketEditor({ value, onChange }: { value: DealMarket | null | u
   return (
     <div className="space-y-4">
       <div className={card}>
-        <label className={labelCls}>Market overview</label>
-        <textarea className={input + ' mt-2 min-h-[80px]'} placeholder="A sentence or two framing the market and why now."
+        {/* The section header, not a field label. It was labelCls, the uppercase
+            grey style used on every INPUT label in this file, so the title of the
+            tab and the caption on a text box were the same thing. */}
+        <h3 className="text-sm font-bold text-[#191f1d]">Market overview</h3>
+        <p className="text-xs text-[#7f8c85] mt-0.5">
+          A sentence or two framing the market and why now. TAM, SAM and SOM cannot be pulled
+          from a reliable public source, so enter your own figures and attach what justifies them.
+        </p>
+        <textarea className={input + ' mt-3 min-h-[80px]'} placeholder="A sentence or two framing the market and why now."
           value={m.overview} onChange={e => onChange({ ...m, overview: e.target.value })} />
-        <p className="mt-2 text-xs text-[#99a1af]">TAM, SAM, and SOM can&apos;t be pulled from a reliable public source, so enter your figures and attach the links and notes that justify how you arrived at each. Changes save automatically.</p>
       </div>
 
       {METRICS.map(({ key, label, hint }) => {

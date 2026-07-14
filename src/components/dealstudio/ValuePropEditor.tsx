@@ -62,7 +62,7 @@ export function ValuePropEditor({
         pillars.map((p, i) => (
           <div key={i} className={card}>
             <div className="flex items-center justify-between mb-3">
-              <span className={labelCls}>Reason {i + 1}</span>
+              <h4 className="text-sm font-bold text-[#191f1d]">Reason {i + 1}</h4>
               <div className="flex items-center gap-1">
                 <button type="button" onClick={() => move(i, -1)} disabled={i === 0}
                   className="rounded-lg p-2 text-[#99a1af] hover:bg-[#f5f7f9] disabled:opacity-30" aria-label="Move up"><ArrowUp className="w-4 h-4" /></button>

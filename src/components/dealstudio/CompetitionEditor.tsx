@@ -100,9 +100,10 @@ export function CompetitionEditor({
   return (
     <div className="space-y-4">
       <div className={`${card} p-5`}>
-        <p className={labelCls}>Landscape</p>
+        <h3 className="text-sm font-bold text-[#191f1d]">Competition Landscape</h3>
+        <p className="text-xs text-[#7f8c85] mt-0.5">How the market is served today, before you.</p>
         <textarea
-          className={`${input} mt-2 min-h-[80px] resize-y`}
+          className={`${input} mt-3 min-h-[80px] resize-y`}
           value={v.overview}
           onChange={(e) => set({ overview: e.target.value })}
           placeholder="How the market is served today, in a sentence or two."
@@ -113,16 +114,16 @@ export function CompetitionEditor({
       <div className={`${card} overflow-hidden`}>
         <div className="flex items-center gap-3 p-5 pb-4">
           <div className="min-w-0">
-            <h3 className="font-bold text-[#191f1d]">Competitive Analysis</h3>
-            <p className="text-sm text-[#7f8c85]">
+            <h3 className="text-sm font-bold text-[#191f1d]">Competitive Analysis</h3>
+            <p className="text-xs text-[#7f8c85] mt-0.5">
               Click any label to edit. Click a cell to switch it on or off.
             </p>
           </div>
           <button
             onClick={addRival}
-            className="ml-auto shrink-0 inline-flex items-center gap-1.5 h-10 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)]"
+            className="ml-auto shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] hover:brightness-110 transition"
           >
-            <Plus className="w-4 h-4" /> Add New Competitor
+            <Plus className="w-4 h-4" /> Competitor
           </button>
         </div>
 
@@ -277,8 +278,8 @@ export function CompetitionEditor({
       </div>
 
       <div className={`${card} p-5`}>
-        <p className={labelCls}>Your edge</p>
-        <p className="text-xs text-[#9ca3af] mt-1 mb-2">
+        <h3 className="text-sm font-bold text-[#191f1d]">Your Edge</h3>
+        <p className="text-xs text-[#7f8c85] mt-0.5 mb-2">
           Why you win, stated plainly. Investors discount claims they cannot check.
         </p>
         <textarea

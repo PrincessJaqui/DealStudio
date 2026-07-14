@@ -223,17 +223,28 @@ export function DealPeople({
     URL.revokeObjectURL(url);
   };
 
-  const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => (
-    <th className={`font-semibold px-4 py-2.5 whitespace-nowrap ${right ? 'text-right' : ''}`}>
-      <button
-        onClick={() => { if (sort === k) setDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSort(k); setDir('desc'); } }}
-        className={`inline-flex items-center gap-1 hover:text-[#191f1d] ${right ? 'flex-row-reverse' : ''}`}
-      >
-        {children}
-        {sort === k && (dir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
-      </button>
-    </th>
-  );
+  /**
+   * Both arrows, always. A single chevron that appears only on the sorted column
+   * tells you what IS sorted and gives no hint that the other ten can be. The
+   * pair is always there, and the active direction is the one in brand blue.
+   */
+  const Th = ({ k, children, right }: { k: SortKey; children: React.ReactNode; right?: boolean }) => {
+    const on = sort === k;
+    return (
+      <th className={`font-semibold px-4 py-2.5 whitespace-nowrap ${right ? 'text-right' : ''}`}>
+        <button
+          onClick={() => { if (on) setDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSort(k); setDir('desc'); } }}
+          className={`inline-flex items-center gap-1 hover:text-[#191f1d] ${right ? 'flex-row-reverse' : ''}`}
+        >
+          {children}
+          <span className="flex flex-col leading-none">
+            <ChevronUp className={`w-3 h-3 ${on && dir === 'asc' ? 'text-[var(--ds-brand)]' : 'text-[#c7cdd4]'}`} />
+            <ChevronDown className={`w-3 h-3 -mt-1 ${on && dir === 'desc' ? 'text-[var(--ds-brand)]' : 'text-[#c7cdd4]'}`} />
+          </span>
+        </button>
+      </th>
+    );
+  };
 
   const openMenu = (id: string, e: React.MouseEvent<HTMLButtonElement>) => {
     if (menu === id) { setMenu(null); setMenuAt(null); return; }

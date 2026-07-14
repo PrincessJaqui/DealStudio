@@ -27,7 +27,7 @@ import dsMark from '../../assets/dealstudio-mark.png';
 import { DealDocViewer } from '../dealstudio/DealDocViewer';
 import { DealPeople } from '../dealstudio/DealPeople';
 import { PillTabs } from '../dealstudio/PillTabs';
-import { AddButton } from '../dealstudio/SectionHeader';
+import { AddButton, SectionHeader } from '../dealstudio/SectionHeader';
 import { MarketEditor } from '../dealstudio/MarketEditor';
 import { ValuePropEditor } from '../dealstudio/ValuePropEditor';
 import { ProblemSolutionEditor } from '../dealstudio/ProblemSolutionEditor';
@@ -56,9 +56,13 @@ const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
+    <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4 flex flex-col">
       <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">{label}</p>
-      <p className="text-2xl font-bold text-[#191f1d] mt-2">{value}</p>
+      {/* The number sits bottom right. mt-auto rather than a fixed height: the
+          tiles are grid siblings and stretch to the tallest, so a two-line label
+          would otherwise push its own number down and out of line with the rest
+          of the row. */}
+      <p className="text-2xl font-bold text-[#191f1d] mt-auto pt-2 text-right">{value}</p>
     </div>
   );
 }
@@ -340,9 +344,12 @@ export function DealStudioScreen() {
      rail; mobile places each one inside the tab it belongs to. */
   const funnelPanel = (
             <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5">
-              <div className="flex items-center justify-between mb-3">
-                <p className="font-bold text-[#191f1d] flex items-center gap-2"><Users className="w-4 h-4 text-[var(--ds-brand)]" /> Investor Funnel</p>
-                <span className="text-[11px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">Conv {funnel?.conversion ?? 0}%</span>
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-[#191f1d]">Investor Funnel</h3>
+                  <p className="text-xs text-[#7f8c85] mt-0.5">How far the room takes them, from opening it to committing.</p>
+                </div>
+                <span className="shrink-0 text-[11px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">Conv {funnel?.conversion ?? 0}%</span>
               </div>
               {(() => {
                 const v = funnel?.totalVisitors ?? 0;
@@ -410,7 +417,8 @@ export function DealStudioScreen() {
 
   const calendarPanel = (
             <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2">Deal Calendar</p>
+              <h3 className="text-sm font-bold text-[#191f1d]">Deal Calendar</h3>
+              <p className="text-xs text-[#7f8c85] mt-0.5 mb-2">Meetings investors have booked, and the days you are open.</p>
               <EventsCalendar
                 events={availabilityEvents}
                 selectedDate={calDate}
@@ -699,14 +707,19 @@ export function DealStudioScreen() {
             </TabsContent>
 
             {/* DOCUMENTS */}
-            <TabsContent value="documents">
-              <Card
+            <TabsContent value="documents" className="space-y-4">
+              {/* Header in its own container, documents below it. Same components,
+                  same functions, split into two cards so every tab in Deal Studio
+                  opens the same way. */}
+              <SectionHeader
                 title="Documents"
                 summary="The deck, the model, the data room. Investors open these from the deal room."
                 action={!selectMode && !reorderMode ? (
                   <AddButton label="Document" onClick={() => setDocModal({ open: true, existing: null })} />
                 ) : null}
-              >
+              />
+
+              <div className="bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 space-y-3">
                 {(selectMode || reorderMode || docs.length > 0) && (
                   <div className="flex flex-wrap items-center gap-2">
                     {selectMode ? (
@@ -768,7 +781,7 @@ export function DealStudioScreen() {
                     ))}
                   </div>
                 )}
-              </Card>
+              </div>
             </TabsContent>
 
             {/* DEAL FLOW */}

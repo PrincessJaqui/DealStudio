@@ -65,8 +65,8 @@ export function DealThemeEditor({
     <div className="rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5">
       <div className="flex items-center gap-3 mb-1">
         <div>
-          <h3 className="font-bold text-[#191f1d]">Deal Branding</h3>
-          <p className="text-sm text-[#7f8c85] mt-0.5">
+          <h3 className="text-sm font-bold text-[#191f1d]">Deal Branding</h3>
+          <p className="text-xs text-[#7f8c85] mt-0.5">
             {overridden
               ? 'This deal uses its own colours.'
               : 'Following your company colours.'}

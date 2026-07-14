@@ -153,11 +153,7 @@ export function IndustryReadingEditor({
             />
           </div>
         }
-      >
-        <p className="text-xs text-[#99a1af]">
-          Paste a link and tab out and the title, source, summary, and image fill in automatically. Use the toggle on each item to hide just that image.
-        </p>
-      </SectionHeader>
+      />
 
       {m.articles.length === 0 ? (
         <div className={card}>
