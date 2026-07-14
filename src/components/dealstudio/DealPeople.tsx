@@ -19,14 +19,13 @@ import { createPortal } from 'react-dom';
 import {
   Search, ChevronUp, ChevronDown, MoreVertical, Eye, Share2,
   Ban, Mail, Pencil, X, Loader2, Check, Download, RefreshCw, Plus,
-  RotateCcw, Trash2, Maximize2, Minimize2, UploadCloud, ImageOff,
+  RotateCcw, Trash2, Maximize2, Minimize2,
 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import {
   fetchDealPeople, setDealStage, fetchDealNotes, addDealNote, editDealNote,
   deleteDealNote, saveDealPerson, createDealPerson, setDealCommitted, deleteDealPerson,
   ensureDealPerson, adminResetVisit, inviteUrl, formatDuration, fetchLinkPreviewResult,
-  uploadDealFile,
   STAGE_LABEL, STAGE_ORDER,
   type DealPerson, type DealStage, type DealNote, type DealDocument,
 } from '../../lib/dealStudio';
@@ -958,8 +957,6 @@ function DetailsDialog({
   const [website, setWebsite] = useState(person.website ?? '');
   const [busy, setBusy] = useState(false);
   const [pulling, setPulling] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [imgBroken, setImgBroken] = useState(false);
 
   const field = 'w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
   const label = 'block text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1';
@@ -979,86 +976,29 @@ function DetailsDialog({
         <div><label className={label}>Company</label>
           <input value={company} onChange={e => setCompany(e.target.value)} className={field} placeholder="Company" /></div>
         <div>
-          <label className={label}>Image</label>
-
-          <div className="flex items-center gap-3">
-            {/* You cannot judge a URL. Circles, like every other avatar in the
-                product, so what you see here is what the table will show. */}
-            <span className="w-12 h-12 shrink-0 rounded-full overflow-hidden ring-2 ring-white bg-[#f5f6f8] shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
-              {logo && !imgBroken
-                ? <img src={logo} alt="" className="w-full h-full object-cover" onError={() => setImgBroken(true)} onLoad={() => setImgBroken(false)} />
-                : <ImageOff className="w-4 h-4 text-[#c7cdd4]" />}
-            </span>
-
-            <div className="min-w-0 flex-1">
-              <input
-                value={logo}
-                onChange={e => { setLogo(e.target.value); setImgBroken(false); }}
-                className={field}
-                placeholder="https://..."
-              />
-            </div>
-          </div>
-
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {/* Pull tries LinkedIn FIRST when there is a LinkedIn URL, then falls
-                back to the website. See the note under this row: LinkedIn usually
-                refuses, and the toast says which source actually worked, so a
-                silent fallback never passes a company logo off as a headshot. */}
+          <label className={label}>Company logo URL</label>
+          <div className="flex items-center gap-2">
+            <input value={logo} onChange={e => setLogo(e.target.value)} className={field} placeholder="https://..." />
+            {/* Pulls the og:image from their WEBSITE, through the same link-preview
+                function Industry Reading already uses. Deliberately NOT from
+                LinkedIn: LinkedIn serves a login wall to anything that is not a
+                signed-in browser, so there is no image on that page to fetch. */}
             <button
               type="button"
-              disabled={(!website.trim() && !linkedin.trim()) || pulling}
+              disabled={!website.trim() || pulling}
               onClick={async () => {
                 setPulling(true);
-                setImgBroken(false);
-                let got = '';
-                let from = '';
-
-                if (linkedin.trim()) {
-                  const li = await fetchLinkPreviewResult(linkedin.trim());
-                  if (li.ok && li.preview.image) { got = li.preview.image; from = 'LinkedIn'; }
-                }
-                if (!got && website.trim()) {
-                  const w = await fetchLinkPreviewResult(website.trim());
-                  if (w.ok && w.preview.image) { got = w.preview.image; from = 'their website'; }
-                }
-
+                const r = await fetchLinkPreviewResult(website.trim());
                 setPulling(false);
-                if (got) { setLogo(got); toast.success(`Pulled from ${from}`); }
-                else toast.error('Nothing to pull. LinkedIn blocks this, and their site has no image.');
+                if (r.ok && r.preview.image) { setLogo(r.preview.image); toast.success('Pulled from their site'); }
+                else toast.error('No image found on that site');
               }}
-              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] disabled:opacity-40"
+              className="shrink-0 inline-flex items-center gap-1.5 h-10 px-3 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] disabled:opacity-40"
             >
               {pulling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Pull
             </button>
-
-            {/* The one path to a headshot that always works. */}
-            <label className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] ${uploading ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}>
-              {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />} Upload
-              <input
-                type="file"
-                accept="image/*"
-                disabled={uploading}
-                className="hidden"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  e.currentTarget.value = '';
-                  if (!file) return;
-                  setUploading(true);
-                  const up = await uploadDealFile(file, dealId);
-                  setUploading(false);
-                  if (up?.url) { setLogo(up.url); setImgBroken(false); toast.success('Image uploaded'); }
-                  else toast.error('Could not upload that image');
-                }}
-              />
-            </label>
           </div>
-
-          <p className="mt-1.5 text-xs text-[#99a1af]">
-            Pull tries LinkedIn, then their website. LinkedIn serves a sign-in wall to anything
-            that is not a signed-in browser, so it usually returns nothing. Upload is the reliable
-            way to get a face here.
-          </p>
+          <p className="mt-1 text-xs text-[#99a1af]">Pulls the image from the Website field below. LinkedIn blocks this.</p>
         </div>
         <div><label className={label}>LinkedIn</label>
           <input value={linkedin} onChange={e => setLinkedin(e.target.value)} className={field} placeholder="https://linkedin.com/in/..." /></div>
