@@ -154,12 +154,32 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
    * So: measure where the panel actually starts, and make it exactly as tall as
    * the space left below it. It ends at the bottom of the screen every time.
    */
-  const sideRef = useRef<HTMLDivElement>(null);
+  /**
+   * The rail is a callback ref, not a useRef, and that is the fix.
+   *
+   * The height has to be measured, not guessed: the panel's real top depends on
+   * the draft banner and on how far you have scrolled, so any hard-coded
+   * calc(100vh - N) is right in exactly one scroll state and hangs off the bottom
+   * of the screen in the rest, taking the calendar with it.
+   *
+   * But an effect keyed on [room, granted] only measures on the renders those
+   * values change. The rail mounts on a different render entirely: after the
+   * loading spinner clears and the gate comes down. When the effect fired, the
+   * ref was null, it gave up, and it never ran again, so no height was ever set,
+   * and overflow-y-auto with no bounded height has nothing to scroll. That is the
+   * whole bug, and adding one more dependency would only move it.
+   *
+   * A callback ref runs when the NODE appears, whatever render that happens to
+   * be. There is no dependency list left to get wrong.
+   */
+  const [sideEl, setSideEl] = useState<HTMLDivElement | null>(null);
   useEffect(() => {
-    const el = sideRef.current;
+    const el = sideEl;
     if (!el) return;
 
+    const GAP = 16; // The bottom corners have to be visible, so leave a gap.
     let frame = 0;
+
     const fit = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
@@ -167,21 +187,32 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
         // natural height.
         if (window.innerWidth < 1024) { el.style.height = ''; return; }
 
-        const rect = el.getBoundingClientRect();
         const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+        const rect = el.getBoundingClientRect();
 
         // The app renders with body { zoom: 0.9 } (see index.css).
         //
-        // That matters more than it looks. getBoundingClientRect returns VISUAL
-        // pixels, which are scaled by the zoom. offsetHeight returns LAYOUT
-        // pixels, which are not. And style.height sets LAYOUT pixels. Measuring in
-        // one space and writing in the other is wrong by exactly the zoom factor,
-        // so every height set here was 10 percent off.
-        const visualScale = el.offsetHeight > 0 ? rect.height / el.offsetHeight : 1;
-        const availableVisual = viewportHeight - rect.top - 16;
-        const layoutHeight = availableVisual / (visualScale || 1);
+        // getBoundingClientRect returns VISUAL pixels, scaled by the zoom.
+        // offsetHeight and style.height are LAYOUT pixels, which are not. Measure
+        // in one space, write in the other, and every height is off by exactly the
+        // zoom factor.
+        const scale = el.offsetHeight > 0 ? rect.height / el.offsetHeight : 1;
+        const target = (viewportHeight - rect.top - GAP) / (scale || 1);
+        el.style.height = `${Math.max(280, target)}px`;
 
-        el.style.height = `${Math.max(280, layoutHeight)}px`;
+        // Then read it back and correct it.
+        //
+        // The two coordinate spaces above are the thing this has been got wrong
+        // on four separate occasions. This does not argue with them: it applies a
+        // height, asks the browser where the bottom edge actually landed, and
+        // takes off the difference. Whatever zoom is doing, the bottom ends up on
+        // the screen.
+        const after = el.getBoundingClientRect();
+        const overshoot = after.bottom - (viewportHeight - GAP);
+        if (Math.abs(overshoot) > 1) {
+          const corrected = el.offsetHeight - overshoot / (scale || 1);
+          el.style.height = `${Math.max(280, corrected)}px`;
+        }
       });
     };
 
@@ -197,19 +228,10 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
       window.visualViewport?.removeEventListener('resize', fit);
     };
 
-    // `granted` is the dependency that was missing, and it is the whole bug.
-    //
-    // A gated investor sees InvestorGate, which returns EARLY -- the rail is not
-    // in the DOM. `room` loads while the gate is still up, the effect fires,
-    // sideRef.current is null, it gives up. Access is then granted, the rail
-    // mounts, but `room` has not changed, so the effect never runs again and no
-    // height is ever set. Without a bounded height, overflow-y-auto has nothing
-    // to scroll.
-    //
-    // There is deliberately no ResizeObserver here: it would be watching the same
+    // There is deliberately no ResizeObserver: it would be watching the same
     // element whose height this effect sets, which is a feedback loop. The height
     // depends on rect.top and the viewport, not on the content.
-  }, [room, granted]);
+  }, [sideEl]);
   const [fieldLabels, setFieldLabels] = useState<Record<string, string>>({});
   const [market, setMarket] = useState<DealMarket | null>(null);
   const [team, setTeam] = useState<DealTeamMember[] | null>(null);
@@ -602,14 +624,18 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             One element doing both is what the last several attempts kept trying,
             and it is fragile in Safari. */}
         <div
-          ref={sideRef}
+          ref={setSideEl}
           className="contents lg:block lg:self-start lg:sticky lg:top-[84px] lg:min-h-0"
         >
           {/* The px/-mx pair is not cosmetic. Setting overflow-y also makes
               overflow-x a clip box, so without side padding the cards' drop shadows
               get sliced flat at the left and right edges. The padding gives them
               room inside the clip; the negative margin puts the column back. */}
-          <div className="contents lg:block lg:h-full lg:min-h-0 lg:space-y-6 lg:overflow-y-auto lg:-mx-3 lg:px-3 ds-scroll-y">
+          {/* overscroll-contain: the wheel over the rail scrolls the RAIL. Without
+              it the gesture chains straight into the page the moment the rail hits
+              either end, which is what made this feel like it did not scroll at
+              all unless you moved the pointer over the left column. */}
+          <div className="contents lg:block lg:h-full lg:min-h-0 lg:space-y-6 lg:overflow-y-auto lg:overscroll-contain lg:-mx-3 lg:px-3 ds-scroll-y">
           <div className="order-1 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5 text-center">
             {/* A white ring plus a soft shadow, so the mark sits ON the card
                 rather than flat against it. The hairline border alone left it

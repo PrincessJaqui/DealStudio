@@ -167,7 +167,11 @@ export function EventsCalendar({
                   })}
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-1.5 max-h-56 overflow-y-auto">
+                /* No max-height and no overflow. Ten years in three columns is
+                   four rows: it never scrolled, but it was still a scroll
+                   container, and inside the investor rail (which IS one) it would
+                   swallow the wheel gesture. */
+                <div className="grid grid-cols-3 gap-1.5">
                   {yearOptions.map(y => {
                     const active = y === year;
                     return (
