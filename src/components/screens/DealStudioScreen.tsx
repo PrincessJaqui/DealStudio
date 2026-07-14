@@ -522,7 +522,7 @@ export function DealStudioScreen() {
           bar that has eleven tabs in it, and half of them fell off the end. */}
       <Tabs value={tab} onValueChange={setTab}>
         <div className="min-w-0">
-          <div>
+          <div className="mb-5">
             {/* Deal Studio has more tabs than fit on a phone, and nothing said the
                 bar scrolls. PillTabs nudges it once, on the first visit. */}
             <PillTabs

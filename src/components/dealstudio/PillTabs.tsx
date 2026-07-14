@@ -64,36 +64,46 @@ export function PillTabs<T extends string>({
   }, [hintKey]);
 
   return (
+    /**
+     * The white bar IS the scroll box.
+     *
+     * It used to be an inline-flex bar sitting inside a separate overflow-x rail,
+     * which meant that once the tabs were wider than the page the bar itself ran
+     * off the edge: the right end was sliced flat, and the whole thing bled under
+     * whatever sat beside it, because the rail carried negative side margins.
+     *
+     * Scrolling the bar's own contents keeps both rounded ends on screen at every
+     * scroll position, and w-fit + max-w-full means it hugs its tabs when they fit
+     * and caps at the container when they do not.
+     *
+     * The shadow survives because an element's overflow clips its DESCENDANTS, not
+     * its own box-shadow. That is why the old padding-and-negative-margin trick is
+     * gone rather than moved.
+     */
     <div
       ref={rail}
-      /* The padding is what saves the shadow.
-       *
-       * Setting overflow-x on an element forces overflow-y to auto as well -- you
-       * cannot clip one axis and leave the other visible. So the rail was slicing
-       * the drop shadow off the top and bottom of the pill bar, which reads as the
-       * bar being tucked behind something.
-       *
-       * Padding gives the shadow room INSIDE the clip box; the negative margins
-       * cancel it out so nothing moves. Net vertical spacing is unchanged. */
-      className="-mt-4 pt-4 pb-5 -mx-3 px-3 overflow-x-auto ds-scroll-x"
+      className="flex w-fit max-w-full gap-1 overflow-x-auto ds-scroll-x rounded-full bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-1.5"
     >
-      <div className="inline-flex gap-1 rounded-full bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-1.5">
-        {tabs.map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => onChange(id)}
-            className={`px-5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${
-              value === id
-                ? tone === 'brand'
-                  ? 'bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'
-                  : 'bg-gradient-to-r from-[var(--ds-accent)] to-[var(--ds-accent-to)] text-[var(--ds-on-accent)]'
-                : 'text-[#7f8c85] hover:text-[#191f1d]'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {tabs.map(([id, label]) => (
+        <button
+          key={id}
+          onClick={() => onChange(id)}
+          className={`shrink-0 px-5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${
+            value === id
+              ? tone === 'brand'
+                ? 'bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white'
+                : 'bg-gradient-to-r from-[var(--ds-accent)] to-[var(--ds-accent-to)] text-[var(--ds-on-accent)]'
+              : 'text-[#7f8c85] hover:text-[#191f1d]'
+          }`}
+        >
+          {label}
+        </button>
+      ))}
+
+      {/* A real element, not padding. Chrome ignores a scroll container's
+          padding at the far end of the scroll, so the last tab would sit flush
+          against the rounded edge. An element cannot be ignored. */}
+      <span aria-hidden="true" className="shrink-0 w-1.5" />
     </div>
   );
 }

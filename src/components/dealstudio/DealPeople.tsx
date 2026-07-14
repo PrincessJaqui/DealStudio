@@ -243,7 +243,7 @@ export function DealPeople({
           />
         </div>
 
-        <div className="relative shrink-0 lg:-mt-1">
+        <div className="relative shrink-0">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#99a1af]" />
           <input
             value={q}
