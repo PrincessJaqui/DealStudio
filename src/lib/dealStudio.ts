@@ -1162,14 +1162,24 @@ export type DealPeopleResult = {
   message?: string;
 };
 
+export interface PlatformInvestorDeal {
+  slug: string;
+  company: string | null;
+  visits: number;
+  page_views: number;
+  last_seen: string | null;
+}
+
 export interface PlatformInvestor {
   email: string;
   name: string | null;
   company_name: string | null;
+  company_logo: string | null;
+  linkedin: string | null;
   deal_count: number;
-  deals: { slug: string; company: string | null }[];
+  deals: PlatformInvestorDeal[];
   total_visits: number;
-  last_seen: string | null;
+  last_login: string | null;
 }
 
 /**
