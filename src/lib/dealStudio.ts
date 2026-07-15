@@ -289,6 +289,8 @@ export interface DealStudio {
   summary_html: string;
   hero_image_url: string | null;
   deck_document_id: string | null;
+  share_image_url: string | null;
+  share_image_source: 'auto' | 'custom';
   require_email: boolean;
   require_password: boolean;
   invite_only: boolean;
@@ -630,6 +632,42 @@ export async function adminFetchDealStudio(slug?: string): Promise<DealStudio | 
   if (error) { console.warn('[dealStudio] admin fetch', error); return null; }
   if (data) (data as any).availability = normalizeSchedule((data as any).availability);
   return data as DealStudio | null;
+}
+
+/**
+ * Regenerate a deal's share image from its deck's first slide.
+ *
+ * Called when a deck is set or replaced. It renders slide 1 in the browser (see
+ * lib/shareImage) and stores the PNG as the deal's og:image. It does NOTHING if
+ * the deal's share image is 'custom' -- a founder who uploaded their own image
+ * has opted out of the auto behaviour, and a deck swap must not clobber that.
+ *
+ * Best-effort: a deck that will not render leaves the previous image in place
+ * rather than failing the upload that triggered this.
+ */
+export async function refreshDeckShareImage(dealId: string, deckUrl: string): Promise<void> {
+  try {
+    const { data } = await supabase
+      .from('dealstudios')
+      .select('share_image_source')
+      .eq('id', dealId)
+      .single();
+    if ((data as any)?.share_image_source === 'custom') return;
+
+    const { deckShareImage } = await import('./shareImage');
+    const file = await deckShareImage(deckUrl);
+    if (!file) return;
+
+    const up = await uploadDealFile(file, dealId);
+    if (!up?.url) return;
+
+    await supabase
+      .from('dealstudios')
+      .update({ share_image_url: up.url, share_image_source: 'auto' })
+      .eq('id', dealId);
+  } catch {
+    // Leave the existing image untouched on any failure.
+  }
 }
 
 export async function adminSaveDealStudio(id: string, patch: Partial<DealStudio>): Promise<{ success: boolean }> {

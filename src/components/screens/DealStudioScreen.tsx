@@ -6,6 +6,7 @@
  * tabs, white cards, max-w-6xl).
  */
 
+import { compressImage } from '../../lib/images';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Presentation, Plus, ExternalLink, Copy, Check, Power, CheckCircle2, Users, FileText, Trash2, RefreshCw, UploadCloud, GripVertical, Globe, X, LogOut, Eye, EyeOff, Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
@@ -49,7 +50,7 @@ import {
   adminFetchDealStudio, adminSaveDealStudio, adminSetActive, adminSetSharedPassword,
   adminFetchDocuments, adminDeleteDocument, adminDeleteDocuments, adminReorderDocuments, adminFetchAccess,
   adminFetchFunnel, adminFetchDocStats,
-  scheduleDates, scheduleSlots, committedTotal, EMPTY_MARKET,
+  scheduleDates, scheduleSlots, committedTotal, EMPTY_MARKET, uploadDealFile,
 } from '../../lib/dealStudio';
 
 const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -85,6 +86,7 @@ export function DealStudioScreen() {
   const [ndName, setNdName] = useState('');
   const [ndContact, setNdContact] = useState('');
   const [ndBusy, setNdBusy] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
   const [ndErr, setNdErr] = useState('');
 
   // Branding starts as the company's current colours, so a new room looks like
@@ -870,6 +872,60 @@ export function DealStudioScreen() {
                     className={inputCls}
                   />
                 </Field>
+              </Card>
+
+              <Card
+                title="Link preview image"
+                summary="The picture shown when your deal link is shared in iMessage, Slack, or LinkedIn. Defaults to your deck's first slide; upload your own to override."
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-40 shrink-0 rounded-xl overflow-hidden border border-[#edf0f3] bg-[#f5f6f8] aspect-[1200/630] flex items-center justify-center">
+                    {room.share_image_url
+                      ? <img src={room.share_image_url} alt="Link preview" className="w-full h-full object-cover" />
+                      : <span className="text-[11px] text-[#99a1af] px-2 text-center">Set a pitch deck to generate this automatically</span>}
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-xs text-[#7f8c85]">
+                      {room.share_image_source === 'custom'
+                        ? 'Using an image you uploaded. It will not change when you swap decks.'
+                        : 'Auto-generated from your deck\u2019s first slide. It refreshes when you set a new deck.'}
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <label className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold cursor-pointer text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] ${shareBusy ? 'opacity-60 cursor-wait' : ''}`}>
+                        {shareBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />} Upload image
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={shareBusy}
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            e.currentTarget.value = '';
+                            if (!file) return;
+                            setShareBusy(true);
+                            const small = await compressImage(file, { max: 1200, quality: 0.9 });
+                            const up = await uploadDealFile(small, room.id);
+                            setShareBusy(false);
+                            if (up?.url) { update({ share_image_url: up.url, share_image_source: 'custom' } as any); toast.success('Preview image set'); }
+                            else toast.error('Could not upload that image');
+                          }}
+                        />
+                      </label>
+
+                      {room.share_image_source === 'custom' && (
+                        <button
+                          type="button"
+                          onClick={() => update({ share_image_source: 'auto' } as any)}
+                          className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#7f8c85] hover:bg-[#f5f6f8]"
+                        >
+                          Back to auto
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </Card>
 
               {/* Mobile only: display order is a setting, so on a phone it sits

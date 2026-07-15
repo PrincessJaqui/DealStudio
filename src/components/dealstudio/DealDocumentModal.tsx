@@ -7,6 +7,7 @@
  *    file archives the original version (handled in adminUpdateDocument).
  */
 
+import { refreshDeckShareImage } from '../../lib/dealStudio';
 import { useState } from 'react';
 import { X, UploadCloud, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
@@ -65,6 +66,8 @@ export function DealDocumentModal({ roomId, existing, defaultIsDeck, onClose, on
         uploaded = up;
       }
       const r = await adminUpdateDocument(existing, { title: title.trim(), description, is_deck: isDeck }, uploaded);
+      // If this document is (now) the deck and its file changed, refresh the share image.
+      if (r.success && isDeck && uploaded?.url) void refreshDeckShareImage(roomId, uploaded.url);
       if (!r.success) { toast.error('Save failed'); setSaving(false); return; }
       toast.success(uploaded ? 'Document replaced (original archived)' : 'Document updated');
       onSaved(); onClose();
@@ -85,7 +88,12 @@ export function DealDocumentModal({ roomId, existing, defaultIsDeck, onClose, on
           dealstudio_id: roomId, title: p.title.trim(), description: '',
           is_deck: deckIndex === i, file_url: up.url, file_name: up.name, file_size: up.size,
         });
-        if (r.success) ok++;
+        if (r.success) {
+          ok++;
+          // A new deck means a new first slide: refresh the share image, unless
+          // the founder has set a custom one (the helper checks and no-ops).
+          if (deckIndex === i) void refreshDeckShareImage(roomId, up.url);
+        }
       }
       if (ok === 0) { toast.error('Upload failed'); setSaving(false); return; }
       toast.success(ok === 1 ? 'Document added' : `${ok} documents added`);
