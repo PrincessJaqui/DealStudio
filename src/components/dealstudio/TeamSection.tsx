@@ -17,13 +17,15 @@ function MemberCard({ m }: { m: DealTeamMember }) {
   const [open, setOpen] = useState(false);
   const longBio = (m.bio || '').length > 120;
   return (
-    <div className="ds-pulse ds-card flex items-stretch gap-4 rounded-xl border border-[#edf0f3] bg-white p-4">
-      {/* Fixed WIDTH, ratio drives the height. Keeping the width constant means a
-          row of cards still lines up down the left edge whatever ratio each
-          founder picked; letting the width vary would stagger the whole column.
-          The ring matches the logo treatment and can be turned off. */}
+    <div className="ds-pulse ds-card overflow-hidden rounded-xl border border-[#edf0f3] bg-white p-4">
+      {/* A FLOAT, not a flex row. In a flex row the text sits in its own column and
+          keeps that column's width even after the photo ends, which on a narrow
+          phone leaves a tall empty gap under the photo. Floating the photo lets the
+          name/role/bio wrap alongside it and then reclaim the FULL width once the
+          text passes the bottom of the photo. Works for any photo ratio: a short
+          logo releases the text sooner, a tall one later, automatically. */}
       <div
-        className={`w-28 shrink-0 self-start overflow-hidden bg-[#f5f6f8] flex items-center justify-center ${
+        className={`float-left mr-4 mb-2 w-24 sm:w-28 overflow-hidden bg-[#f5f6f8] flex items-center justify-center ${
           PHOTO_RATIO[m.photo_ratio ?? '1x1'].cls
         } ${
           (m.photo_ratio ?? '1x1') === '1x1' ? 'rounded-full' : 'rounded-2xl'
@@ -42,7 +44,7 @@ function MemberCard({ m }: { m: DealTeamMember }) {
             />
           : <span className="text-lg font-bold text-[#7f8c85]">{initials(m.name) || '·'}</span>}
       </div>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0">
         <p className="text-base font-bold text-[#191f1d]">{m.name || 'Unnamed'}</p>
         {m.role && <p className="text-xs text-[#7f8c85]">{m.role}</p>}
 
