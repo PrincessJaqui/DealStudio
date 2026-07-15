@@ -694,7 +694,7 @@ export function DealPeople({
                               onClick={() => { setMenu(null); setDetailsFor(p); }}
                               className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]"
                             >
-                              <Pencil className="w-4 h-4" /> Add details
+                              <Pencil className="w-4 h-4" /> Edit details
                             </button>
 
                             <button
@@ -781,10 +781,12 @@ export function DealPeople({
       </p>
 
       {adding && (
-        <AddInvestorDialog
+        <PersonDialog
+          mode="create"
           dealId={dealId}
           onClose={() => setAdding(false)}
           onSaved={async () => { setAdding(false); await load(); onChanged(); }}
+          onChanged={async () => { await load(); onChanged(); }}
         />
       )}
 
@@ -808,11 +810,13 @@ export function DealPeople({
       )}
 
       {detailsFor && (
-        <DetailsDialog
+        <PersonDialog
+          mode="edit"
           person={detailsFor}
           dealId={dealId}
           onClose={() => setDetailsFor(null)}
           onSaved={async () => { setDetailsFor(null); await load(); onChanged(); }}
+          onChanged={async () => { await load(); onChanged(); }}
         />
       )}
 
@@ -904,52 +908,6 @@ function Shell({ title, subtitle, onClose, children }: {
 
 /** New investor. Email is the key: it is what the visit rows join on, so a person
  *  added here and the same person opening the room are one row, not two. */
-function AddInvestorDialog({
-  dealId, onClose, onSaved,
-}: { dealId: string; onClose: () => void; onSaved: () => void }) {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [company, setCompany] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  const field = 'w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
-  const label = 'block text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1';
-  const valid = /.+@.+\..+/.test(email.trim());
-
-  return (
-    <Shell title="New investor" onClose={onClose}>
-      <div className="space-y-3">
-        <div><label className={label}>Email</label>
-          <input value={email} onChange={e => setEmail(e.target.value)} autoFocus className={field} placeholder="name@firm.com" /></div>
-        <div><label className={label}>Contact name</label>
-          <input value={name} onChange={e => setName(e.target.value)} className={field} placeholder="Optional" /></div>
-        <div><label className={label}>Company</label>
-          <input value={company} onChange={e => setCompany(e.target.value)} className={field} placeholder="Optional" /></div>
-      </div>
-
-      <p className="mt-3 text-xs text-[#7f8c85]">
-        They start as a Prospect. Adding them here does not grant access to the room.
-      </p>
-
-      <button
-        onClick={async () => {
-          setBusy(true);
-          const r = await createDealPerson(dealId, { email, name, company_name: company });
-          setBusy(false);
-          if (r.ok) { toast.success('Investor added'); onSaved(); }
-          else toast.error(r.message || 'Could not add them');
-        }}
-        disabled={!valid || busy}
-        className="mt-5 w-full inline-flex items-center justify-center gap-1.5 h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
-      >
-        {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Add investor
-      </button>
-    </Shell>
-  );
-}
-
-/** The committed amount. This is what the Raised tile adds up, so it lives on the
- *  row, not in a card that no longer exists. */
 function CommittedDialog({
   person, dealId, onClose, onSaved,
 }: { person: DealPerson; dealId: string; onClose: () => void; onSaved: () => void }) {
@@ -1065,9 +1023,14 @@ function StageDialog({
   );
 }
 
-function NotesDialog({
-  person, dealId, onClose, onChanged,
-}: { person: DealPerson; dealId: string; onClose: () => void; onChanged: () => void }) {
+/**
+ * Notes: the list, the composer, editing, deleting. Extracted so it can live in
+ * two places without being written twice: inside the person form, and on its own
+ * behind the Last Note eye.
+ */
+function NotesPanel({
+  person, dealId, onChanged,
+}: { person: DealPerson; dealId: string; onChanged: () => void }) {
   const [notes, setNotes] = useState<DealNote[] | null>(null);
   const [draft, setDraft] = useState('');
   const [editing, setEditing] = useState<string | null>(null);
@@ -1080,7 +1043,7 @@ function NotesDialog({
   useEffect(() => { void load(); }, [person.access_id]);
 
   return (
-    <Shell title="Notes" subtitle={person.email ?? undefined} onClose={onClose}>
+    <div>
       <textarea
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
@@ -1103,7 +1066,7 @@ function NotesDialog({
         Add note
       </button>
 
-      <div className="mt-5 space-y-3 max-h-[45vh] overflow-y-auto ds-scroll-y">
+      <div className="mt-4 space-y-3 max-h-[32vh] overflow-y-auto ds-scroll-y">
         {notes === null ? (
           <Loader2 className="w-4 h-4 animate-spin text-[var(--ds-brand)]" />
         ) : notes.length === 0 ? (
@@ -1114,12 +1077,7 @@ function NotesDialog({
               {n.kind === 'stage' && (
                 <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--ds-brand)]">Status change</span>
               )}
-              {/* Who said it. A note with a date and no name is half a record once
-                  more than one person is working the raise. */}
-              {n.author && (
-                <span className="text-[11px] font-semibold text-[#191f1d] truncate">{n.author}</span>
-              )}
-              <span className="text-[11px] text-[#9ca3af] ml-auto shrink-0">
+              <span className="text-[11px] text-[#9ca3af] ml-auto">
                 {new Date(n.created_at).toLocaleString()}
                 {n.updated_at && ' (edited)'}
               </span>
@@ -1164,107 +1122,188 @@ function NotesDialog({
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** The notes panel on its own, behind the Last Note eye. */
+function NotesDialog({
+  person, dealId, onClose, onChanged,
+}: { person: DealPerson; dealId: string; onClose: () => void; onChanged: () => void }) {
+  return (
+    <Shell title="Notes" subtitle={person.email ?? undefined} onClose={onClose}>
+      <NotesPanel person={person} dealId={dealId} onChanged={onChanged} />
     </Shell>
   );
 }
 
-function DetailsDialog({
-  person, dealId, onClose, onSaved,
-}: { person: DealPerson; dealId: string; onClose: () => void; onSaved: () => void }) {
-  const [name, setName] = useState(person.name ?? '');
-  const [company, setCompany] = useState(person.company_name ?? '');
-  const [logo, setLogo] = useState(person.company_logo ?? '');
-  const [linkedin, setLinkedin] = useState(person.linkedin ?? '');
-  const [website, setWebsite] = useState(person.website ?? '');
+/**
+ * ONE form for a person, in two modes.
+ *
+ * New Investor and Edit Details were two dialogs asking for different subsets of
+ * the same nine fields, which is how you end up able to record a website when
+ * editing but not when adding. There is one form now. Create mode asks for the
+ * email; edit mode shows it and will not let you change it, because the email is
+ * the key the visit rows join on and editing it would split one person into two,
+ * one with the analytics and one with the name.
+ *
+ * Status is on the form, and changing it on an EXISTING person costs a note, the
+ * same as it does from the table. Setting it on a new one does not: that is where
+ * they start, not a change from anywhere.
+ */
+function PersonDialog({
+  mode, person, dealId, onClose, onSaved, onChanged,
+}: {
+  mode: 'create' | 'edit';
+  /** Absent in create mode. */
+  person?: DealPerson;
+  dealId: string;
+  onClose: () => void;
+  /** Saving closes the dialog. */
+  onSaved: () => void;
+  /** A note landed. Refresh the table BEHIND the dialog and leave it open, or
+   *  adding a second note means reopening the form you were already in. */
+  onChanged: () => void;
+}) {
+  const [email, setEmail] = useState(person?.email ?? '');
+  const [name, setName] = useState(person?.name ?? '');
+  const [company, setCompany] = useState(person?.company_name ?? '');
+  const [logo, setLogo] = useState(person?.company_logo ?? '');
+  const [linkedin, setLinkedin] = useState(person?.linkedin ?? '');
+  const [website, setWebsite] = useState(person?.website ?? '');
+  const [stage, setStage] = useState<DealStage>(person?.stage ?? 'lead');
+  const [note, setNote] = useState('');
+
   const [busy, setBusy] = useState(false);
   const [pulling, setPulling] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imgBroken, setImgBroken] = useState(false);
+  const accessId = useAccessId(dealId);
 
   const field = 'w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
   const label = 'block text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1';
-  const accessId = useAccessId(dealId);
+
+  const stageChanged = mode === 'edit' && !!person && stage !== person.stage;
+  const validEmail = /.+@.+\..+/.test(email.trim());
+  const canSave = (mode === 'create' ? validEmail : true) && (!stageChanged || !!note.trim()) && !busy;
+
+  const pull = async () => {
+    setPulling(true);
+    setImgBroken(false);
+    let got = '';
+    let from = '';
+
+    if (linkedin.trim()) {
+      const li = await fetchLinkPreviewResult(linkedin.trim());
+      if (li.ok && li.preview.image) { got = li.preview.image; from = 'LinkedIn'; }
+    }
+    if (!got && website.trim()) {
+      const w = await fetchLinkPreviewResult(website.trim());
+      if (w.ok && w.preview.image) { got = w.preview.image; from = 'their website'; }
+    }
+
+    // Bring it into our own storage, compressed, so a row is not downloading a
+    // 2MB hero image to draw a 28px circle. A site with no CORS headers cannot be
+    // read by script, only displayed, so we keep their URL and move on.
+    if (got) {
+      const local = await fetchImageAsFile(got, 'logo');
+      if (local) {
+        const up = await uploadDealFile(local, dealId);
+        if (up?.url) got = up.url;
+      }
+    }
+
+    setPulling(false);
+    if (got) { setLogo(got); toast.success(`Pulled from ${from}`); }
+    else toast.error('Nothing to pull. LinkedIn blocks this, and their site has no image.');
+  };
+
+  const save = async () => {
+    setBusy(true);
+
+    if (mode === 'create') {
+      const r = await createDealPerson(dealId, {
+        email, name, company_name: company, company_logo: logo, linkedin, website, stage,
+      });
+      if (!r.ok || !r.id) { setBusy(false); toast.error(r.message || 'Could not add them'); return; }
+      if (note.trim()) await addDealNote(r.id, note);
+      setBusy(false);
+      toast.success('Investor added');
+      onSaved();
+      return;
+    }
+
+    const id = await accessId(person!);
+    if (!id) { setBusy(false); toast.error('Could not save'); return; }
+
+    const ok = await saveDealPerson(id, {
+      name: name.trim() || null,
+      company_name: company.trim() || null,
+      company_logo: logo.trim() || null,
+      linkedin: linkedin.trim() || null,
+      website: website.trim() || null,
+    });
+    if (!ok) { setBusy(false); toast.error('Could not save'); return; }
+
+    // Status through admin_set_stage, which files the note against the change, so
+    // "why is this one marked passed" always has an answer three weeks later. A
+    // note with no status change is just a note.
+    if (stageChanged) {
+      const r = await setDealStage(id, stage, note);
+      if (!r.ok) { setBusy(false); toast.error(r.message || 'Could not update the status'); return; }
+    } else if (note.trim()) {
+      await addDealNote(id, note);
+    }
+
+    setBusy(false);
+    toast.success('Saved');
+    onSaved();
+  };
 
   return (
-    <Shell title="Details" subtitle={person.email ?? undefined} onClose={onClose}>
+    <Shell
+      title={mode === 'create' ? 'New investor' : 'Edit details'}
+      subtitle={mode === 'edit' ? (person?.email ?? undefined) : undefined}
+      onClose={onClose}
+    >
       <div className="space-y-3">
         <div>
           <label className={label}>Email</label>
-          {/* Read-only. The email is the key the visit rows join on, so editing it
-              here would silently split one person into two. */}
-          <p className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm text-[#7f8c85] truncate">{person.email}</p>
+          {mode === 'create' ? (
+            <input value={email} onChange={e => setEmail(e.target.value)} autoFocus className={field} placeholder="name@firm.com" />
+          ) : (
+            /* Read-only. The email is the key the visit rows join on. */
+            <p className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm text-[#7f8c85] truncate">{person?.email}</p>
+          )}
         </div>
+
         <div><label className={label}>Contact name</label>
-          <input value={name} onChange={e => setName(e.target.value)} className={field} placeholder="Contact name" /></div>
+          <input value={name} onChange={e => setName(e.target.value)} className={field} placeholder="Optional" /></div>
+
         <div><label className={label}>Company</label>
-          <input value={company} onChange={e => setCompany(e.target.value)} className={field} placeholder="Company" /></div>
+          <input value={company} onChange={e => setCompany(e.target.value)} className={field} placeholder="Optional" /></div>
+
         <div>
           <label className={label}>Image</label>
-
           <div className="flex items-center gap-3">
-            {/* You cannot judge a URL. Circles, like every other avatar in the
-                product, so what you see here is what the table will show. */}
             <span className="w-12 h-12 shrink-0 rounded-full overflow-hidden ring-2 ring-white bg-[#f5f6f8] shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
               {logo && !imgBroken
                 ? <img src={logo} alt="" loading="lazy" decoding="async" width={48} height={48} className="w-full h-full object-cover" onError={() => setImgBroken(true)} onLoad={() => setImgBroken(false)} />
                 : <ImageOff className="w-4 h-4 text-[#c7cdd4]" />}
             </span>
-
-            <div className="min-w-0 flex-1">
-              <input
-                value={logo}
-                onChange={e => { setLogo(e.target.value); setImgBroken(false); }}
-                className={field}
-                placeholder="https://..."
-              />
-            </div>
+            <input value={logo} onChange={e => { setLogo(e.target.value); setImgBroken(false); }} className={field} placeholder="https://..." />
           </div>
 
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            {/* Pull tries LinkedIn FIRST when there is a LinkedIn URL, then falls
-                back to the website. See the note under this row: LinkedIn usually
-                refuses, and the toast says which source actually worked, so a
-                silent fallback never passes a company logo off as a headshot. */}
             <button
               type="button"
               disabled={(!website.trim() && !linkedin.trim()) || pulling}
-              onClick={async () => {
-                setPulling(true);
-                setImgBroken(false);
-                let got = '';
-                let from = '';
-
-                if (linkedin.trim()) {
-                  const li = await fetchLinkPreviewResult(linkedin.trim());
-                  if (li.ok && li.preview.image) { got = li.preview.image; from = 'LinkedIn'; }
-                }
-                if (!got && website.trim()) {
-                  const w = await fetchLinkPreviewResult(website.trim());
-                  if (w.ok && w.preview.image) { got = w.preview.image; from = 'their website'; }
-                }
-
-                if (got) {
-                  // Bring it into our own storage, compressed, so the row is not
-                  // downloading a 2MB hero image to draw a 28px circle. If the site
-                  // sends no CORS headers we cannot read the bytes, only display
-                  // them, so we keep their URL and move on.
-                  const local = await fetchImageAsFile(got, 'logo');
-                  if (local) {
-                    const up = await uploadDealFile(local, dealId);
-                    if (up?.url) got = up.url;
-                  }
-                }
-
-                setPulling(false);
-                if (got) { setLogo(got); setImgBroken(false); toast.success(`Pulled from ${from}`); }
-                else toast.error('Nothing to pull. LinkedIn blocks this, and their site has no image.');
-              }}
+              onClick={() => void pull()}
               className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] disabled:opacity-40"
             >
               {pulling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Pull
             </button>
 
-            {/* The one path to a headshot that always works. */}
             <label className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] ${uploading ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}>
               {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />} Upload
               <input
@@ -1277,8 +1316,6 @@ function DetailsDialog({
                   e.currentTarget.value = '';
                   if (!file) return;
                   setUploading(true);
-                  // 512px WebP before it ever reaches the bucket. A 3MB headshot
-                  // becomes ~20KB, and the table renders it at 28 pixels anyway.
                   const small = await compressImage(file);
                   const up = await uploadDealFile(small, dealId);
                   setUploading(false);
@@ -1291,37 +1328,58 @@ function DetailsDialog({
 
           <p className="mt-1.5 text-xs text-[#99a1af]">
             Pull tries LinkedIn, then their website. LinkedIn serves a sign-in wall to anything
-            that is not a signed-in browser, so it usually returns nothing. Upload is the reliable
-            way to get a face here.
+            that is not a signed-in browser, so it usually returns nothing. Upload always works.
           </p>
         </div>
+
         <div><label className={label}>LinkedIn</label>
           <input value={linkedin} onChange={e => setLinkedin(e.target.value)} className={field} placeholder="https://linkedin.com/in/..." /></div>
+
         <div><label className={label}>Website</label>
           <input value={website} onChange={e => setWebsite(e.target.value)} className={field} placeholder="https://..." /></div>
+
+        <div>
+          <label className={label}>Status</label>
+          <select
+            value={stage}
+            onChange={e => setStage(e.target.value as DealStage)}
+            className={`${field} cursor-pointer`}
+          >
+            {stageOptions(stage).map(st => <option key={st} value={st}>{STAGE_LABEL[st]}</option>)}
+          </select>
+          {mode === 'create' && (
+            <p className="mt-1 text-xs text-[#99a1af]">Adding them here does not grant access to the room.</p>
+          )}
+        </div>
+
+        <div>
+          <label className={label}>{stageChanged ? 'Note (required for a status change)' : 'Note'}</label>
+          <textarea
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            placeholder={stageChanged ? 'Why is this changing?' : 'Optional'}
+            className={`${field} min-h-[70px] resize-y`}
+          />
+        </div>
       </div>
 
       <button
-        onClick={async () => {
-          setBusy(true);
-          const id = await accessId(person);
-          if (!id) { setBusy(false); toast.error('Could not save'); return; }
-          const ok = await saveDealPerson(id, {
-            name: name.trim() || null,
-            company_name: company.trim() || null,
-            company_logo: logo.trim() || null,
-            linkedin: linkedin.trim() || null,
-            website: website.trim() || null,
-          });
-          setBusy(false);
-          if (ok) { toast.success('Saved'); onSaved(); }
-          else toast.error('Could not save');
-        }}
-        disabled={busy}
+        onClick={() => void save()}
+        disabled={!canSave}
         className="mt-5 w-full inline-flex items-center justify-center gap-1.5 h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
       >
-        {busy && <Loader2 className="w-4 h-4 animate-spin" />} Save details
+        {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : mode === 'create' ? <Plus className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+        {mode === 'create' ? 'Add investor' : 'Save details'}
       </button>
+
+      {/* Notes live in the form now, not behind a separate eye you had to know to
+          click. The eye still opens the same panel on its own. */}
+      {mode === 'edit' && person && (
+        <div className="mt-6 border-t border-[#edf0f3] pt-5">
+          <h3 className="text-sm font-bold text-[#191f1d] mb-3">Notes</h3>
+          <NotesPanel person={person} dealId={dealId} onChanged={onChanged} />
+        </div>
+      )}
     </Shell>
   );
 }

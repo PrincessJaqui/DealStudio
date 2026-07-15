@@ -1175,30 +1175,49 @@ export async function fetchDealPeople(dealId: string): Promise<DealPeopleResult>
  * Add someone to the pipeline by hand.
  *
  * Not an upsert. The uniqueness rule on this table is an expression index on
- * (dealstudio_id, lower(email)), and PostgREST cannot target an expression
- * index with on_conflict, so an upsert here fails at the database. A plain
- * insert is used and the duplicate comes back as 23505, which is the honest
- * answer anyway: that person is already on this deal.
+ * (dealstudio_id, lower(email)), and PostgREST cannot target an expression index
+ * with on_conflict, so an upsert here fails at the database. A plain insert is
+ * used and the duplicate comes back as 23505, which is the honest answer anyway:
+ * that person is already on this deal.
  *
- * Stage defaults to 'lead': the founder added them by hand, and that is what a
- * lead is. Access status stays 'pending': adding someone to your pipeline is not
- * the same as letting them into the room.
+ * Returns the new access id, because the caller usually has a note to file
+ * against it, and a note needs a row to hang on.
+ *
+ * The stage is set directly on the insert and NOT through admin_set_stage. That
+ * function demands a note explaining the change, and rightly so, but this is not
+ * a change: it is where the person starts. Access status stays 'pending' either
+ * way, because putting someone in your pipeline is not the same as letting them
+ * into the room.
  */
 export async function createDealPerson(
   dealId: string,
-  patch: { email: string; name?: string | null; company_name?: string | null },
-): Promise<{ ok: boolean; message?: string }> {
-  const { error } = await supabase.from('dealstudio_access').insert({
-    dealstudio_id: dealId,
-    email: patch.email.trim().toLowerCase(),
-    name: patch.name?.trim() || null,
-    company_name: patch.company_name?.trim() || null,
-    // Lead, not prospect: the pipeline Jaqui works is lead, viewed, negotiating,
-    // committed, passed. Adding someone by hand IS the lead.
-    stage: 'lead',
-    status: 'pending',
-  });
-  if (!error) return { ok: true };
+  patch: {
+    email: string;
+    name?: string | null;
+    company_name?: string | null;
+    company_logo?: string | null;
+    linkedin?: string | null;
+    website?: string | null;
+    stage?: DealStage;
+  },
+): Promise<{ ok: boolean; id?: string; message?: string }> {
+  const { data, error } = await supabase
+    .from('dealstudio_access')
+    .insert({
+      dealstudio_id: dealId,
+      email: patch.email.trim().toLowerCase(),
+      name: patch.name?.trim() || null,
+      company_name: patch.company_name?.trim() || null,
+      company_logo: patch.company_logo?.trim() || null,
+      linkedin: patch.linkedin?.trim() || null,
+      website: patch.website?.trim() || null,
+      stage: patch.stage || 'lead',
+      status: 'pending',
+    })
+    .select('id')
+    .single();
+
+  if (!error) return { ok: true, id: data?.id as string };
   if (error.code === '23505') return { ok: false, message: 'That email is already on this deal.' };
   return { ok: false, message: error.message };
 }
