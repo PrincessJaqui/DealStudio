@@ -39,14 +39,12 @@ function StatusPill({ s }: { s: string }) {
   return <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full capitalize ${tone}`}>{s}</span>;
 }
 
-export function MasterAdminScreen() {
+export function MasterAdminScreen({ section = 'dashboard' }: { section?: 'dashboard' | 'people' | 'financials' }) {
   const [allowed, setAllowed] = useState<boolean | null>(null);
 
-  // Two levels now. The top level is the three areas of the console; the second
-  // is the pages within an area. Grouped this way because "Plans" and
-  // "Transactions" are both money, and "Users" and "Investors" are both people,
-  // and a flat five-tab bar hid that.
-  const [section, setSection] = useState<'dashboard' | 'people' | 'financials'>('dashboard');
+  // The three areas are now separate ROUTES (see App.tsx), each rendering this
+  // screen with its section fixed. Within People and Financials there is still a
+  // second-level tab, because those areas hold two pages each.
   const [peopleTab, setPeopleTab] = useState<'users' | 'investors'>('users');
   const [financeTab, setFinanceTab] = useState<'plans' | 'transactions'>('plans');
 
@@ -65,7 +63,7 @@ export function MasterAdminScreen() {
     );
   }
 
-  const TITLES: Record<typeof section, { title: string; sub: string }> = {
+  const TITLES: Record<'dashboard' | 'people' | 'financials', { title: string; sub: string }> = {
     dashboard:  { title: 'Dashboard', sub: 'Platform analytics and growth' },
     people:     { title: 'User Management', sub: 'Founders and investors' },
     financials: { title: 'Financials', sub: 'Plans and transactions' },
@@ -76,16 +74,6 @@ export function MasterAdminScreen() {
       <div className="mb-5">
         <h1 className="text-2xl font-bold text-[#191f1d] leading-tight">{TITLES[section].title}</h1>
         <p className="text-sm text-[#7f8c85]">{TITLES[section].sub}</p>
-      </div>
-
-      {/* Top-level sections. */}
-      <div className="mb-4">
-        <PillTabs
-          tabs={[['dashboard', 'Dashboard'], ['people', 'User Management'], ['financials', 'Financials']] as const}
-          value={section}
-          onChange={setSection}
-          hintKey="master-section"
-        />
       </div>
 
       {/* Second-level tabs, only where an area has more than one page. */}

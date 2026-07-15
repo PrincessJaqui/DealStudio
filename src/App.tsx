@@ -57,7 +57,9 @@ export default function App() {
         <Route path="/admin/interface" element={<Admin><InterfaceStudioScreen /></Admin>} />
         <Route path="/admin/settings" element={<Admin><SystemSettingsScreen /></Admin>} />
         <Route path="/admin/billing" element={<Admin><BillingScreen /></Admin>} />
-        <Route path="/admin/master" element={<Admin><MasterAdminScreen /></Admin>} />
+        <Route path="/admin/master" element={<Admin><MasterAdminScreen section="dashboard" /></Admin>} />
+        <Route path="/admin/users" element={<Admin><MasterAdminScreen section="people" /></Admin>} />
+        <Route path="/admin/financials" element={<Admin><MasterAdminScreen section="financials" /></Admin>} />
 
         {/* The company handle route: dealstudio.io/{handle}/{deck}.
             It sits last on purpose. React Router ranks static segments above

@@ -8,7 +8,7 @@
 import { webUrl } from '../../lib/runtime';
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, UserPlus, CreditCard, Shield, Home } from 'lucide-react';
+import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, UserPlus, CreditCard, Shield, Home, BarChart3, Wallet } from 'lucide-react';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { useAdminAuth } from './AdminGate';
 import { isPlatformAdmin } from '../../lib/billing';
@@ -18,7 +18,14 @@ const DEAL_NAV = [
   { to: '/admin/interface', label: 'Interface Studio', Icon: Palette, end: false },
 ];
 const BILLING_NAV  = { to: '/admin/billing', label: 'Billing', Icon: CreditCard, end: false };
-const MASTER_NAV   = { to: '/admin/master', label: 'User Management', Icon: Shield, end: false };
+
+// The master console is three destinations now, not one page with tabs. Its own
+// group so it reads as a distinct block at the top of a platform admin's rail.
+const MASTER_NAV = [
+  { to: '/admin/master',     label: 'Dashboard',       Icon: BarChart3, end: false },
+  { to: '/admin/users',      label: 'User Management', Icon: Shield,    end: false },
+  { to: '/admin/financials', label: 'Financials',      Icon: Wallet,    end: false },
+];
 const SETTINGS_NAV = { to: '/admin/settings', label: 'System Settings', Icon: Settings, end: false };
 
 const linkCls = ({ isActive }: { isActive: boolean }) =>
@@ -64,7 +71,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   useEffect(() => { void isPlatformAdmin().then(setIsMaster); }, []);
   const NAV = isMaster
-    ? [...DEAL_NAV, MASTER_NAV, SETTINGS_NAV]
+    ? [...MASTER_NAV, ...DEAL_NAV, SETTINGS_NAV]
     : [...DEAL_NAV, BILLING_NAV, SETTINGS_NAV];
 
   // Navigating closes any open overlay, so the drawer never lingers.
