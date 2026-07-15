@@ -407,6 +407,25 @@ export function trackPageView(pathname: string, search?: string) {
     event_type: 'page_view',
     page_path: fullPath,
   });
+
+  // Mirror to GA4, but ONLY on public marketing routes. A deal room at /d/... or
+  // a company handle route is private; sending its path to Google would leak that
+  // a specific investor deal exists and is being viewed. gtag was configured with
+  // send_page_view: false in index.html precisely so this stays our decision.
+  try {
+    const g = (window as any).gtag;
+    if (!g) return;
+    const isPrivateRoom =
+      /^\/d\//.test(pathname) ||
+      /^\/(dealstudio|investors)\b/.test(pathname) ||
+      // /{handle}/{deck}: two non-admin segments. /admin/... and the known public
+      // pages are excluded; anything else with two segments is a deal room.
+      (/^\/[^/]+\/[^/]+/.test(pathname) && !/^\/admin\b/.test(pathname));
+    if (isPrivateRoom) return;
+    g('event', 'page_view', { page_path: fullPath });
+  } catch {
+    // Analytics must never break the app.
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

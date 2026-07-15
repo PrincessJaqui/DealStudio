@@ -37,6 +37,7 @@
 
     <title>DealStudio</title>
     <meta name="description" content="DealStudio is a private, secure space to share your raise with investors." />
+    <meta name="robots" content="index, follow" />
 
     <link rel="canonical" href="https://dealstudio.io/" />
 
@@ -46,9 +47,11 @@
     <meta property="og:title"       content="DealStudio" />
     <meta property="og:description" content="A private, secure space to share your raise with investors." />
     <meta property="og:url"         content="https://dealstudio.io/" />
+    <meta property="og:image"       content="https://dealstudio.io/og-image.png" />
 
     <!-- Twitter Card -->
-    <meta name="twitter:card"        content="summary" />
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:image"       content="https://dealstudio.io/og-image.png" />
     <meta name="twitter:title"       content="DealStudio" />
     <meta name="twitter:description" content="A private, secure space to share your raise with investors." />
 
@@ -61,6 +64,20 @@
       "logo": "https://dealstudio.io/logo.png",
       "description": "DealStudio is a private, secure space to share your raise with investors."
     }
+    </script>
+
+    <!-- Google Analytics (GA4).
+         Loaded, but page_view is sent MANUALLY, not automatically. Deal rooms at
+         /d/... and /{handle}/{deck} are private, so auto-tracking would leak to
+         Google that a specific investor deal exists and is being read. The app
+         decides per route whether to send a page_view (see trackPageView in
+         src/lib/analytics.ts); public marketing pages yes, gated deal rooms no. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9TDMV2G0YM"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-9TDMV2G0YM', { send_page_view: false });
     </script>
   </head>
   <body>
