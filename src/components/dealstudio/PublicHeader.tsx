@@ -109,11 +109,23 @@ export function PublicHeader({
           )}
 
           {variant === 'quiet' ? (
-            /* Right-aligned, one line, and small enough not to compete with the
-               customer's own brand: it is a credit, not a headline. */
-            <span className="ml-auto whitespace-nowrap text-right text-[11px] leading-none text-[#99a1af]">
-              Powered by DealStudio&trade;
-            </span>
+            /* An investor on a gated room. The credit moved to the footer; this
+               spot now offers the way IN, so a founder who lands here (or an
+               investor curious about the product) can sign up or log in. */
+            <>
+              <button
+                onClick={() => nav('/admin')}
+                className="px-1.5 sm:px-2 py-2.5 text-[13px] sm:text-[15px] font-semibold text-[#0c1022] dark:text-[#eef1fa] whitespace-nowrap"
+              >
+                Log in
+              </button>
+              <button
+                onClick={() => nav('/signup')}
+                className={`rounded-xl ${GRAD} text-white px-3 sm:px-[18px] py-2.5 text-[13px] sm:text-[15px] font-semibold hover:brightness-110 transition whitespace-nowrap`}
+              >
+                Sign up
+              </button>
+            </>
           ) : email ? (
             /* Signed in: show the same profile block as the admin shell, so the
                home page does not feel like a different product. Clicking it goes

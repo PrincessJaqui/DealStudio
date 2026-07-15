@@ -827,6 +827,18 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
           <div className="hidden lg:block h-6" aria-hidden="true" />
           </div>
         </div>
+
+        {/* The credit lives here now, at the foot of the page, out of the way of
+            the customer's own brand at the top. A quiet line, and a link home for
+            anyone who wants to know what DealStudio is. */}
+        <footer className="mt-10 border-t border-[#edf0f3] py-6 text-center">
+          <a
+            href={webUrl('/')}
+            className="text-xs text-[#99a1af] hover:text-[var(--ds-brand)] transition-colors"
+          >
+            Powered by DealStudio&trade;
+          </a>
+        </footer>
       </div>
 
       {/* Document viewer */}
