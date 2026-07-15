@@ -83,6 +83,7 @@ export function DealStudioScreen() {
   const [newDeal, setNewDeal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [ndName, setNdName] = useState('');
+  const [ndContact, setNdContact] = useState('');
   const [ndBusy, setNdBusy] = useState(false);
   const [ndErr, setNdErr] = useState('');
 
@@ -95,6 +96,7 @@ export function DealStudioScreen() {
   useEffect(() => {
     if (!newDeal || !org) return;
     setNdName('');
+    setNdContact('');
     setNdErr('');
     setNdFrom(org.brand_from);
     setNdTo(org.brand_to);
@@ -105,7 +107,7 @@ export function DealStudioScreen() {
     if (!org || !ndName.trim()) return;
     setNdBusy(true); setNdErr('');
     try {
-      const { deal_id, slug } = await createDeal(org.id, ndName.trim());
+      const { deal_id, slug } = await createDeal(org.id, ndName.trim(), ndContact);
       await adminSaveDealStudio(deal_id, {
         brand_from: ndFrom, brand_to: ndTo, brand_accent: ndAccent,
       });
@@ -855,6 +857,21 @@ export function DealStudioScreen() {
                 </div>
               </Card>
 
+              <Card
+                title="Investor contact"
+                summary="The address the Email button on your deal room opens a message to. Leave it blank to use your login email."
+              >
+                <Field label="Contact email">
+                  <input
+                    type="email"
+                    value={room.contact_email || ''}
+                    onChange={(e) => update({ contact_email: e.target.value })}
+                    placeholder="raise@yourcompany.com"
+                    className={inputCls}
+                  />
+                </Field>
+              </Card>
+
               {/* Mobile only: display order is a setting, so on a phone it sits
                   with the other settings rather than in a rail that is not there. */}
               <div className="lg:hidden">{displayOrderPanel}</div>
@@ -1054,6 +1071,18 @@ export function DealStudioScreen() {
                   autoFocus
                   className="w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
                 />
+
+                <label className="mt-4 block text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85] mb-1.5">
+                  Investor contact email
+                </label>
+                <input
+                  type="email"
+                  value={ndContact}
+                  onChange={(e) => setNdContact(e.target.value)}
+                  placeholder="Where investors reach you (optional)"
+                  className="w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm text-[#191f1d] outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30"
+                />
+                <p className="mt-1 text-[11px] text-[#99a1af]">Leave blank to use your login email. You can change this later in Settings.</p>
 
                 <p className="mt-5 text-[11px] font-semibold uppercase tracking-wider text-[#7f8c85]">
                   Deal branding

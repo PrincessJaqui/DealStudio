@@ -11,6 +11,7 @@
  * never sees or sets a raw hash.
  */
 
+import { webUrl } from './runtime';
 import { supabase } from './supabase';
 import { trackEvent } from './analytics';
 
@@ -277,6 +278,9 @@ export interface DealStudio {
   raised_amount: number;
   team_size: number;
   headquarters: string;
+  /** Where investors reach out. The investor-page Email button opens a message to
+   *  this, falling back to the owner's login email when it is empty. */
+  contact_email: string | null;
   field_labels?: Record<string, string> | null;
   hq_lat: number | null;
   hq_lng: number | null;
@@ -1158,6 +1162,27 @@ export type DealPeopleResult = {
   message?: string;
 };
 
+export interface PlatformInvestor {
+  email: string;
+  name: string | null;
+  company_name: string | null;
+  deal_count: number;
+  deals: { slug: string; company: string | null }[];
+  total_visits: number;
+  last_seen: string | null;
+}
+
+/**
+ * Every investor across every deal on the platform. Master admin only; the RPC
+ * raises 'not authorized' for anyone else, so this is not a permission the UI
+ * grants, it is one the database enforces.
+ */
+export async function adminAllInvestors(): Promise<PlatformInvestor[]> {
+  const { data, error } = await supabase.rpc('admin_all_investors');
+  if (error) { console.warn('[dealStudio] all investors', error); return []; }
+  return (data ?? []) as PlatformInvestor[];
+}
+
 export async function fetchDealPeople(dealId: string): Promise<DealPeopleResult> {
   const { data, error } = await supabase.rpc('admin_deal_people', { p_deal: dealId });
   if (error) {
@@ -1357,9 +1382,10 @@ export async function deleteDealPerson(
  * none. Never present it as "shares".
  */
 export function inviteUrl(handle: string | null, slug: string, token: string): string {
-  const base = handle
-    ? `${window.location.origin}/${handle}/${slug}`
-    : `${window.location.origin}/d/${slug}`;
+  // WEB_ORIGIN, not window.location.origin: this link goes in an email and gets
+  // opened on someone else's device, so it must be the public site even when the
+  // founder generated it from inside the native app.
+  const base = handle ? webUrl(`/${handle}/${slug}`) : webUrl(`/d/${slug}`);
   return `${base}?i=${token}`;
 }
 

@@ -3,6 +3,7 @@
  * the signed-in user belongs to. RLS enforces this server-side; this module is
  * the client's view of it.
  */
+import { webUrl } from './runtime';
 import { supabase } from './supabase';
 
 export type Organization = {
@@ -99,14 +100,22 @@ export async function fetchOrgDeals(): Promise<OrgDeal[]> {
 }
 
 /** Creates an additional deal inside the org (Deal Manager). */
-export async function createDeal(orgId: string, name: string, slug?: string) {
+export async function createDeal(orgId: string, name: string, contactEmail?: string, slug?: string) {
   const { data, error } = await supabase.rpc('create_deal', {
     p_org: orgId,
     p_name: name,
     p_slug: slug ?? null,
   });
   if (error) throw error;
-  return data as { deal_id: string; slug: string };
+  const res = data as { deal_id: string; slug: string };
+
+  // Written after creation rather than through the RPC, so the deal-limit check
+  // inside create_deal stays untouched. A contact email is optional: skip the
+  // write when it is blank.
+  if (contactEmail?.trim()) {
+    await supabase.from('dealstudios').update({ contact_email: contactEmail.trim() }).eq('id', res.deal_id);
+  }
+  return res;
 }
 
 /** Saves the org's branding (Interface Studio). */
@@ -421,6 +430,6 @@ export async function setOrgHandle(
  * missing.
  */
 export function dealUrl(handle: string | null | undefined, slug: string): string {
-  const origin = window.location.origin;
-  return handle ? `${origin}/${handle}/${slug}` : `${origin}/d/${slug}`;
+  // The public site, always: this URL is shared with investors.
+  return handle ? webUrl(`/${handle}/${slug}`) : webUrl(`/d/${slug}`);
 }

@@ -3,6 +3,7 @@
  * Stripe hosts checkout and the card portal, and the webhook is the only writer
  * of subscription state.
  */
+import { webUrl } from './runtime';
 import { supabase } from './supabase';
 
 export type Plan = {
@@ -367,7 +368,7 @@ export async function adminSetPasswordByEmail(email: string, password: string): 
  */
 export async function sendPasswordReset(email: string): Promise<{ ok: boolean; message?: string }> {
   const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-    redirectTo: `${window.location.origin}/reset-password`,
+    redirectTo: webUrl('/reset-password'),
   });
   return error ? { ok: false, message: error.message } : { ok: true };
 }
@@ -376,7 +377,7 @@ export async function sendPasswordReset(email: string): Promise<{ ok: boolean; m
 export async function sendMagicLink(email: string): Promise<{ ok: boolean; message?: string }> {
   const { error } = await supabase.auth.signInWithOtp({
     email: email.trim(),
-    options: { emailRedirectTo: `${window.location.origin}/admin` },
+    options: { emailRedirectTo: webUrl('/admin') },
   });
   return error ? { ok: false, message: error.message } : { ok: true };
 }
@@ -400,7 +401,7 @@ export async function adminCreateUser(
     email: email.trim(),
     options: {
       shouldCreateUser: true,
-      emailRedirectTo: `${window.location.origin}/reset-password`,
+      emailRedirectTo: webUrl('/reset-password'),
       data: fullName?.trim() ? { full_name: fullName.trim() } : undefined,
     },
   });
@@ -433,6 +434,25 @@ export async function adminPlatformStats(): Promise<PlatformStats | null> {
   const { data, error } = await supabase.rpc('admin_platform_stats');
   if (error) return null;
   return (data as PlatformStats) ?? null;
+}
+
+export type PlatformAnalytics = {
+  window_days: number;
+  totals: {
+    signups: number; investor_sessions: number; events: number;
+    deals_created: number; meetings: number;
+  };
+  daily: { date: string; signups: number; sessions: number; events: number }[];
+  top_deals: { slug: string; company: string; views: number; visitors: number }[];
+  top_events: { name: string; count: number }[];
+};
+
+/** Time-series and leaderboards for the analytics dashboard. Master admin only;
+ *  the RPC raises 'not authorized' for anyone else. */
+export async function adminPlatformAnalytics(days = 30): Promise<PlatformAnalytics | null> {
+  const { data, error } = await supabase.rpc('admin_platform_analytics', { p_days: days });
+  if (error) { console.warn('[analytics]', error); return null; }
+  return (data as PlatformAnalytics) ?? null;
 }
 
 /** Set a user's display name. Platform admins only, enforced in SQL. */

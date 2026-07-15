@@ -5,6 +5,7 @@
  * slide-in drawer for navigation and a small menu for the account.
  */
 
+import { webUrl } from '../../lib/runtime';
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, UserPlus, CreditCard, Shield, Home } from 'lucide-react';
@@ -39,7 +40,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   /** Share the product, not the deal room. Copies the signup link, and uses the
    *  native share sheet on a phone where one exists. */
   const inviteFriends = async () => {
-    const url = `${window.location.origin}/signup`;
+    const url = webUrl('/signup');
     const text = 'I am using DealStudio to run my raise. Investor deal rooms, live analytics.';
 
     if (navigator.share) {

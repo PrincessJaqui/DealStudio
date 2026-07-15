@@ -5,6 +5,7 @@
  * (DocSend-style) and rolls it up into dealstudio_visits on unload.
  */
 
+import { webUrl } from '../../lib/runtime';
 import { useParams } from 'react-router-dom';
 import { PublicHeader } from '../dealstudio/PublicHeader';
 import { applyDealTheme, resolveDealSlug } from '../../lib/org';
@@ -14,7 +15,7 @@ import { statSlotValue } from '../dealstudio/StatSlotField';
 import { DEFAULT_STAT_SLOTS, resolveSectionOrder, scheduleSlots, type StatSlot, type SectionKey } from '../../lib/dealStudio';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
-import { MapPin, Share2, Check, LogOut } from 'lucide-react';
+import { MapPin, Share2, Check, LogOut, Mail } from 'lucide-react';
 import { Button } from '../ui/button';
 import { EventsCalendar } from '../EventsCalendar';
 import { DealDocumentCard } from '../dealstudio/DealDocumentCard';
@@ -267,8 +268,8 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
     // cannot look the handle up -- but if they came in on a handle URL, that is
     // the link worth passing along.
     const base = routeHandle && routeDeck
-      ? `${window.location.origin}/${routeHandle}/${routeDeck}`
-      : `${window.location.origin}/d/${SLUG}`;
+      ? webUrl(`/${routeHandle}/${routeDeck}`)
+      : webUrl(`/d/${SLUG}`);
     const link = `${base}?share=1`;
     navigator.clipboard?.writeText(link);
     setShareCopied(true);
@@ -693,6 +694,17 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
               <button onClick={shareDeal} className="w-full h-10 mt-2 rounded-full border border-[var(--ds-brand)] text-[var(--ds-brand)] hover:bg-[var(--ds-tint)] flex items-center justify-center gap-1.5 text-sm font-medium transition-colors">
                 {shareCopied ? <><Check className="w-4 h-4" /> Link copied</> : <><Share2 className="w-4 h-4" /> Share this deal</>}
               </button>
+            )}
+            {/* Email the people running the raise. contact_resolved is worked out
+                server-side: the deal's contact_email if set, else the owner's login
+                email, so the button always has somewhere to go. */}
+            {(room as any).contact_resolved && (
+              <a
+                href={`mailto:${(room as any).contact_resolved}?subject=${encodeURIComponent(`Question about ${room.company_name}`)}`}
+                className="w-full h-10 mt-2 rounded-full border border-[var(--ds-brand)] text-[var(--ds-brand)] hover:bg-[var(--ds-tint)] flex items-center justify-center gap-1.5 text-sm font-medium transition-colors"
+              >
+                <Mail className="w-4 h-4" /> Email
+              </a>
             )}
             {granted && !isMasterAdmin && (
               <button

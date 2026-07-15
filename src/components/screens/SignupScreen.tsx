@@ -2,6 +2,7 @@
  * SignupScreen — public sign-up. Creates the auth user, then their company and
  * first deal via one RPC. New companies get a 30-day trial; no card up front.
  */
+import { webUrl } from '../../lib/runtime';
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
@@ -33,7 +34,7 @@ export function SignupScreen() {
           // Without this, Supabase falls back to the project's Site URL for the
           // confirmation link. If that is still pointing at localhost, every
           // confirmation email is a dead link.
-          emailRedirectTo: `${window.location.origin}/admin`,
+          emailRedirectTo: webUrl('/admin'),
 
           // The company name has to survive the email round trip. When
           // confirmation is on there is no session at signup, so the org cannot

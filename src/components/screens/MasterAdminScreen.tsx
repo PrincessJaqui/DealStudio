@@ -14,6 +14,8 @@ import {
 import { EditOrgDialog } from '../dealstudio/EditOrgDialog';
 import { PlatformDashboard } from '../dealstudio/PlatformDashboard';
 import { PillTabs } from '../dealstudio/PillTabs';
+import { InvestorsTab } from '../dealstudio/InvestorsTab';
+import { AnalyticsTab } from '../dealstudio/AnalyticsTab';
 import { PricingSetup } from '../dealstudio/PricingSetup';
 import {
   adminListOrgs, adminUpdateOrg, adminListTransactions, adminListPlans, savePlan,
@@ -39,7 +41,7 @@ function StatusPill({ s }: { s: string }) {
 
 export function MasterAdminScreen() {
   const [allowed, setAllowed] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<'users' | 'plans' | 'transactions'>('users');
+  const [tab, setTab] = useState<'analytics' | 'users' | 'plans' | 'transactions' | 'investors'>('analytics');
 
   useEffect(() => { void isPlatformAdmin().then(setAllowed); }, []);
 
@@ -68,14 +70,16 @@ export function MasterAdminScreen() {
           a space-y-5, Deal Studio from an mb-5, and this screen had neither. */}
       <div className="mb-5">
         <PillTabs
-          tabs={[['users', 'Users'], ['plans', 'Plans'], ['transactions', 'Transactions']] as const}
+          tabs={[['analytics', 'Analytics'], ['users', 'Users'], ['investors', 'Investors'], ['plans', 'Plans'], ['transactions', 'Transactions']] as const}
           value={tab}
           onChange={setTab}
           hintKey="master"
         />
       </div>
 
-      {tab === 'users' ? <UsersTab />
+      {tab === 'analytics' ? <AnalyticsTab />
+        : tab === 'users' ? <UsersTab />
+        : tab === 'investors' ? <InvestorsTab />
         : tab === 'plans' ? <PricingSetup />
         : <TransactionsTab />}
     </div>

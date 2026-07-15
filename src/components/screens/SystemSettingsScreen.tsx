@@ -7,7 +7,9 @@
 
 import { useEffect, useState } from 'react';
 import { Loader2, Check, Upload, Trash2, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
+import { toast } from 'sonner@2.0.3';
 import { supabase } from '../../lib/supabase';
+import { webUrl } from '../../lib/runtime';
 import { useAdminAuth } from '../dealstudio/AdminGate';
 import { TeamMembers } from '../dealstudio/TeamMembers';
 import { Tabs, TabsContent } from '../ui/tabs';
@@ -35,6 +37,25 @@ function SavedPill({ at }: { at?: string }) {
 
 export function SystemSettingsScreen() {
   const [tab, setTab] = useState('identity');
+
+  // Account deletion. Two-step, typed confirmation, because it is irreversible.
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  const deleteAccount = async () => {
+    setDeleting(true);
+    const { error } = await supabase.rpc('delete_my_account');
+    if (error) {
+      setDeleting(false);
+      toast.error('Could not delete your account. Please try again.');
+      return;
+    }
+    // The auth row is gone; sign out to clear the local session, then leave for
+    // the public site. webUrl, not a bare path, so this works in the native shell.
+    await supabase.auth.signOut();
+    window.location.href = webUrl('/');
+  };
 
   const { org, refreshOrg } = useAdminAuth();
 
@@ -352,6 +373,53 @@ export function SystemSettingsScreen() {
             </button>
           </div>
           {noteEl(pwNote)}
+        </div>
+
+        {/* Delete account. Apple 5.1.1(v) requires this to live in the app, not in
+            an email to support. Typed confirmation, because it is irreversible and
+            can take a whole org with it. */}
+        <div className={`${card} border-red-200`}>
+          <h2 className="font-bold text-[#191f1d]">Delete account</h2>
+          <p className="text-sm text-[#7f8c85] mt-1">
+            Permanently deletes your login. If you are the only member of your workspace, your
+            deals, documents and all investor data go with it. This cannot be undone.
+          </p>
+
+          {!confirmingDelete ? (
+            <button
+              onClick={() => setConfirmingDelete(true)}
+              className="mt-4 inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition"
+            >
+              <Trash2 className="w-4 h-4" /> Delete my account
+            </button>
+          ) : (
+            <div className="mt-4">
+              <label className={label}>Type DELETE to confirm</label>
+              <input
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                className={field}
+                placeholder="DELETE"
+                autoComplete="off"
+              />
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => void deleteAccount()}
+                  disabled={deleteConfirm.trim().toUpperCase() !== 'DELETE' || deleting}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 transition"
+                >
+                  {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Permanently delete
+                </button>
+                <button
+                  onClick={() => { setConfirmingDelete(false); setDeleteConfirm(''); }}
+                  disabled={deleting}
+                  className="h-10 px-4 rounded-xl text-sm font-semibold text-[#7f8c85] hover:bg-[#f5f6f8]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
         </TabsContent>
       </Tabs>
