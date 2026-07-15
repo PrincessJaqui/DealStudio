@@ -645,28 +645,35 @@ export async function adminFetchDealStudio(slug?: string): Promise<DealStudio | 
  * Best-effort: a deck that will not render leaves the previous image in place
  * rather than failing the upload that triggered this.
  */
-export async function refreshDeckShareImage(dealId: string, deckUrl: string): Promise<void> {
+export async function refreshDeckShareImage(dealId: string, deckUrl: string): Promise<{ ok: boolean; url?: string; reason?: string }> {
   try {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('dealstudios')
       .select('share_image_source')
       .eq('id', dealId)
       .single();
-    if ((data as any)?.share_image_source === 'custom') return;
+
+    // The column not existing (migration not run) surfaces here as an error,
+    // rather than vanishing into a silent no-op like the old version.
+    if (error) return { ok: false, reason: 'The share image columns are missing. Run migration 0047.' };
+    if ((data as any)?.share_image_source === 'custom') return { ok: false, reason: 'custom' };
 
     const { deckShareImage } = await import('./shareImage');
     const file = await deckShareImage(deckUrl);
-    if (!file) return;
+    if (!file) return { ok: false, reason: 'Could not read the deck PDF. It may be private (not publicly fetchable) or not a PDF.' };
 
     const up = await uploadDealFile(file, dealId);
-    if (!up?.url) return;
+    if (!up?.url) return { ok: false, reason: 'The rendered image could not be uploaded to storage.' };
 
-    await supabase
+    const { error: saveErr } = await supabase
       .from('dealstudios')
       .update({ share_image_url: up.url, share_image_source: 'auto' })
       .eq('id', dealId);
-  } catch {
-    // Leave the existing image untouched on any failure.
+    if (saveErr) return { ok: false, reason: 'Could not save the image URL to the deal.' };
+
+    return { ok: true, url: up.url };
+  } catch (e) {
+    return { ok: false, reason: e instanceof Error ? e.message : 'Unknown error while generating the image.' };
   }
 }
 

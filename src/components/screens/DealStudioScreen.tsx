@@ -50,7 +50,7 @@ import {
   adminFetchDealStudio, adminSaveDealStudio, adminSetActive, adminSetSharedPassword,
   adminFetchDocuments, adminDeleteDocument, adminDeleteDocuments, adminReorderDocuments, adminFetchAccess,
   adminFetchFunnel, adminFetchDocStats,
-  scheduleDates, scheduleSlots, committedTotal, EMPTY_MARKET, uploadDealFile,
+  scheduleDates, scheduleSlots, committedTotal, EMPTY_MARKET, uploadDealFile, refreshDeckShareImage,
 } from '../../lib/dealStudio';
 
 const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -893,6 +893,31 @@ export function DealStudioScreen() {
                     </p>
 
                     <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {/* Generate on demand from the current deck, with a REAL result.
+                          The old auto path failed silently; this one tells you why. */}
+                      {deck?.file_url && (
+                        <button
+                          type="button"
+                          disabled={shareBusy}
+                          onClick={async () => {
+                            setShareBusy(true);
+                            const r = await refreshDeckShareImage(room.id, deck.file_url);
+                            setShareBusy(false);
+                            if (r.ok && r.url) {
+                              update({ share_image_url: r.url, share_image_source: 'auto' } as any);
+                              toast.success('Generated from your deck');
+                            } else if (r.reason === 'custom') {
+                              toast.error('You have a custom image. Click "Back to auto" first.');
+                            } else {
+                              toast.error(r.reason || 'Could not generate the image');
+                            }
+                          }}
+                          className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] hover:brightness-110 ${shareBusy ? 'opacity-60 cursor-wait' : ''}`}
+                        >
+                          {shareBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />} Generate from deck
+                        </button>
+                      )}
+
                       <label className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold cursor-pointer text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] ${shareBusy ? 'opacity-60 cursor-wait' : ''}`}>
                         {shareBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />} Upload image
                         <input
