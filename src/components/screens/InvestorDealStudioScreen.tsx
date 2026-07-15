@@ -764,7 +764,8 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
 
           {room.meeting_enabled && (
             <div data-section="calendar" className="order-12 lg:order-none rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-4">
-              <h2 className="text-sm font-bold text-[#191f1d] mb-3">Availability Calendar</h2>
+              <h2 className="text-sm font-bold text-[#191f1d] mb-1">Availability Calendar</h2>
+              <p className="text-xs text-[#99a1af] mb-3">Dots mark open dates. Pick a slot or request your own time.</p>
               <EventsCalendar events={availabilityEvents} selectedDate={selectedDate} onSelectDate={(d) => setSelectedDate(d)} currentMonth={new Date()} onChangeMonth={() => {}} />
 
               {/* Picking a date used to do nothing: selectedDate was stored and
@@ -817,7 +818,17 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
                 );
               })()}
               <Button onClick={() => setMeetingOpen(true)} className="w-full h-10 mt-3 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]">Request a meeting</Button>
-              <p className="text-xs text-[#99a1af] mt-2 text-center">Dots mark open dates. Pick a slot or request your own time.</p>
+
+              {/* The credit sits at the foot of this card, centered within it, so it
+                  reads as balanced rather than floating off to one side of the page. */}
+              <div className="mt-4 pt-3 border-t border-[#edf0f3] text-center">
+                <a
+                  href={webUrl('/')}
+                  className="text-xs text-[#99a1af] hover:text-[var(--ds-brand)] transition-colors"
+                >
+                  Powered by DealStudio&trade;
+                </a>
+              </div>
             </div>
           )}
 
@@ -827,18 +838,6 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
           <div className="hidden lg:block h-6" aria-hidden="true" />
           </div>
         </div>
-
-        {/* The credit lives here now, at the foot of the page, out of the way of
-            the customer's own brand at the top. A quiet line, and a link home for
-            anyone who wants to know what DealStudio is. */}
-        <footer className="mt-10 border-t border-[#edf0f3] py-6 text-center">
-          <a
-            href={webUrl('/')}
-            className="text-xs text-[#99a1af] hover:text-[var(--ds-brand)] transition-colors"
-          >
-            Powered by DealStudio&trade;
-          </a>
-        </footer>
       </div>
 
       {/* Document viewer */}
