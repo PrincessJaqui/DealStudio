@@ -41,7 +41,14 @@ function StatusPill({ s }: { s: string }) {
 
 export function MasterAdminScreen() {
   const [allowed, setAllowed] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<'analytics' | 'users' | 'plans' | 'transactions' | 'investors'>('analytics');
+
+  // Two levels now. The top level is the three areas of the console; the second
+  // is the pages within an area. Grouped this way because "Plans" and
+  // "Transactions" are both money, and "Users" and "Investors" are both people,
+  // and a flat five-tab bar hid that.
+  const [section, setSection] = useState<'dashboard' | 'people' | 'financials'>('dashboard');
+  const [peopleTab, setPeopleTab] = useState<'users' | 'investors'>('users');
+  const [financeTab, setFinanceTab] = useState<'plans' | 'transactions'>('plans');
 
   useEffect(() => { void isPlatformAdmin().then(setAllowed); }, []);
 
@@ -58,30 +65,57 @@ export function MasterAdminScreen() {
     );
   }
 
+  const TITLES: Record<typeof section, { title: string; sub: string }> = {
+    dashboard:  { title: 'Dashboard', sub: 'Platform analytics and growth' },
+    people:     { title: 'User Management', sub: 'Founders and investors' },
+    financials: { title: 'Financials', sub: 'Plans and transactions' },
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-16">
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-[#191f1d] leading-tight">User Management</h1>
-        <p className="text-sm text-[#7f8c85]">Master Admin</p>
+        <h1 className="text-2xl font-bold text-[#191f1d] leading-tight">{TITLES[section].title}</h1>
+        <p className="text-sm text-[#7f8c85]">{TITLES[section].sub}</p>
       </div>
 
-      {/* The gap belongs to the caller now: the pill bar stopped carrying its own
-          bottom padding when it became its own scroll box. Settings gets this from
-          a space-y-5, Deal Studio from an mb-5, and this screen had neither. */}
-      <div className="mb-5">
+      {/* Top-level sections. */}
+      <div className="mb-4">
         <PillTabs
-          tabs={[['analytics', 'Analytics'], ['users', 'Users'], ['investors', 'Investors'], ['plans', 'Plans'], ['transactions', 'Transactions']] as const}
-          value={tab}
-          onChange={setTab}
-          hintKey="master"
+          tabs={[['dashboard', 'Dashboard'], ['people', 'User Management'], ['financials', 'Financials']] as const}
+          value={section}
+          onChange={setSection}
+          hintKey="master-section"
         />
       </div>
 
-      {tab === 'analytics' ? <AnalyticsTab />
-        : tab === 'users' ? <UsersTab />
-        : tab === 'investors' ? <InvestorsTab />
-        : tab === 'plans' ? <PricingSetup />
-        : <TransactionsTab />}
+      {/* Second-level tabs, only where an area has more than one page. */}
+      {section === 'people' && (
+        <div className="mb-5">
+          <PillTabs
+            tabs={[['users', 'Users'], ['investors', 'Investors']] as const}
+            value={peopleTab}
+            onChange={setPeopleTab}
+            hintKey="master-people"
+            tone="brand"
+          />
+        </div>
+      )}
+      {section === 'financials' && (
+        <div className="mb-5">
+          <PillTabs
+            tabs={[['plans', 'Plans'], ['transactions', 'Transactions']] as const}
+            value={financeTab}
+            onChange={setFinanceTab}
+            hintKey="master-finance"
+            tone="brand"
+          />
+        </div>
+      )}
+
+      {section === 'dashboard' ? <AnalyticsTab />
+        : section === 'people'
+          ? (peopleTab === 'users' ? <UsersTab /> : <InvestorsTab />)
+          : (financeTab === 'plans' ? <PricingSetup /> : <TransactionsTab />)}
     </div>
   );
 }
