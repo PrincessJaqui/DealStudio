@@ -34,7 +34,7 @@ export function SignupScreen() {
           // Without this, Supabase falls back to the project's Site URL for the
           // confirmation link. If that is still pointing at localhost, every
           // confirmation email is a dead link.
-          emailRedirectTo: webUrl('/admin'),
+          emailRedirectTo: webUrl('/welcome'),
 
           // The company name has to survive the email round trip. When
           // confirmation is on there is no session at signup, so the org cannot

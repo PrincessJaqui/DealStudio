@@ -377,7 +377,7 @@ export async function sendPasswordReset(email: string): Promise<{ ok: boolean; m
 export async function sendMagicLink(email: string): Promise<{ ok: boolean; message?: string }> {
   const { error } = await supabase.auth.signInWithOtp({
     email: email.trim(),
-    options: { emailRedirectTo: webUrl('/admin') },
+    options: { emailRedirectTo: webUrl('/welcome') },
   });
   return error ? { ok: false, message: error.message } : { ok: true };
 }

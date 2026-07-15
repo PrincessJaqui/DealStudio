@@ -17,6 +17,7 @@ import { SystemSettingsScreen } from './components/screens/SystemSettingsScreen'
 import { BillingScreen } from './components/screens/BillingScreen';
 import { MasterAdminScreen } from './components/screens/MasterAdminScreen';
 import { SignupScreen } from './components/screens/SignupScreen';
+import { WelcomeScreen } from './components/screens/WelcomeScreen';
 import { ResetPasswordScreen } from './components/screens/ResetPasswordScreen';
 import { TermsScreen } from './components/screens/TermsScreen';
 import { PrivacyScreen } from './components/screens/PrivacyScreen';
@@ -38,6 +39,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
+        <Route path="/welcome" element={<WelcomeScreen />} />
         {/* People type /login. /admin already shows the sign-in form when signed
             out and the dashboard when signed in, so redirect rather than render a
             bare gate, which would be a blank page for anyone already signed in. */}
