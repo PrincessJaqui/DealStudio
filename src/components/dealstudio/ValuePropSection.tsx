@@ -80,8 +80,10 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
           return (
             <div
               key={key}
-              className={`ds-card rounded-2xl border bg-white overflow-hidden transition-colors ${
-                isOpen ? 'border-[var(--ds-accent)] ds-open-ring' : 'border-[#edf0f3]'
+              className={`ds-card rounded-2xl border border-[#edf0f3] bg-white overflow-hidden transition-all ${
+                isOpen
+                  ? 'shadow-[0_10px_30px_-10px_rgba(12,16,34,0.22)]'
+                  : ''
               }`}
               style={{ animationDelay: `${i * 60}ms` }}
             >
@@ -112,9 +114,7 @@ export function ProblemSolutionSection({ value }: { value: DealValueProp }) {
                 {/* The arrow carries the cue: it breathes until the pair is
                     opened, then stops. Down on mobile, across on desktop. */}
                 <span
-                  className={`mx-auto md:mx-2 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shrink-0 shadow-[0_2px_8px_-1px_rgba(12,16,34,0.35)] ${
-                    isOpen ? '' : 'ds-ps-pulse'
-                  }`}
+                  className="ds-arrow-pulse mx-auto md:mx-2 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white shrink-0 shadow-[0_2px_8px_-1px_rgba(12,16,34,0.35)]"
                 >
                   <ArrowRight className="hidden md:block w-3.5 h-3.5" />
                   <ArrowDown className="md:hidden w-3.5 h-3.5" />
