@@ -14,7 +14,7 @@
  * stage. Keeping these apart is why both can be trusted.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Search, ChevronUp, ChevronDown, MoreVertical, Eye, Share2,
@@ -1177,8 +1177,12 @@ function PersonDialog({
 
   const [busy, setBusy] = useState(false);
   const [pulling, setPulling] = useState(false);
+  const [pullingPhoto, setPullingPhoto] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [imgBroken, setImgBroken] = useState(false);
+  const [photoBroken, setPhotoBroken] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
   const accessId = useAccessId(dealId);
 
   const field = 'w-full rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--ds-brand)]/30';
@@ -1187,6 +1191,36 @@ function PersonDialog({
   const stageChanged = mode === 'edit' && !!person && stage !== person.stage;
   const validEmail = /.+@.+\..+/.test(email.trim());
   const canSave = (mode === 'create' ? validEmail : true) && (!stageChanged || !!note.trim()) && !busy;
+
+  // Auto-save (edit mode only): debounce field changes and persist quietly, with
+  // a brief "Saved" tick. Status changes still route through the note-gated path,
+  // so a stage change with no note does not silently save.
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didMount = useRef(false);
+  useEffect(() => {
+    if (mode !== 'edit' || !person) return;
+    if (!didMount.current) { didMount.current = true; return; }
+    if (stageChanged) return; // handled explicitly with its required note
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(() => { void autosave(); }, 800);
+    return () => { if (autosaveTimer.current) clearTimeout(autosaveTimer.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, company, logo, contactPhoto, linkedin, website]);
+
+  const autosave = async () => {
+    if (mode !== 'edit' || !person) return;
+    const id = await accessId(person);
+    if (!id) return;
+    const ok = await saveDealPerson(id, {
+      name: name.trim() || null,
+      company_name: company.trim() || null,
+      company_logo: logo.trim() || null,
+      contact_photo: contactPhoto.trim() || null,
+      linkedin: linkedin.trim() || null,
+      website: website.trim() || null,
+    });
+    if (ok) { setSavedTick(true); setTimeout(() => setSavedTick(false), 1500); onChanged(); }
+  };
 
   const pull = async () => {
     setPulling(true);
@@ -1307,78 +1341,8 @@ function PersonDialog({
       subtitle={mode === 'edit' ? (person?.email ?? undefined) : undefined}
       onClose={onClose}
     >
-      <div className="space-y-3">
-        <div>
-          <label className={label}>Email</label>
-          {mode === 'create' ? (
-            <input value={email} onChange={e => setEmail(e.target.value)} autoFocus className={field} placeholder="name@firm.com" />
-          ) : (
-            /* Read-only. The email is the key the visit rows join on. */
-            <p className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm text-[#7f8c85] truncate">{person?.email}</p>
-          )}
-        </div>
-
-        <div><label className={label}>Contact name</label>
-          <input value={name} onChange={e => setName(e.target.value)} className={field} placeholder="Optional" /></div>
-
-        <div><label className={label}>Company</label>
-          <input value={company} onChange={e => setCompany(e.target.value)} className={field} placeholder="Optional" /></div>
-
-        <div>
-          <label className={label}>Image</label>
-          <div className="flex items-center gap-3">
-            <span className="w-12 h-12 shrink-0 rounded-full overflow-hidden ring-2 ring-white bg-[#f5f6f8] shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
-              {logo && !imgBroken
-                ? <img src={logo} alt="" loading="lazy" decoding="async" width={48} height={48} className="w-full h-full object-cover" onError={() => setImgBroken(true)} onLoad={() => setImgBroken(false)} />
-                : <ImageOff className="w-4 h-4 text-[#c7cdd4]" />}
-            </span>
-            <input value={logo} onChange={e => { setLogo(e.target.value); setImgBroken(false); }} className={field} placeholder="https://..." />
-          </div>
-
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              disabled={(!website.trim() && !linkedin.trim()) || pulling}
-              onClick={() => void pull()}
-              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] disabled:opacity-40"
-            >
-              {pulling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Pull
-            </button>
-
-            <label className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] ${uploading ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}>
-              {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />} Upload
-              <input
-                type="file"
-                accept="image/*"
-                disabled={uploading}
-                className="hidden"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  e.currentTarget.value = '';
-                  if (!file) return;
-                  setUploading(true);
-                  const small = await compressImage(file);
-                  const up = await uploadDealFile(small, dealId);
-                  setUploading(false);
-                  if (up?.url) { setLogo(up.url); setImgBroken(false); toast.success('Image uploaded'); }
-                  else toast.error('Could not upload that image');
-                }}
-              />
-            </label>
-          </div>
-
-          <p className="mt-1.5 text-xs text-[#99a1af]">
-            Pull tries LinkedIn, then their website. LinkedIn serves a sign-in wall to anything
-            that is not a signed-in browser, so it usually returns nothing. Upload always works.
-          </p>
-        </div>
-
-        <div><label className={label}>LinkedIn</label>
-          <input value={linkedin} onChange={e => setLinkedin(e.target.value)} className={field} placeholder="https://linkedin.com/in/..." /></div>
-
-        <div><label className={label}>Website</label>
-          <input value={website} onChange={e => setWebsite(e.target.value)} className={field} placeholder="https://..." /></div>
-
+      <div className="space-y-4">
+        {/* Status first. */}
         <div>
           <label className={label}>Status</label>
           <select
@@ -1393,30 +1357,134 @@ function PersonDialog({
           )}
         </div>
 
-        <div>
-          <label className={label}>{stageChanged ? 'Note (required for a status change)' : 'Note'}</label>
-          <textarea
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            placeholder={stageChanged ? 'Why is this changing?' : 'Optional'}
-            className={`${field} min-h-[70px] resize-y`}
-          />
+        {/* Contact details. */}
+        <div className="rounded-2xl border border-[#edf0f3] p-4 space-y-3">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#191f1d]">Contact details</p>
+
+          <div>
+            <label className={label}>Email</label>
+            {mode === 'create' ? (
+              <input value={email} onChange={e => setEmail(e.target.value)} autoFocus className={field} placeholder="name@firm.com" />
+            ) : (
+              <p className="rounded-xl bg-[#f5f6f8] px-3 py-2.5 text-sm text-[#7f8c85] truncate">{person?.email}</p>
+            )}
+          </div>
+
+          <div><label className={label}>Contact name</label>
+            <input value={name} onChange={e => setName(e.target.value)} className={field} placeholder="Optional" /></div>
+
+          <div><label className={label}>LinkedIn</label>
+            <input value={linkedin} onChange={e => setLinkedin(e.target.value)} className={field} placeholder="https://linkedin.com/in/..." /></div>
+
+          <div>
+            <label className={label}>Contact photo</label>
+            <div className="flex items-center gap-3">
+              <span className="w-12 h-12 shrink-0 rounded-full overflow-hidden ring-2 ring-white bg-[#f5f6f8] shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
+                {contactPhoto && !photoBroken
+                  ? <img src={contactPhoto} alt="" loading="lazy" width={48} height={48} className="w-full h-full object-cover" onError={() => setPhotoBroken(true)} onLoad={() => setPhotoBroken(false)} />
+                  : <ImageOff className="w-4 h-4 text-[#c7cdd4]" />}
+              </span>
+              <input value={contactPhoto} onChange={e => { setContactPhoto(e.target.value); setPhotoBroken(false); }} className={field} placeholder="https://..." />
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button type="button" disabled={!linkedin.trim() || pullingPhoto} onClick={() => void pullPhoto()}
+                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] disabled:opacity-40">
+                {pullingPhoto ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Pull from LinkedIn
+              </button>
+              <label className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] ${uploadingPhoto ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}>
+                {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />} Upload
+                <input type="file" accept="image/*" disabled={uploadingPhoto} className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]; e.currentTarget.value = '';
+                    if (!file) return;
+                    setUploadingPhoto(true);
+                    const small = await compressImage(file);
+                    const up = await uploadDealFile(small, dealId);
+                    setUploadingPhoto(false);
+                    if (up?.url) { setContactPhoto(up.url); setPhotoBroken(false); toast.success('Photo uploaded'); }
+                    else toast.error('Could not upload that image');
+                  }} />
+              </label>
+            </div>
+            <p className="mt-1.5 text-xs text-[#99a1af]">LinkedIn usually blocks photo pulls. Upload always works.</p>
+          </div>
         </div>
+
+        {/* Company details. */}
+        <div className="rounded-2xl border border-[#edf0f3] p-4 space-y-3">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#191f1d]">Company details</p>
+
+          <div><label className={label}>Company name</label>
+            <input value={company} onChange={e => setCompany(e.target.value)} className={field} placeholder="Optional" /></div>
+
+          <div><label className={label}>Website</label>
+            <input value={website} onChange={e => setWebsite(e.target.value)} className={field} placeholder="https://..." /></div>
+
+          <div>
+            <label className={label}>Company logo</label>
+            <div className="flex items-center gap-3">
+              <span className="w-12 h-12 shrink-0 rounded-full overflow-hidden ring-2 ring-white bg-[#f5f6f8] shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
+                {logo && !imgBroken
+                  ? <img src={logo} alt="" loading="lazy" width={48} height={48} className="w-full h-full object-cover" onError={() => setImgBroken(true)} onLoad={() => setImgBroken(false)} />
+                  : <ImageOff className="w-4 h-4 text-[#c7cdd4]" />}
+              </span>
+              <input value={logo} onChange={e => { setLogo(e.target.value); setImgBroken(false); }} className={field} placeholder="https://..." />
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button type="button" disabled={!website.trim() || pulling} onClick={() => void pull()}
+                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] disabled:opacity-40">
+                {pulling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Pull from website
+              </button>
+              <label className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] ${uploading ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}>
+                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />} Upload
+                <input type="file" accept="image/*" disabled={uploading} className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]; e.currentTarget.value = '';
+                    if (!file) return;
+                    setUploading(true);
+                    const small = await compressImage(file);
+                    const up = await uploadDealFile(small, dealId);
+                    setUploading(false);
+                    if (up?.url) { setLogo(up.url); setImgBroken(false); toast.success('Logo uploaded'); }
+                    else toast.error('Could not upload that image');
+                  }} />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Status-change note (only shows when a status change needs a reason). */}
+        {stageChanged && (
+          <div>
+            <label className={label}>Note (required for a status change)</label>
+            <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Why is this changing?" className={`${field} min-h-[70px] resize-y`} />
+          </div>
+        )}
       </div>
 
-      <button
-        onClick={() => void save()}
-        disabled={!canSave}
-        className="mt-5 w-full inline-flex items-center justify-center gap-1.5 h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
-      >
-        {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : mode === 'create' ? <Plus className="w-4 h-4" /> : <Check className="w-4 h-4" />}
-        {mode === 'create' ? 'Add investor' : 'Save details'}
-      </button>
+      {/* In create mode there is an explicit add button. In edit mode fields
+          auto-save; the only button that remains is for a status change, which is
+          note-gated, or nothing at all. */}
+      {(mode === 'create' || stageChanged) && (
+        <button
+          onClick={() => void save()}
+          disabled={!canSave}
+          className="mt-5 w-full inline-flex items-center justify-center gap-1.5 h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] disabled:opacity-50"
+        >
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : mode === 'create' ? <Plus className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+          {mode === 'create' ? 'Add investor' : 'Save status change'}
+        </button>
+      )}
 
-      {/* Notes live in the form now, not behind a separate eye you had to know to
-          click. The eye still opens the same panel on its own. */}
+      {mode === 'edit' && !stageChanged && (
+        <div className="mt-4 h-6 flex items-center justify-end">
+          {savedTick && <span className="inline-flex items-center gap-1 text-xs font-medium text-[var(--ds-brand)]"><Check className="w-3.5 h-3.5" /> Saved</span>}
+        </div>
+      )}
+
+      {/* Notes at the bottom, their own submit inside NotesPanel. */}
       {mode === 'edit' && person && (
-        <div className="mt-6 border-t border-[#edf0f3] pt-5">
+        <div className="mt-2 border-t border-[#edf0f3] pt-5">
           <h3 className="text-sm font-bold text-[#191f1d] mb-3">Notes</h3>
           <NotesPanel person={person} dealId={dealId} onChanged={onChanged} />
         </div>
