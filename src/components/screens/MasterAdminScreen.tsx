@@ -263,9 +263,9 @@ function UsersTab() {
       return 0;
     });
 
-  const SortTh = ({ label, k }: { label: string; k: SortKey }) => (
-    <th className="font-semibold px-5 py-3 whitespace-nowrap">
-      <button onClick={() => toggleSort(k)} className="inline-flex items-center gap-1 hover:text-[#191f1d]">
+  const SortTh = ({ label, k, center }: { label: string; k: SortKey; center?: boolean }) => (
+    <th className={`font-semibold px-5 py-3 whitespace-nowrap ${center ? 'text-center' : ''}`}>
+      <button onClick={() => toggleSort(k)} className={`inline-flex items-center gap-1 hover:text-[#191f1d] ${center ? 'justify-center' : ''}`}>
         {label}
         <span className="flex flex-col -space-y-1.5">
           <ChevronUp className={`w-3 h-3 ${sort.key === k && sort.dir === 1 ? 'text-[var(--ds-brand)]' : 'text-[#c7cdd4]'}`} />
@@ -318,10 +318,11 @@ function UsersTab() {
               <thead>
                 <tr className="text-left text-[#7f8c85] border-b border-[#edf0f3]">
                   <SortTh label="Company" k="name" />
-                  <SortTh label="Owner" k="owner_name" />
+                  <SortTh label="Team size" k="owner_name" center />
                   <SortTh label="Email" k="owner_email" />
                   <SortTh label="Status" k="subscription_status" />
-                  <SortTh label="Deals" k="deal_count" />
+                  <SortTh label="Deals" k="deal_count" center />
+                  <SortTh label="Last login" k="created_at" />
                   <SortTh label="Joined" k="created_at" />
                   {/* No "Actions" header: the three-dot button says what it is. */}
                   <th className="px-5 py-3" />
@@ -345,9 +346,8 @@ function UsersTab() {
                           {o.name}
                         </span>
                       </td>
-                      {/* Someone who signed up themselves never gave a name, so this
-                          is often empty. An em dash, not the word "null". */}
-                      <td className="px-5 py-3 text-[#191f1d] whitespace-nowrap">{o.owner_name ?? '—'}</td>
+                      {/* Team size = number of members in the org. */}
+                      <td className="px-5 py-3 tabular-nums text-center text-[#191f1d] whitespace-nowrap">{o.member_count ?? 1}</td>
                       <td className="px-5 py-3 text-[#7f8c85] whitespace-nowrap">{o.owner_email ?? '—'}</td>
                       <td className="px-5 py-3 whitespace-nowrap">
                         {o.suspended ? <StatusPill s="failed" />
@@ -355,7 +355,10 @@ function UsersTab() {
                           : trialing ? <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">Trial</span>
                           : <StatusPill s={o.subscription_status === 'active' ? 'paid' : o.subscription_status} />}
                       </td>
-                      <td className="px-5 py-3 tabular-nums">{o.deal_count}</td>
+                      <td className="px-5 py-3 tabular-nums text-center">{o.deal_count}</td>
+                      <td className="px-5 py-3 text-[#7f8c85] whitespace-nowrap">
+                        {o.last_login ? new Date(o.last_login).toLocaleDateString() : '—'}
+                      </td>
                       <td className="px-5 py-3 text-[#7f8c85] whitespace-nowrap">
                         {new Date(o.created_at).toLocaleDateString()}
                       </td>

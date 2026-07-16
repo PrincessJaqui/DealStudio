@@ -24,6 +24,7 @@ export type AdminOrg = {
   /** From user metadata. Null for anyone who signed up without giving a name. */
   owner_name: string | null;
   owner_email: string | null; owner_id: string | null;
+  member_count: number; last_login: string | null;
   plan: string; plan_id: string | null; plan_name: string | null;
   subscription_status: string; suspended: boolean; comped: boolean;
   trial_ends_at: string; deal_count: number; created_at: string;
