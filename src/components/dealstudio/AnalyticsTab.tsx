@@ -16,10 +16,10 @@ import { useEffect, useState } from 'react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
 } from 'recharts';
-import { Loader2, TrendingUp, Users, Eye, Calendar, Activity } from 'lucide-react';
+import { Loader2, TrendingUp, Users, Eye, Calendar, Activity, DollarSign, Target, MousePointerClick, UserCog } from 'lucide-react';
 import {
-  adminPlatformStats, adminPlatformAnalytics,
-  type PlatformStats, type PlatformAnalytics,
+  adminPlatformStats, adminPlatformAnalytics, adminAdvancedAnalytics,
+  type PlatformStats, type PlatformAnalytics, type AdvancedAnalytics,
 } from '../../lib/billing';
 
 const WINDOWS = [
@@ -30,6 +30,7 @@ const WINDOWS = [
 
 const card = 'bg-white rounded-2xl border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]';
 const num = (n: number | undefined) => (n ?? 0).toLocaleString();
+const money = (cents: number | undefined) => '$' + Math.round((cents ?? 0) / 100).toLocaleString();
 
 /** Same tile shape as the deal dashboard: uppercase green label, big value bottom
  *  right, no icon in the body. */
@@ -47,16 +48,18 @@ export function AnalyticsTab() {
   const [days, setDays] = useState<number>(30);
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [data, setData] = useState<PlatformAnalytics | null>(null);
+  const [adv, setAdv] = useState<AdvancedAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let live = true;
     setLoading(true);
     void (async () => {
-      const [s, a] = await Promise.all([adminPlatformStats(), adminPlatformAnalytics(days)]);
+      const [s, a, x] = await Promise.all([adminPlatformStats(), adminPlatformAnalytics(days), adminAdvancedAnalytics(days)]);
       if (!live) return;
       setStats(s);
       setData(a);
+      setAdv(x);
       setLoading(false);
     })();
     return () => { live = false; };
@@ -206,6 +209,123 @@ export function AnalyticsTab() {
           )}
         </div>
       </div>
+
+      {/* ── Advanced metrics ─────────────────────────────────────────────────
+          Everything below reads admin_advanced_analytics. If that migration
+          hasn't run, adv is null and this whole block is skipped, so the
+          foundation dashboard above still works on its own. */}
+      {adv && (
+        <>
+          <div className="pt-2">
+            <h3 className="text-sm font-bold text-[#191f1d]">Revenue &amp; growth</h3>
+            <p className="text-xs text-[#7f8c85] mt-0.5">The money and the funnel behind it.</p>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Kpi label="Total Revenue" value={money(adv.revenue.total_cents)} />
+            <Kpi label="ARPU" value={money(adv.revenue.arpu_cents)} sub="per paying company" />
+            <Kpi label="Paying" value={num(adv.user_split.paying_orgs)} sub={`${num(adv.user_split.trialing_orgs)} on trial`} />
+            <Kpi label="Committed Capital" value={money(adv.raise.total_committed * 100)} sub="across all deals" />
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Kpi label="Founders" value={num(adv.user_split.founders)} sub={`${adv.founders_detail.avg_deals} deals each avg`} />
+            <Kpi label="Investors" value={num(adv.user_split.investors)} />
+            <Kpi label="Views / Deal" value={String(adv.per_deal.avg_views)} sub={`${num(adv.per_deal.deal_count)} deals`} />
+            <Kpi label="Avg Committed / Deal" value={money(adv.per_deal.avg_committed * 100)} />
+          </div>
+
+          {/* Close rates + founder split, two cards */}
+          <div className="grid lg:grid-cols-2 gap-5">
+            <div className={`${card} p-5`}>
+              <div className="flex items-center gap-2 mb-4">
+                <Target className="w-4 h-4 text-[var(--ds-brand)]" />
+                <h4 className="text-sm font-bold text-[#191f1d]">Round close rates</h4>
+              </div>
+              <div className="flex items-end gap-2 mb-3">
+                <span className="text-3xl font-bold text-[#191f1d]">{adv.raise.full_rate}%</span>
+                <span className="text-xs text-[#7f8c85] mb-1">of deals with a goal fully committed</span>
+              </div>
+              {/* Stacked bar: full / partial / none */}
+              {adv.raise.goaled_deals > 0 ? (
+                <>
+                  <div className="flex h-3 rounded-full overflow-hidden bg-[#f5f6f8]">
+                    <div style={{ width: `${100 * adv.raise.full_rounds / adv.raise.goaled_deals}%` }} className="bg-[var(--ds-brand)]" />
+                    <div style={{ width: `${100 * adv.raise.partial_rounds / adv.raise.goaled_deals}%` }} className="bg-[var(--ds-accent)]" />
+                    <div style={{ width: `${100 * adv.raise.no_rounds / adv.raise.goaled_deals}%` }} className="bg-[#e0e4ea]" />
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs">
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[var(--ds-brand)]" /> Full: {num(adv.raise.full_rounds)}</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[var(--ds-accent)]" /> Partial: {num(adv.raise.partial_rounds)}</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#e0e4ea]" /> None: {num(adv.raise.no_rounds)}</span>
+                  </div>
+                  <p className="text-[11px] text-[#99a1af] mt-3">Based on committed capital vs each deal's stated raise goal ({num(adv.raise.goaled_deals)} deals with a goal set).</p>
+                </>
+              ) : (
+                <p className="text-sm text-[#99a1af] py-4 text-center">No deals have a raise goal set yet.</p>
+              )}
+            </div>
+
+            <div className={`${card} p-5`}>
+              <div className="flex items-center gap-2 mb-4">
+                <UserCog className="w-4 h-4 text-[var(--ds-brand)]" />
+                <h4 className="text-sm font-bold text-[#191f1d]">Founder activity</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="rounded-xl bg-[#f5f6f8] p-3 text-center">
+                  <p className="text-2xl font-bold text-[#191f1d]">{num(adv.founders_detail.active)}</p>
+                  <p className="text-[11px] text-[#7f8c85] mt-0.5">active (deals viewed)</p>
+                </div>
+                <div className="rounded-xl bg-[#f5f6f8] p-3 text-center">
+                  <p className="text-2xl font-bold text-[#191f1d]">{num(adv.founders_detail.dormant)}</p>
+                  <p className="text-[11px] text-[#7f8c85] mt-0.5">dormant (no views yet)</p>
+                </div>
+              </div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#7f8c85] mb-2">Top founders by engagement</p>
+              {adv.founders_detail.leaderboard.length === 0 ? (
+                <p className="text-sm text-[#99a1af] py-3 text-center">No founder engagement yet.</p>
+              ) : (
+                <div className="space-y-1">
+                  {adv.founders_detail.leaderboard.map((f, i) => (
+                    <div key={i} className="flex items-center gap-3 py-1.5 border-b border-[#f5f6f8] last:border-0">
+                      <span className="w-4 text-xs font-bold text-[#c7cdd4] tabular-nums">{i + 1}</span>
+                      <span className="flex-1 min-w-0 truncate text-sm text-[#191f1d]">{f.email || 'Unknown'}</span>
+                      <span className="text-xs text-[#99a1af] tabular-nums shrink-0">{num(f.deals)} deals</span>
+                      <span className="text-xs text-[#7f8c85] tabular-nums shrink-0 w-14 text-right"><Eye className="w-3 h-3 inline mr-1 -mt-0.5" />{num(f.visits)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Deal-room area heatmap */}
+          <div className={`${card} p-5`}>
+            <div className="flex items-center gap-2 mb-4">
+              <MousePointerClick className="w-4 h-4 text-[var(--ds-brand)]" />
+              <h4 className="text-sm font-bold text-[#191f1d]">Most-clicked deal-room areas</h4>
+            </div>
+            {adv.areas.length === 0 ? (
+              <p className="text-sm text-[#99a1af] py-6 text-center">No section activity recorded yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {adv.areas.map((a) => {
+                  const max = Math.max(...adv.areas.map(x => x.clicks), 1);
+                  return (
+                    <div key={a.area} className="flex items-center gap-3">
+                      <span className="w-24 shrink-0 text-xs font-medium text-[#191f1d] capitalize">{a.area}</span>
+                      <div className="flex-1 h-6 rounded-lg bg-[#f5f6f8] overflow-hidden">
+                        <div style={{ width: `${100 * a.clicks / max}%` }} className="h-full bg-gradient-to-r from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] rounded-lg" />
+                      </div>
+                      <span className="w-14 shrink-0 text-right text-xs text-[#7f8c85] tabular-nums">{num(a.clicks)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

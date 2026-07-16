@@ -455,6 +455,25 @@ export async function adminPlatformAnalytics(days = 30): Promise<PlatformAnalyti
   return (data as PlatformAnalytics) ?? null;
 }
 
+export interface AdvancedAnalytics {
+  window_days: number;
+  user_split: { founders: number; investors: number; total_orgs: number; paying_orgs: number; trialing_orgs: number };
+  revenue: { total_cents: number; arpu_cents: number };
+  raise: { total_committed: number; full_rounds: number; partial_rounds: number; no_rounds: number; goaled_deals: number; full_rate: number };
+  per_deal: { deal_count: number; avg_views: number; avg_committed: number };
+  areas: { area: string; clicks: number }[];
+  founders_detail: { avg_deals: number; active: number; dormant: number; leaderboard: { email: string | null; deals: number; visits: number }[] };
+  growth: { day: string; signups: number }[];
+}
+
+/** The advanced platform metrics: revenue, ARPU, close rates, founder analytics,
+ *  deal-room area heatmap. Master admin only; RPC raises 'not authorized' otherwise. */
+export async function adminAdvancedAnalytics(days = 30): Promise<AdvancedAnalytics | null> {
+  const { data, error } = await supabase.rpc('admin_advanced_analytics', { p_days: days });
+  if (error) { console.warn('[advanced analytics]', error); return null; }
+  return (data as AdvancedAnalytics) ?? null;
+}
+
 /** Set a user's display name. Platform admins only, enforced in SQL. */
 export async function adminSetUserName(
   userId: string,
