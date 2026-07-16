@@ -141,17 +141,6 @@ body {
    outside the box and costs no layout. outline-color reads the accent VARIABLE,
    so a deal that overrides its brand colour gets its own ring rather than a
    hard-coded teal. */
-@keyframes dsOpenRing {
-  0%, 100% { outline-width: 1px; }
-  50%      { outline-width: 5px; }
-}
-.ds-open-ring {
-  outline-style: solid;
-  outline-color: var(--ds-accent);
-  outline-offset: 0;
-  animation: dsOpenRing 2.2s ease-in-out infinite;
-}
-
 /* Fields an investor is meant to TYPE IN.
    ds-pulse rings twice when its section scrolls into view and then stops. That is
    right for a card you click. It is wrong for an input three screens down: by the
@@ -291,3 +280,13 @@ input[type='number'] {
   -ms-overflow-style: none;
 }
 .ds-scroll-x::-webkit-scrollbar { display: none; }
+
+/* The problem/solution expand arrow. A soft breathing scale and glow that says
+   "this opens" without drawing a hard ring. Runs continuously: the pair is
+   expandable whether it is currently open or shut. transform-origin center so it
+   grows in place inside its flex cell. */
+@keyframes dsArrowPulse {
+  0%, 100% { transform: scale(1);    box-shadow: 0 2px 8px -1px rgba(12,16,34,0.35); }
+  50%      { transform: scale(1.12); box-shadow: 0 4px 16px -1px rgba(var(--ds-pulse-rgb), 0.55); }
+}
+.ds-arrow-pulse { animation: dsArrowPulse 2s ease-in-out infinite; }
