@@ -337,9 +337,14 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
   // Share links (?share=1) let an investor in with just their email — no
   // password — while still capturing the email for analytics.
   const shareMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('share') === '1';
-  const gateRequired = !isMasterAdmin && !!room && !granted && (shareMode || room.require_password || room.invite_only || room.require_email);
+  // Email is ALWAYS required to view any deal room. It is the identity every
+  // visit and every pipeline row joins on, so a viewer with no email is a viewer
+  // we cannot see. Password is separate and stays optional (a direct link can
+  // skip it); email never is. The old code gated email on room.require_email,
+  // which let a deal opt out and leak uncounted viewers.
+  const gateRequired = !isMasterAdmin && !!room && !granted;
   const requirePassword = !shareMode && !!room && room.require_password;
-  const gateRequireEmail = shareMode ? true : (!!room && room.require_email);
+  const gateRequireEmail = true;
 
   // Section dwell observer (runs once content is shown).
   useEffect(() => {

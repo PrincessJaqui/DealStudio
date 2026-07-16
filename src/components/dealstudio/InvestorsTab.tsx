@@ -58,6 +58,7 @@ export function InvestorsTab() {
   const [sort, setSort] = useState<SortKey>('last_login');
   const [dir, setDir] = useState<'asc' | 'desc'>('desc');
   const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
   const [detailFor, setDetailFor] = useState<PlatformInvestor | null>(null);
 
   const ORDER_KEY = 'ds-investors-cols';
@@ -266,7 +267,15 @@ export function InvestorsTab() {
                   {order.map((c, i) => COLS[c].td(p, i === 0))}
                   <td className="px-4 py-3 text-right bg-inherit">
                     <button
-                      onClick={() => setMenuFor(menuFor === p.email ? null : p.email)}
+                      onClick={(e) => {
+                        if (menuFor === p.email) { setMenuFor(null); return; }
+                        // Anchor the menu to the button's real position. Without a
+                        // top/left the fixed menu landed at an unpredictable spot
+                        // (often off-screen), which read as "the menu is broken".
+                        const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                        setMenuPos({ top: r.bottom + 6, right: window.innerWidth - r.right });
+                        setMenuFor(p.email);
+                      }}
                       className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#7f8c85] hover:bg-white hover:text-[#191f1d]"
                       aria-label={`Actions for ${p.email}`}
                     >
@@ -277,7 +286,7 @@ export function InvestorsTab() {
                       <>
                         <div className="fixed inset-0 z-[66]" onClick={() => setMenuFor(null)} />
                         <div className="fixed z-[67] w-48 rounded-2xl bg-white border border-[#edf0f3] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.18)] p-1.5"
-                          style={{ right: 40, marginTop: -8 }}>
+                          style={{ top: menuPos.top, right: menuPos.right }}>
                           <button onClick={() => { setMenuFor(null); setDetailFor(p); }}
                             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-[#7f8c85] hover:bg-[#f5f6f8] hover:text-[#191f1d]">
                             <Eye className="w-4 h-4" /> View details
