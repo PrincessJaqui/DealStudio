@@ -12,6 +12,7 @@ import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, Use
 import dsMark from '../../assets/dealstudio-mark.png';
 import { useAdminAuth } from './AdminGate';
 import { isPlatformAdmin } from '../../lib/billing';
+import { supabase } from '../../lib/supabase';
 
 const DEAL_NAV = [
   { to: '/admin', label: 'Deal Studio', Icon: Presentation, end: true },
@@ -69,7 +70,23 @@ export function AdminShell({ children }: { children: ReactNode }) {
   };
   const [isMaster, setIsMaster] = useState(false);
 
+  // The signed-in user's own name, for the header. Doubles as an at-a-glance
+  // check of WHO you are logged in as, which matters because the master-admin
+  // views (Investors, Analytics) are gated on this identity being an admin.
+  const [me, setMe] = useState<{ name: string | null; email: string | null }>({ name: null, email: null });
+
   useEffect(() => { void isPlatformAdmin().then(setIsMaster); }, []);
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      setMe({
+        name: (u?.user_metadata as any)?.full_name ?? null,
+        email: u?.email ?? null,
+      });
+    });
+  }, []);
+  // Name if we have it, else the email, else a neutral fallback.
+  const myLabel = me.name || me.email || (isMaster ? 'Master Admin' : 'Admin');
   const NAV = isMaster
     ? [...MASTER_NAV, ...DEAL_NAV, SETTINGS_NAV]
     : [...DEAL_NAV, BILLING_NAV, SETTINGS_NAV];
@@ -111,8 +128,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </span>
             <span className="text-left leading-tight">
               <span className="block text-sm font-bold text-[#191f1d] truncate max-w-[180px]">{org?.name || 'Company'}</span>
-              <span className={`block text-xs ${isMaster ? 'font-semibold text-[var(--ds-brand)]' : 'text-[#7f8c85]'}`}>
-                {isMaster ? 'Master Admin' : 'Admin'}
+              <span className={`block text-xs truncate max-w-[180px] ${isMaster ? 'font-semibold text-[var(--ds-brand)]' : 'text-[#7f8c85]'}`}>
+                {myLabel}
               </span>
             </span>
           </button>
@@ -218,8 +235,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
                   <div className="px-3 py-2 border-b border-[#edf0f3] mb-1">
                     <p className="text-[11px] uppercase tracking-wider font-semibold text-[var(--ds-accent-ink)]">Company</p>
                     <p className="text-sm font-semibold text-[#191f1d] truncate">{org.name}</p>
-                    <p className={`text-xs mt-0.5 ${isMaster ? 'font-semibold text-[var(--ds-brand)]' : 'text-[#7f8c85]'}`}>
-                      {isMaster ? 'Master Admin' : 'Admin'}
+                    <p className={`text-xs mt-0.5 truncate ${isMaster ? 'font-semibold text-[var(--ds-brand)]' : 'text-[#7f8c85]'}`}>
+                      {myLabel}
                     </p>
                   </div>
                 )}
