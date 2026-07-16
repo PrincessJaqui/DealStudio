@@ -1163,6 +1163,7 @@ export type DealPerson = {
   name: string | null;
   company_name: string | null;
   company_logo: string | null;
+  contact_photo: string | null;
   linkedin: string | null;
   website: string | null;
   stage: DealStage;
@@ -1223,6 +1224,7 @@ export interface PlatformInvestor {
   name: string | null;
   company_name: string | null;
   company_logo: string | null;
+  contact_photo: string | null;
   linkedin: string | null;
   website: string | null;
   deal_count: number;
@@ -1280,6 +1282,7 @@ export async function createDealPerson(
     name?: string | null;
     company_name?: string | null;
     company_logo?: string | null;
+    contact_photo?: string | null;
     linkedin?: string | null;
     website?: string | null;
     stage?: DealStage;
@@ -1293,6 +1296,7 @@ export async function createDealPerson(
       name: patch.name?.trim() || null,
       company_name: patch.company_name?.trim() || null,
       company_logo: patch.company_logo?.trim() || null,
+      contact_photo: patch.contact_photo?.trim() || null,
       linkedin: patch.linkedin?.trim() || null,
       website: patch.website?.trim() || null,
       stage: patch.stage || 'lead',
@@ -1389,7 +1393,7 @@ export async function deleteDealNote(noteId: string): Promise<boolean> {
 /** Add or update the details a founder keeps about a person. */
 export async function saveDealPerson(
   accessId: string,
-  patch: Partial<Pick<DealPerson, 'name' | 'company_name' | 'company_logo' | 'linkedin' | 'website'>>,
+  patch: Partial<Pick<DealPerson, 'name' | 'company_name' | 'company_logo' | 'contact_photo' | 'linkedin' | 'website'>>,
 ): Promise<boolean> {
   const { error } = await supabase.from('dealstudio_access').update(patch).eq('id', accessId);
   return !error;

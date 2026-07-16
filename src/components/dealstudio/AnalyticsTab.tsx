@@ -111,6 +111,16 @@ export function AnalyticsTab() {
         </div>
       </div>
 
+      {/* Revenue and growth first: the money is the headline. */}
+      {adv && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Kpi label="Total Revenue" value={money(adv.revenue.total_cents)} />
+          <Kpi label="ARPU" value={money(adv.revenue.arpu_cents)} sub="per paying company" />
+          <Kpi label="Paying" value={num(adv.user_split.paying_orgs)} sub={`${num(adv.user_split.trialing_orgs)} on trial`} />
+          <Kpi label="Committed Capital" value={money(adv.raise.total_committed * 100)} sub="across all deals" />
+        </div>
+      )}
+
       {/* KPI row. Lifetime totals from stats, windowed totals from analytics. */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Kpi label="Signups" value={num(data.totals.signups)} sub={`in ${data.window_days} days`} />
@@ -144,8 +154,8 @@ export function AnalyticsTab() {
                   <stop offset="100%" stopColor="var(--ds-brand)" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gEvents" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--ds-accent)" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="var(--ds-accent)" stopOpacity={0} />
+                  <stop offset="0%" stopColor="var(--ds-grad-from)" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="var(--ds-grad-from)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#edf0f3" vertical={false} />
@@ -155,7 +165,7 @@ export function AnalyticsTab() {
                 contentStyle={{ borderRadius: 12, border: '1px solid #edf0f3', fontSize: 12, boxShadow: '0 8px 28px -6px rgba(12,16,34,0.18)' }}
               />
               <Area type="monotone" dataKey="Sessions" stroke="var(--ds-brand)" strokeWidth={2} fill="url(#gSessions)" />
-              <Area type="monotone" dataKey="Events" stroke="var(--ds-accent)" strokeWidth={2} fill="url(#gEvents)" />
+              <Area type="monotone" dataKey="Events" stroke="var(--ds-grad-from)" strokeWidth={2} fill="url(#gEvents)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -217,15 +227,8 @@ export function AnalyticsTab() {
       {adv && (
         <>
           <div className="pt-2">
-            <h3 className="text-sm font-bold text-[#191f1d]">Revenue &amp; growth</h3>
-            <p className="text-xs text-[#7f8c85] mt-0.5">The money and the funnel behind it.</p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Kpi label="Total Revenue" value={money(adv.revenue.total_cents)} />
-            <Kpi label="ARPU" value={money(adv.revenue.arpu_cents)} sub="per paying company" />
-            <Kpi label="Paying" value={num(adv.user_split.paying_orgs)} sub={`${num(adv.user_split.trialing_orgs)} on trial`} />
-            <Kpi label="Committed Capital" value={money(adv.raise.total_committed * 100)} sub="across all deals" />
+            <h3 className="text-sm font-bold text-[#191f1d]">Deals &amp; founders</h3>
+            <p className="text-xs text-[#7f8c85] mt-0.5">Engagement and pipeline behind the numbers.</p>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

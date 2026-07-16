@@ -178,7 +178,7 @@ export function InvestorsTab() {
       td: (p, f) => (
         <Td key="who" frozen={f}>
           <span className="flex items-center gap-2.5">
-            <Avatar src={p.company_logo} label={p.name || p.email} brand />
+            <Avatar src={p.contact_photo} label={p.name || p.email} brand />
             <span className="min-w-0">
               <span className="block font-medium text-[#191f1d] truncate max-w-[200px]">{p.name || p.email}</span>
               {p.name && <span className="block text-xs text-[#99a1af] truncate max-w-[200px]">{p.email}</span>}
@@ -193,11 +193,7 @@ export function InvestorsTab() {
         <Td key="company" frozen={f}>
           {p.company_name ? (
             <span className="flex items-center gap-2">
-              {/* Company initial only. The one image we store is pulled from
-                  LinkedIn, which is the PERSON, so it belongs on the investor
-                  avatar, not here. Showing it against the company misrepresented
-                  a personal photo as a company logo. */}
-              <Avatar label={p.company_name} />
+              <Avatar src={p.company_logo} label={p.company_name} />
               <span className="text-[#191f1d]">{p.company_name}</span>
             </span>
           ) : <span className="text-[#c7cdd4]">{DASH}</span>}
@@ -341,7 +337,7 @@ function DetailPanel({ investor, onClose }: { investor: PlatformInvestor; onClos
         <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl mt-[6vh]">
           {/* Identity header: everything about WHO the investor is, in one place. */}
           <div className="flex items-start gap-3 p-5 border-b border-[#edf0f3]">
-            <Avatar src={investor.company_logo} label={investor.name || investor.email} brand />
+            <Avatar src={investor.contact_photo} label={investor.name || investor.email} brand />
             <div className="min-w-0">
               <h2 className="font-bold text-[#191f1d] truncate">{investor.name || investor.email}</h2>
               <p className="text-xs text-[#7f8c85] truncate">

@@ -1169,6 +1169,7 @@ function PersonDialog({
   const [name, setName] = useState(person?.name ?? '');
   const [company, setCompany] = useState(person?.company_name ?? '');
   const [logo, setLogo] = useState(person?.company_logo ?? '');
+  const [contactPhoto, setContactPhoto] = useState(person?.contact_photo ?? '');
   const [linkedin, setLinkedin] = useState(person?.linkedin ?? '');
   const [website, setWebsite] = useState(person?.website ?? '');
   const [stage, setStage] = useState<DealStage>(person?.stage ?? 'lead');
@@ -1190,6 +1191,48 @@ function PersonDialog({
   const pull = async () => {
     setPulling(true);
     setImgBroken(false);
+    // Company logo pulls from the company website (og:image / favicon).
+    let got = '';
+    if (website.trim()) {
+      const w = await fetchLinkPreviewResult(website.trim());
+      if (w.ok && w.preview.image) got = w.preview.image;
+    }
+    if (got) {
+      const local = await fetchImageAsFile(got, 'logo');
+      if (local) {
+        const up = await uploadDealFile(local, dealId);
+        if (up?.url) got = up.url;
+      }
+    }
+    setPulling(false);
+    if (got) { setLogo(got); toast.success('Pulled company logo'); }
+    else toast.error('No logo found on their website. Paste a URL instead.');
+  };
+
+  // Contact photo: try the person's LinkedIn (best effort, often blocked), else
+  // the founder pastes an image URL into the field.
+  const pullPhoto = async () => {
+    setPulling(true);
+    let got = '';
+    if (linkedin.trim()) {
+      const li = await fetchLinkPreviewResult(linkedin.trim());
+      if (li.ok && li.preview.image) got = li.preview.image;
+    }
+    if (got) {
+      const local = await fetchImageAsFile(got, 'photo');
+      if (local) {
+        const up = await uploadDealFile(local, dealId);
+        if (up?.url) got = up.url;
+      }
+    }
+    setPulling(false);
+    if (got) { setContactPhoto(got); toast.success('Pulled contact photo'); }
+    else toast.error('LinkedIn blocks photo pulls. Paste an image URL instead.');
+  };
+
+  const legacyPull = async () => {
+    setPulling(true);
+    setImgBroken(false);
     let got = '';
     let from = '';
 
@@ -1202,9 +1245,6 @@ function PersonDialog({
       if (w.ok && w.preview.image) { got = w.preview.image; from = 'their website'; }
     }
 
-    // Bring it into our own storage, compressed, so a row is not downloading a
-    // 2MB hero image to draw a 28px circle. A site with no CORS headers cannot be
-    // read by script, only displayed, so we keep their URL and move on.
     if (got) {
       const local = await fetchImageAsFile(got, 'logo');
       if (local) {
@@ -1223,7 +1263,7 @@ function PersonDialog({
 
     if (mode === 'create') {
       const r = await createDealPerson(dealId, {
-        email, name, company_name: company, company_logo: logo, linkedin, website, stage,
+        email, name, company_name: company, company_logo: logo, contact_photo: contactPhoto, linkedin, website, stage,
       });
       if (!r.ok || !r.id) { setBusy(false); toast.error(r.message || 'Could not add them'); return; }
       if (note.trim()) await addDealNote(r.id, note);
@@ -1240,6 +1280,7 @@ function PersonDialog({
       name: name.trim() || null,
       company_name: company.trim() || null,
       company_logo: logo.trim() || null,
+      contact_photo: contactPhoto.trim() || null,
       linkedin: linkedin.trim() || null,
       website: website.trim() || null,
     });
