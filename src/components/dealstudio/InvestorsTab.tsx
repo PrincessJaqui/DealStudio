@@ -328,12 +328,14 @@ function DetailPanel({ investor, onClose }: { investor: PlatformInvestor; onClos
   }, [onClose]);
 
   const deals = investor.deals || [];
+  const mins = (s: number) => s < 60 ? `${Math.round(s)}s` : `${Math.round(s / 60)} min`;
 
   return createPortal(
     <>
       <div className="fixed inset-0 z-[70] bg-black/40" onClick={onClose} />
       <div className="fixed inset-0 z-[71] flex items-start justify-center p-4 overflow-y-auto">
-        <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl mt-[6vh]">
+        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl mt-[6vh]">
+          {/* Identity header: everything about WHO the investor is, in one place. */}
           <div className="flex items-start gap-3 p-5 border-b border-[#edf0f3]">
             <Avatar src={investor.company_logo} label={investor.name || investor.email} brand />
             <div className="min-w-0">
@@ -342,6 +344,21 @@ function DetailPanel({ investor, onClose }: { investor: PlatformInvestor; onClos
                 {investor.email}
                 {investor.company_name ? ` \u00b7 ${investor.company_name}` : ''}
               </p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+                {investor.linkedin && (
+                  <a href={investor.linkedin} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-[var(--ds-brand)] hover:underline">
+                    LinkedIn <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                {investor.website && (
+                  <a href={investor.website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-[var(--ds-brand)] hover:underline">
+                    Website <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                <a href={`mailto:${investor.email}`} className="inline-flex items-center gap-1 text-xs font-medium text-[var(--ds-brand)] hover:underline">
+                  Email <Mail className="w-3 h-3" />
+                </a>
+              </div>
             </div>
             <button onClick={onClose} aria-label="Close" className="ml-auto shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-[#9ca3af] hover:bg-[#f5f6f8] hover:text-[#191f1d]">
               <X className="w-4 h-4" />
@@ -350,28 +367,36 @@ function DetailPanel({ investor, onClose }: { investor: PlatformInvestor; onClos
 
           <div className="p-5">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#7f8c85] mb-3">
-              Deals seen ({deals.length})
+              Activity by deal ({deals.length})
             </p>
 
             {deals.length === 0 ? (
               <p className="text-sm text-[#99a1af] py-6 text-center">No deal activity recorded for this investor yet.</p>
             ) : (
-              <div className="rounded-xl border border-[#edf0f3] overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="rounded-xl border border-[#edf0f3] overflow-x-auto">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead>
                     <tr className="text-left text-[11px] uppercase tracking-wide text-[#7f8c85] bg-[#fafbfc] border-b border-[#edf0f3]">
                       <th className="font-semibold px-4 py-2.5">Deal</th>
-                      <th className="font-semibold px-4 py-2.5 text-center">Visits</th>
-                      <th className="font-semibold px-4 py-2.5 text-center">Page views</th>
-                      <th className="font-semibold px-4 py-2.5 text-right">Last opened</th>
+                      <th className="font-semibold px-4 py-2.5">Status</th>
+                      <th className="font-semibold px-4 py-2.5 text-center">Views</th>
+                      <th className="font-semibold px-4 py-2.5 text-center">Deck</th>
+                      <th className="font-semibold px-4 py-2.5 text-center">Docs</th>
+                      <th className="font-semibold px-4 py-2.5 text-center">Time</th>
+                      <th className="font-semibold px-4 py-2.5 text-right">Last viewed</th>
                     </tr>
                   </thead>
                   <tbody>
                     {deals.map((d: PlatformInvestorDeal, i) => (
                       <tr key={i} className="border-b border-[#f5f6f8] last:border-0 odd:bg-[#fafbfc]">
-                        <td className="px-4 py-3 font-medium text-[#191f1d]">{d.company || d.slug}</td>
-                        <td className="px-4 py-3 text-center tabular-nums text-[#7f8c85]">{num(d.visits)}</td>
+                        <td className="px-4 py-3 font-medium text-[#191f1d] whitespace-nowrap">{d.company || d.slug}</td>
+                        <td className="px-4 py-3">
+                          <span className="inline-block rounded-full bg-[var(--ds-tint)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--ds-brand)] capitalize">{d.status}</span>
+                        </td>
                         <td className="px-4 py-3 text-center tabular-nums text-[#7f8c85]">{num(d.page_views)}</td>
+                        <td className="px-4 py-3 text-center tabular-nums text-[#7f8c85]">{num(d.deck_views)}</td>
+                        <td className="px-4 py-3 text-center tabular-nums text-[#7f8c85]">{num(d.document_views)}</td>
+                        <td className="px-4 py-3 text-center tabular-nums text-[#7f8c85] whitespace-nowrap">{mins(d.total_seconds)}</td>
                         <td className="px-4 py-3 text-right text-[#7f8c85] whitespace-nowrap">{fmtDate(d.last_seen)}</td>
                       </tr>
                     ))}

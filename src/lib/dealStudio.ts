@@ -1210,8 +1210,11 @@ export type DealPeopleResult = {
 export interface PlatformInvestorDeal {
   slug: string;
   company: string | null;
-  visits: number;
+  status: string;
   page_views: number;
+  deck_views: number;
+  document_views: number;
+  total_seconds: number;
   last_seen: string | null;
 }
 
@@ -1221,6 +1224,7 @@ export interface PlatformInvestor {
   company_name: string | null;
   company_logo: string | null;
   linkedin: string | null;
+  website: string | null;
   deal_count: number;
   deals: PlatformInvestorDeal[];
   total_visits: number;
