@@ -15,7 +15,7 @@ import { statSlotValue } from '../dealstudio/StatSlotField';
 import { DEFAULT_STAT_SLOTS, resolveSectionOrder, scheduleSlots, type StatSlot, type SectionKey } from '../../lib/dealStudio';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInViewOnce } from '../../lib/useInViewOnce';
-import { MapPin, Share2, Check, LogOut, Mail } from 'lucide-react';
+import { MapPin, Share2, Check, LogOut, Mail, Plus } from 'lucide-react';
 import { Button } from '../ui/button';
 import { EventsCalendar } from '../EventsCalendar';
 import { DealDocumentCard } from '../dealstudio/DealDocumentCard';
@@ -695,22 +695,35 @@ export function InvestorDealStudioScreen({ isMasterAdmin = false }: { isMasterAd
             {room.meeting_enabled && (
               <Button onClick={() => setMeetingOpen(true)} className="w-full h-10 mt-3 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:bg-[var(--ds-brand-hover)]">Schedule Meeting</Button>
             )}
-            {room.allow_share && (
-              <button onClick={shareDeal} className="w-full h-10 mt-2 rounded-full border border-[var(--ds-brand)] text-[var(--ds-brand)] hover:bg-[var(--ds-tint)] flex items-center justify-center gap-1.5 text-sm font-medium transition-colors">
-                {shareCopied ? <><Check className="w-4 h-4" /> Link copied</> : <><Share2 className="w-4 h-4" /> Share this deal</>}
-              </button>
+            {/* Share and Email share a row: two related outbound actions, side by
+                side, so they read as a pair and save vertical space on a phone. */}
+            {(room.allow_share || (room as any).contact_resolved) && (
+              <div className="flex gap-2 mt-2">
+                {room.allow_share && (
+                  <button onClick={shareDeal} className="flex-1 h-10 rounded-full border border-[var(--ds-brand)] text-[var(--ds-brand)] hover:bg-[var(--ds-tint)] flex items-center justify-center gap-1.5 text-sm font-medium transition-colors">
+                    {shareCopied ? <><Check className="w-4 h-4" /> Copied</> : <><Share2 className="w-4 h-4" /> Share</>}
+                  </button>
+                )}
+                {(room as any).contact_resolved && (
+                  <a
+                    href={`mailto:${(room as any).contact_resolved}?subject=${encodeURIComponent(`Question about ${room.company_name}`)}`}
+                    className="flex-1 h-10 rounded-full border border-[var(--ds-brand)] text-[var(--ds-brand)] hover:bg-[var(--ds-tint)] flex items-center justify-center gap-1.5 text-sm font-medium transition-colors"
+                  >
+                    <Mail className="w-4 h-4" /> Email
+                  </a>
+                )}
+              </div>
             )}
-            {/* Email the people running the raise. contact_resolved is worked out
-                server-side: the deal's contact_email if set, else the owner's login
-                email, so the button always has somewhere to go. */}
-            {(room as any).contact_resolved && (
-              <a
-                href={`mailto:${(room as any).contact_resolved}?subject=${encodeURIComponent(`Question about ${room.company_name}`)}`}
-                className="w-full h-10 mt-2 rounded-full border border-[var(--ds-brand)] text-[var(--ds-brand)] hover:bg-[var(--ds-tint)] flex items-center justify-center gap-1.5 text-sm font-medium transition-colors"
-              >
-                <Mail className="w-4 h-4" /> Email
-              </a>
-            )}
+
+            {/* Turn a viewer into a founder: a soft call to create their own deal
+                room. Routes to signup. */}
+            <a
+              href={webUrl('/signup')}
+              className="w-full h-10 mt-2 rounded-full bg-gradient-to-br from-[var(--ds-grad-from)] to-[var(--ds-grad-to)] text-white hover:brightness-110 flex items-center justify-center gap-1.5 text-sm font-semibold transition-all"
+            >
+              <Plus className="w-4 h-4" /> Create your own deal
+            </a>
+
             {granted && !isMasterAdmin && (
               <button
                 onClick={() => {
