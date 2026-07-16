@@ -193,7 +193,11 @@ export function InvestorsTab() {
         <Td key="company" frozen={f}>
           {p.company_name ? (
             <span className="flex items-center gap-2">
-              <Avatar src={p.company_logo} label={p.company_name} />
+              {/* Company initial only. The one image we store is pulled from
+                  LinkedIn, which is the PERSON, so it belongs on the investor
+                  avatar, not here. Showing it against the company misrepresented
+                  a personal photo as a company logo. */}
+              <Avatar label={p.company_name} />
               <span className="text-[#191f1d]">{p.company_name}</span>
             </span>
           ) : <span className="text-[#c7cdd4]">{DASH}</span>}
