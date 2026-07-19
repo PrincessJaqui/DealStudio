@@ -151,6 +151,19 @@ export function DealStudioScreen() {
     // stack, but the CURRENT url must always name the tab you are looking at.
     window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${tab}`);
   }, [tab]);
+
+  // A link to /admin#team from elsewhere in the app only worked on a fresh
+  // mount, because the hash is read once in the initial state. The setup
+  // checklist links straight at tabs, so listen for the change too.
+  useEffect(() => {
+    const onHash = () => {
+      const valid = ['details', ...Object.keys(SECTION_LABELS), 'dealflow', 'settings'];
+      const h = window.location.hash.replace('#', '').trim();
+      if (valid.includes(h)) setTab(h);
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
   const [savedAt, setSavedAt] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [docModal, setDocModal] = useState<{ open: boolean; existing: DealDocument | null; deck?: boolean }>({ open: false, existing: null });

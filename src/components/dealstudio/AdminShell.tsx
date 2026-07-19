@@ -10,6 +10,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, UserPlus, CreditCard, Shield, Home, BarChart3, Wallet } from 'lucide-react';
 import { useAdminAuth } from './AdminGate';
+import { SetupChecklist } from './SetupChecklist';
 import { isPlatformAdmin } from '../../lib/billing';
 import { supabase } from '../../lib/supabase';
 
@@ -316,6 +317,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       )}
 
       <main className="flex-1 min-w-0 pt-14 md:pt-0 ds-page-bottom">{children}</main>
+      <SetupChecklist />
       </div>
     </div>
   );
