@@ -9,7 +9,6 @@ import { webUrl } from '../../lib/runtime';
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, UserPlus, CreditCard, Shield, Home, BarChart3, Wallet } from 'lucide-react';
-import dsMark from '../../assets/dealstudio-mark.png';
 import { useAdminAuth } from './AdminGate';
 import { isPlatformAdmin } from '../../lib/billing';
 import { supabase } from '../../lib/supabase';
@@ -106,13 +105,17 @@ export function AdminShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-[#f5f6f8]">
       {/* Full-width top header: wordmark left, company right */}
       <header className="hidden md:flex sticky top-0 z-30 h-[68px] items-center bg-white border-b border-[#edf0f3] px-6">
+        {/* The customer's own brand, not ours. This is their console; our mark
+            belongs on the marketing site and the investor-room footer, not
+            sitting above a founder's own company every day. Falls back to an
+            initial while the org loads or if they have not set a logo. */}
         <button onClick={() => nav('/admin')} className="flex items-center gap-2.5">
-          <img
-            src={dsMark}
-            alt=""
-            className="h-8 w-8 rounded-full object-cover shrink-0"
-          />
-          <span className="font-bold text-[19px] text-[#191f1d]">DealStudio&trade;</span>
+          <span className="h-8 w-8 rounded-full overflow-hidden shrink-0 bg-[#f5f6f8] flex items-center justify-center">
+            {org?.logo_url
+              ? <img src={org.logo_url} alt="" className="w-full h-full object-cover" />
+              : <span className="text-sm font-bold text-[#7f8c85]">{(org?.name || '').trim().charAt(0).toUpperCase() || '\u00b7'}</span>}
+          </span>
+          <span className="font-bold text-[19px] text-[#191f1d] truncate max-w-[240px]">{org?.name || 'Your company'}</span>
         </button>
 
 
@@ -268,8 +271,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <div className="absolute inset-0 bg-black/40" onClick={() => setDrawer(false)} />
           <aside className="absolute left-0 top-0 bottom-0 w-72 max-w-[85%] bg-white flex flex-col shadow-2xl">
             <div className="flex items-center gap-2.5 px-4 h-14 border-b border-[#edf0f3]">
-              <img src={dsMark} alt="" className="h-7 w-7 rounded-full object-cover shrink-0" />
-              <span className="font-bold text-[17px] text-[#191f1d]">DealStudio&trade;</span>
+              <span className="h-7 w-7 rounded-full overflow-hidden shrink-0 bg-[#f5f6f8] flex items-center justify-center">
+                {org?.logo_url
+                  ? <img src={org.logo_url} alt="" className="w-full h-full object-cover" />
+                  : <span className="text-xs font-bold text-[#7f8c85]">{(org?.name || '').trim().charAt(0).toUpperCase() || '\u00b7'}</span>}
+              </span>
+              <span className="font-bold text-[17px] text-[#191f1d] truncate">{org?.name || 'Your company'}</span>
               <button
                 onClick={() => setDrawer(false)}
                 aria-label="Close menu"

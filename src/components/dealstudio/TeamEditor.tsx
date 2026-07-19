@@ -65,6 +65,49 @@ function ResumeField({ url, name, uploading, onPick, onLink, onClear }: { url: s
   );
 }
 
+/**
+ * The six named socials, stored in the SAME `links` array as everything else,
+ * keyed by label. No new column and no migration: a social is just a link whose
+ * label we control, so the investor page renders it with the existing pills.
+ *
+ * Clearing a field removes that link rather than leaving an empty pill behind.
+ */
+const SOCIALS = ['LinkedIn', 'Instagram', 'X', 'Facebook', 'Threads', 'TikTok'] as const;
+
+const SOCIAL_HINT: Record<string, string> = {
+  LinkedIn:  'https://linkedin.com/in/...',
+  Instagram: 'https://instagram.com/...',
+  X:         'https://x.com/...',
+  Facebook:  'https://facebook.com/...',
+  Threads:   'https://threads.net/@...',
+  TikTok:    'https://tiktok.com/@...',
+};
+
+function SocialLinks({ links, onChange }: { links: DealSource[]; onChange: (l: DealSource[]) => void }) {
+  const valueOf = (name: string) => links.find(l => l.label === name)?.url ?? '';
+
+  const setSocial = (name: string, url: string) => {
+    const rest = links.filter(l => l.label !== name);
+    onChange(url.trim() ? [...rest, { label: name, url: url.trim() }] : rest);
+  };
+
+  return (
+    <div className="grid sm:grid-cols-2 gap-2">
+      {SOCIALS.map(name => (
+        <div key={name}>
+          <label className="block text-[11px] font-semibold text-[#7f8c85] mb-1">{name}</label>
+          <input
+            className={input}
+            placeholder={SOCIAL_HINT[name]}
+            value={valueOf(name)}
+            onChange={e => setSocial(name, e.target.value)}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function LinkList({ links, onChange }: { links: DealSource[]; onChange: (l: DealSource[]) => void }) {
   return (
     <div className="space-y-2">
@@ -187,7 +230,29 @@ export function TeamEditor({ value, onChange }: { value: DealTeamMember[] | null
               onLink={(u) => setMember(i, { resume_url: u, resume_name: '' })}
               onClear={() => setMember(i, { resume_url: '', resume_name: '' })}
             />
-            <div><label className={labelCls}>Links</label><div className="mt-2"><LinkList links={m.links} onChange={l => setMember(i, { links: l })} /></div></div>
+            <div>
+              <label className={labelCls}>Social links</label>
+              <div className="mt-2">
+                <SocialLinks links={m.links} onChange={l => setMember(i, { links: l })} />
+              </div>
+            </div>
+
+            {/* Anything that is not one of the six named socials. Filtered so a
+                social does not also appear here as an editable free-text row. */}
+            <div>
+              <label className={labelCls}>Other links</label>
+              <div className="mt-2">
+                <LinkList
+                  links={m.links.filter(l => !SOCIALS.includes(l.label as typeof SOCIALS[number]))}
+                  onChange={others => setMember(i, {
+                    links: [
+                      ...m.links.filter(l => SOCIALS.includes(l.label as typeof SOCIALS[number])),
+                      ...others,
+                    ],
+                  })}
+                />
+              </div>
+            </div>
           </div>
         </div>
       ))}

@@ -1,0 +1,12 @@
+{
+  "window.title": "🟦 DEALSTUDIO  —  ${rootName}${separator}${activeEditorShort}",
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#1e3a8a",
+    "titleBar.activeForeground": "#ffffff",
+    "titleBar.border": "#3b82f6",
+    "activityBar.background": "#2544a3",
+    "activityBar.foreground": "#ffffff",
+    "statusBar.background": "#1e3a8a",
+    "statusBar.foreground": "#ffffff"
+  }
+}
