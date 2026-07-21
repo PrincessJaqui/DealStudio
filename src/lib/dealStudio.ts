@@ -1156,6 +1156,39 @@ export const STAGE_ORDER: DealStage[] = [
   'negotiating', 'committed', 'closed', 'passed',
 ];
 
+/** A pipeline row from ANY of the org's deals, tagged with which deal. Powers
+ *  the cross-deal Deal Flow page. */
+export type OrgPerson = {
+  deal_id: string;
+  deal_slug: string;
+  deal_company: string | null;
+  access_id: string | null;
+  email: string | null;
+  name: string | null;
+  company_name: string | null;
+  company_logo: string | null;
+  contact_photo: string | null;
+  linkedin: string | null;
+  website: string | null;
+  stage: DealStage;
+  blocked: boolean;
+  visits: number;
+  total_seconds: number;
+  deck_views: number;
+  doc_views: number;
+  last_seen: string | null;
+  committed: number;
+  note_count: number;
+};
+
+/** Every person across every deal the caller's org owns. One RPC, not one per
+ *  deal. Returns [] if migration 0052 has not run, rather than throwing. */
+export async function fetchOrgPeople(): Promise<OrgPerson[]> {
+  const { data, error } = await supabase.rpc('admin_org_people');
+  if (error) { console.warn('[dealStudio] org people', error); return []; }
+  return (data ?? []) as OrgPerson[];
+}
+
 export type DealPerson = {
   access_id: string | null;
   visit_id: string | null;

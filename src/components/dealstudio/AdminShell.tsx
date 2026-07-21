@@ -8,7 +8,7 @@
 import { webUrl } from '../../lib/runtime';
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, UserPlus, CreditCard, Shield, Home, BarChart3, Wallet } from 'lucide-react';
+import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, UserPlus, CreditCard, Shield, Home, BarChart3, Wallet, Users2 } from 'lucide-react';
 import { useAdminAuth } from './AdminGate';
 import { SetupChecklist } from './SetupChecklist';
 import { isPlatformAdmin } from '../../lib/billing';
@@ -16,6 +16,7 @@ import { supabase } from '../../lib/supabase';
 
 const DEAL_NAV = [
   { to: '/admin', label: 'Deal Studio', Icon: Presentation, end: true },
+  { to: '/admin/dealflow', label: 'Deal Flow', Icon: Users2, end: false },
   { to: '/admin/interface', label: 'Interface Studio', Icon: Palette, end: false },
 ];
 const BILLING_NAV  = { to: '/admin/billing', label: 'Billing', Icon: CreditCard, end: false };

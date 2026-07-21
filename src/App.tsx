@@ -18,6 +18,8 @@ import { BillingScreen } from './components/screens/BillingScreen';
 import { MasterAdminScreen } from './components/screens/MasterAdminScreen';
 import { SignupScreen } from './components/screens/SignupScreen';
 import { WelcomeScreen } from './components/screens/WelcomeScreen';
+import { DealFlowScreen } from './components/screens/DealFlowScreen';
+import { DealManagerScreen } from './components/screens/DealManagerScreen';
 import { ResetPasswordScreen } from './components/screens/ResetPasswordScreen';
 import { TermsScreen } from './components/screens/TermsScreen';
 import { PrivacyScreen } from './components/screens/PrivacyScreen';
@@ -54,6 +56,8 @@ export default function App() {
 
         <Route path="/admin" element={<Admin><DealStudioScreen /></Admin>} />
         <Route path="/admin/d/:slug" element={<Admin><DealStudioScreen /></Admin>} />
+        <Route path="/admin/deals" element={<Admin><DealManagerScreen /></Admin>} />
+        <Route path="/admin/dealflow" element={<Admin><DealFlowScreen /></Admin>} />
         <Route path="/admin/interface" element={<Admin><InterfaceStudioScreen /></Admin>} />
         <Route path="/admin/settings" element={<Admin><SystemSettingsScreen /></Admin>} />
         <Route path="/admin/billing" element={<Admin><BillingScreen /></Admin>} />
