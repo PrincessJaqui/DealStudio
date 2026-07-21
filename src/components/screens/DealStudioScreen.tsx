@@ -24,7 +24,6 @@ import { useAdminAuth } from '../dealstudio/AdminGate';
 import { dealUrl, createDeal } from '../../lib/org';
 import { isDealLimitError } from '../../lib/billing';
 import { DealSwitcher } from '../dealstudio/DealSwitcher';
-import dsMark from '../../assets/dealstudio-mark.png';
 import { DealDocViewer } from '../dealstudio/DealDocViewer';
 import { DealPeople } from '../dealstudio/DealPeople';
 import { PillTabs } from '../dealstudio/PillTabs';
@@ -520,11 +519,9 @@ export function DealStudioScreen() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="w-11 h-11 rounded-full shrink-0 overflow-hidden ring-2 ring-white bg-white shadow-[0_4px_12px_-2px_rgba(12,16,34,0.22)] flex items-center justify-center">
-            {org?.logo_url
-              ? <img src={org.logo_url} alt="" className="w-full h-full object-cover" />
-              : <img src={dsMark} alt="" className="w-full h-full object-cover" />}
-          </span>
+          {/* No logo here. The company name is already in the switcher directly
+              below, and a mark beside it was either a duplicate of the org logo
+              or, worse, OUR mark sitting on a founder's own deal. */}
           <div className="min-w-0">
             <DealSwitcher />
             <p className="text-sm text-[#7f8c85] px-1">Admin</p>
