@@ -15,6 +15,7 @@ import { TeamMembers } from '../dealstudio/TeamMembers';
 import { Tabs, TabsContent } from '../ui/tabs';
 import { PillTabs } from '../dealstudio/PillTabs';
 import { LogoCropper } from '../dealstudio/LogoCropper';
+import { BrandingPanel } from '../dealstudio/BrandingPanel';
 import { saveOrgBranding, uploadOrgLogo, renameOrg, setOrgHandle } from '../../lib/org';
 
 const card = 'rounded-2xl bg-white border border-[#edf0f3] shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-5';
@@ -210,7 +211,7 @@ export function SystemSettingsScreen() {
           sat below team management below the company name, and nothing told you
           the page had more on it. */}
       <PillTabs
-        tabs={[['identity', 'Identity'], ['team', 'Team'], ['security', 'Security']] as const}
+        tabs={[['identity', 'Identity'], ['branding', 'Branding'], ['team', 'Team'], ['security', 'Security']] as const}
         value={tab}
         onChange={setTab}
         hintKey="settings"
@@ -304,6 +305,13 @@ export function SystemSettingsScreen() {
           </div>
           {noteEl(nameNote)}
         </div>
+        </TabsContent>
+
+        {/* Branding moved here from its own Interface Studio page: it is a
+            setting, and keeping it beside Identity puts the logo and the colours
+            that surround it in one place. */}
+        <TabsContent value="branding" className="space-y-5">
+          <BrandingPanel />
         </TabsContent>
 
         <TabsContent value="team" className="space-y-5">

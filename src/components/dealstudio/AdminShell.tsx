@@ -18,8 +18,11 @@ import { supabase } from '../../lib/supabase';
 const DEAL_NAV = [
   { to: '/admin', label: 'Deal Studio', Icon: Presentation, end: true },
   { to: '/admin/dealflow', label: 'Deal Flow', Icon: Users2, end: false },
-  { to: '/admin/interface', label: 'Interface Studio', Icon: Palette, end: false },
 ];
+
+// Interface Studio edits DealStudio's OWN marketing site, so it is master-admin
+// only. Customer branding moved into System Settings.
+const INTERFACE_NAV = { to: '/admin/interface', label: 'Interface Studio', Icon: Palette, end: false };
 const BILLING_NAV  = { to: '/admin/billing', label: 'Billing', Icon: CreditCard, end: false };
 
 // The master console is three destinations now, not one page with tabs. Its own
@@ -90,7 +93,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   // Name if we have it, else the email, else a neutral fallback.
   const myLabel = me.name || me.email || (isMaster ? 'Master Admin' : 'Admin');
   const NAV = isMaster
-    ? [...MASTER_NAV, ...DEAL_NAV, SETTINGS_NAV]
+    ? [...MASTER_NAV, ...DEAL_NAV, INTERFACE_NAV, SETTINGS_NAV]
     : [...DEAL_NAV, BILLING_NAV, SETTINGS_NAV];
 
   // Navigating closes any open overlay, so the drawer never lingers.
