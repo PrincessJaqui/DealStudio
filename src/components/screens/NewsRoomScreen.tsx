@@ -38,12 +38,14 @@ export function NewsRoomScreen() {
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     let live = true;
     void (async () => {
       const r = await fetchMyNewsroom();
-      if (!live || !r) { setLoading(false); return; }
+      if (!live) return;
+      if (!r) { setLoadError(true); setLoading(false); return; }
       setRoom(r);
       const u = await fetchUpdates(r.id);
       if (!live) return;
@@ -125,6 +127,19 @@ export function NewsRoomScreen() {
 
   if (loading) {
     return <div className="max-w-6xl mx-auto px-6 py-16 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-[var(--ds-brand)]" /></div>;
+  }
+
+  if (loadError) {
+    return (
+      <div className="max-w-2xl mx-auto px-6 py-16 text-center">
+        <h1 className="text-xl font-bold text-[#191f1d]">NewsRoom isn't ready yet</h1>
+        <p className="mt-2 text-sm text-[#7f8c85]">
+          The NewsRoom couldn't load. This usually means the database migration for this
+          feature hasn't been run yet. Once it's in place, refresh this page and you'll be able
+          to create updates.
+        </p>
+      </div>
+    );
   }
 
   return (
