@@ -19,7 +19,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, GripVertical, Minus, X } from 'lucide-react';
+import { Check, GripVertical, Minus, X, ChevronRight } from 'lucide-react';
 import { adminFetchDealStudio, type DealStudio } from '../../lib/dealStudio';
 import { useAdminAuth } from './AdminGate';
 
@@ -105,6 +105,29 @@ function buildSteps(deal: DealStudio | null, logoUrl: string | null): Step[] {
 export function SetupChecklist() {
   const { org } = useAdminAuth();
   const nav = useNavigate();
+
+  // Navigate to a step's destination, reliably. A hash-only change (e.g. going
+  // to /admin#documents while already on /admin) does not re-run the router, so
+  // the target tab would not switch. We navigate to the path, then set the hash
+  // and fire hashchange so the deal page's listener flips to the right tab. On
+  // mobile the card also minimizes, so it stops covering what the founder came
+  // to see.
+  const goToStep = (to: string) => {
+    const [path, hash] = to.split('#');
+    nav(path);
+    if (hash) {
+      // Defer so the destination screen has mounted its hashchange listener.
+      setTimeout(() => {
+        if (window.location.hash.replace('#', '') === hash) {
+          // Same hash already: nudge the listener anyway.
+          window.dispatchEvent(new HashChangeEvent('hashchange'));
+        } else {
+          window.location.hash = hash;
+        }
+      }, 60);
+    }
+    if (window.matchMedia('(max-width: 767px)').matches) setMin(true);
+  };
 
   const [deal, setDeal] = useState<DealStudio | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -273,19 +296,19 @@ export function SetupChecklist() {
         {steps.map(s => (
           <button
             key={s.key}
-            onClick={() => { nav(s.to); }}
-            className="w-full flex items-start gap-2.5 px-2 py-2.5 rounded-[11px] text-left hover:bg-[#f5f6f8] transition"
+            onClick={() => goToStep(s.to)}
+            className="group w-full flex items-start gap-2.5 px-2 py-2.5 rounded-[11px] text-left cursor-pointer hover:bg-[#f5f6f8] active:bg-[#edf0f3] transition"
           >
             <span
               className={`w-[19px] h-[19px] shrink-0 rounded-full mt-0.5 grid place-items-center transition-all ${
                 s.done
                   ? 'bg-gradient-to-br from-[var(--ds-accent)] to-[var(--ds-accent-to)]'
-                  : 'border-[1.8px] border-[#d7dbe0]'
+                  : 'border-[1.8px] border-[#d7dbe0] group-hover:border-[var(--ds-brand)]'
               }`}
             >
               {s.done && <Check className="w-3 h-3 text-[var(--ds-on-accent)]" strokeWidth={3} />}
             </span>
-            <span className="min-w-0">
+            <span className="min-w-0 flex-1">
               <span className={`block text-[13px] font-semibold leading-snug ${s.done ? 'text-[#99a1af] line-through decoration-[#d7dbe0]' : 'text-[#191f1d]'}`}>
                 {s.title}
               </span>
@@ -293,6 +316,8 @@ export function SetupChecklist() {
                 {s.desc}
               </span>
             </span>
+            {/* A chevron that leans in on hover, the row's cue that it goes somewhere. */}
+            <ChevronRight className="w-4 h-4 shrink-0 mt-0.5 text-[#c7cdd4] group-hover:text-[var(--ds-brand)] group-hover:translate-x-0.5 transition" />
           </button>
         ))}
       </div>
