@@ -158,8 +158,30 @@ export interface PricingTier {
   impacts?: boolean; impactedTiers?: ImpactedTier[];
   hasAddons?: boolean; addons?: TierAddon[];
 }
-export interface RevenueStream { id: string; name: string; details: string; target: number; tiers: PricingTier[]; }
-export interface DealBusinessModel { revenues: RevenueStream[]; annualGrowthRate: number; }
+export interface RevenueStream {
+  id: string; name: string; details: string; target: number; tiers: PricingTier[];
+  /** Optional cost of goods for this stream. `cogsMode` decides how `cogs` reads:
+   *  'amount' is a flat monthly dollar cost, 'percent' is a share of the stream's
+   *  monthly revenue. Absent or 0 means no COGS, and margin simply is not shown. */
+  cogsMode?: 'amount' | 'percent';
+  cogs?: number;
+}
+
+/** A monthly operating expense line. Global to the model, not tied to a stream,
+ *  matching how opex actually works. Optional: no lines means no profit section. */
+export interface ExpenseLine { id: string; name: string; monthly: number; }
+
+export interface DealBusinessModel {
+  revenues: RevenueStream[];
+  annualGrowthRate: number;
+  /** Optional operating expenses. Absent on every existing deal, which is why
+   *  the profit section only appears once a founder adds a line. */
+  expenses?: ExpenseLine[];
+  /** Founder's explicit show/hide overrides, keyed by section. A section with
+   *  data defaults to shown; setting false here hides it from investors even
+   *  though it has data ("auto-check first, remove if unchecked"). */
+  show?: { margin?: boolean; profit?: boolean };
+}
 
 const periodToMonthly = (freq: CalcFreq, totalPerPeriod: number): number =>
   freq === 'monthly' ? totalPerPeriod : totalPerPeriod / 12;
@@ -202,15 +224,33 @@ export function tierUsers(t: PricingTier): number {
 export function revenueMonthly(r: RevenueStream): number {
   return (r.tiers || []).reduce((s, t) => s + tierMonthlyRevenue(t), 0);
 }
+/** Monthly COGS for a stream. Percent mode reads against that stream's own
+ *  monthly revenue; amount mode is a flat monthly figure. Clamped at zero. */
+export function streamMonthlyCogs(r: RevenueStream): number {
+  const c = r.cogs || 0;
+  if (c <= 0) return 0;
+  if (r.cogsMode === 'percent') return Math.max(0, revenueMonthly(r) * (Math.min(100, c) / 100));
+  return Math.max(0, c);
+}
+
 export interface ModelTotals {
-  revenues: { id: string; name: string; monthly: number; annual: number; pctOfTotal: number }[];
+  revenues: { id: string; name: string; monthly: number; annual: number; pctOfTotal: number; cogsMonthly: number }[];
   totalMonthly: number; totalAnnual: number; totalUsers: number; revenuePerUser: number;
   growth: { year: number; users: number; monthly: number; annual: number }[];
+  // Cost side. All zero / false when the founder has entered nothing, so the
+  // renderer can decide whether a section has earned its place.
+  hasCogs: boolean;
+  cogsMonthly: number; cogsAnnual: number;
+  grossMonthly: number; grossAnnual: number; grossMarginPct: number;
+  hasExpenses: boolean;
+  expensesMonthly: number; expensesAnnual: number;
+  operatingMonthly: number; operatingAnnual: number; operatingMarginPct: number;
 }
+
 export function computeBusinessModel(m: DealBusinessModel): ModelTotals {
   const revs = (m.revenues || []).map(r => {
     const monthly = revenueMonthly(r);
-    return { id: r.id, name: r.name || 'Revenue', monthly, annual: monthly * 12 };
+    return { id: r.id, name: r.name || 'Revenue', monthly, annual: monthly * 12, cogsMonthly: streamMonthlyCogs(r) };
   });
   const totalMonthly = revs.reduce((s, r) => s + r.monthly, 0);
   const totalAnnual = totalMonthly * 12;
@@ -222,7 +262,28 @@ export function computeBusinessModel(m: DealBusinessModel): ModelTotals {
     const factor = Math.pow(1 + g, year - 1);
     return { year, users: Math.round(totalUsers * factor), monthly: totalMonthly * factor, annual: totalAnnual * factor };
   });
-  return { revenues, totalMonthly, totalAnnual, totalUsers, revenuePerUser, growth };
+
+  // Cost of goods, summed across streams.
+  const cogsMonthly = revs.reduce((s, r) => s + r.cogsMonthly, 0);
+  const hasCogs = cogsMonthly > 0;
+  const grossMonthly = totalMonthly - cogsMonthly;
+  const grossAnnual = grossMonthly * 12;
+  const grossMarginPct = totalMonthly > 0 ? (grossMonthly / totalMonthly) * 100 : 0;
+
+  // Operating expenses, global.
+  const expensesMonthly = (m.expenses || []).reduce((s, e) => s + (e.monthly || 0), 0);
+  const hasExpenses = expensesMonthly > 0;
+  const operatingMonthly = grossMonthly - expensesMonthly;
+  const operatingAnnual = operatingMonthly * 12;
+  const operatingMarginPct = totalMonthly > 0 ? (operatingMonthly / totalMonthly) * 100 : 0;
+
+  return {
+    revenues, totalMonthly, totalAnnual, totalUsers, revenuePerUser, growth,
+    hasCogs, cogsMonthly, cogsAnnual: cogsMonthly * 12,
+    grossMonthly, grossAnnual, grossMarginPct,
+    hasExpenses, expensesMonthly, expensesAnnual: expensesMonthly * 12,
+    operatingMonthly, operatingAnnual, operatingMarginPct,
+  };
 }
 export interface DealMarket {
   overview: string;

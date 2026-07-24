@@ -195,6 +195,31 @@ export function BusinessModelSection({ model }: { model: DealBusinessModel }) {
         </div>
       </div>
 
+      {/* Costs & profitability, shown only for the layers the founder filled in
+          AND chose to reveal. A revenue-only deal never reaches this block. */}
+      {((totals.hasCogs && local.show?.margin !== false) || (totals.hasExpenses && local.show?.profit !== false)) && (
+        <div className="mt-6 rounded-2xl border border-[#e6e9ec] bg-[#f2f4f6] p-6 shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]">
+          <h3 className="text-base font-bold text-[#191f1d] mb-4">Costs &amp; Profitability</h3>
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between"><span className="text-sm text-[#7f8c85]">Annual Revenue</span><span className="text-sm font-bold text-[#191f1d]">{fmtCents(totals.totalAnnual)}</span></div>
+            {totals.hasCogs && <div className="flex items-center justify-between"><span className="text-sm text-[#7f8c85]">Cost of Goods</span><span className="text-sm text-[#99a1af]">({fmtCents(totals.cogsAnnual)})</span></div>}
+            {totals.hasCogs && local.show?.margin !== false && (
+              <div className="flex items-center justify-between border-t border-[#e6e9ec] pt-2.5">
+                <span className="text-sm font-semibold text-[#191f1d]">Gross Margin</span>
+                <span className="flex items-center gap-2"><span className="text-xs font-medium text-[#99a1af]">{Math.round(totals.grossMarginPct)}%</span><span className="text-sm font-bold text-[var(--ds-brand)]">{fmtCents(totals.grossAnnual)}</span></span>
+              </div>
+            )}
+            {totals.hasExpenses && local.show?.profit !== false && <div className="flex items-center justify-between"><span className="text-sm text-[#7f8c85]">Operating Expenses</span><span className="text-sm text-[#99a1af]">({fmtCents(totals.expensesAnnual)})</span></div>}
+            {totals.hasExpenses && local.show?.profit !== false && (
+              <div className="flex items-center justify-between border-t border-[#e6e9ec] pt-2.5">
+                <span className="text-sm font-semibold text-[#191f1d]">Operating Profit</span>
+                <span className="flex items-center gap-2"><span className="text-xs font-medium text-[#99a1af]">{Math.round(totals.operatingMarginPct)}%</span><span className="text-sm font-bold text-[var(--ds-brand)]">{fmtCents(totals.operatingAnnual)}</span></span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Growth projections */}
       <div className="mt-6 rounded-2xl border border-[#e6e9ec] bg-[#f2f4f6] p-6 shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]">
         <div className="flex items-start justify-between gap-3 mb-4">

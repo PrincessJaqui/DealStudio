@@ -9,9 +9,9 @@ import type { ReactNode } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { SectionHeader, AddButton } from './SectionHeader';
 import {
-  computeBusinessModel, addonQuantity,
+  computeBusinessModel, addonQuantity, streamMonthlyCogs,
   type DealBusinessModel, type RevenueStream, type PricingTier, type ImpactedTier, type TierAddon,
-  type CalcUnit, type CalcFreq,
+  type CalcUnit, type CalcFreq, type ExpenseLine,
 } from '../../lib/dealStudio';
 
 const genId = () => Math.random().toString(36).slice(2, 9);
@@ -60,12 +60,13 @@ function Box({ label, children }: { label: string; children: ReactNode }) {
  *     inputMode="decimal" keeps the numeric keypad on a phone and takes the wheel
  *     and the spinners away.
  */
-function NumInput({ value, onChange, suffix, disabled }: { value: number; onChange: (n: number) => void; suffix?: string; disabled?: boolean; step?: number }) {
+function NumInput({ value, onChange, suffix, prefix, disabled }: { value: number; onChange: (n: number) => void; suffix?: string; prefix?: string; disabled?: boolean; step?: number }) {
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? (Number.isFinite(value) && value !== 0 ? String(value) : (value === 0 ? '0' : ''));
 
   return (
     <div className="flex items-center gap-1">
+      {prefix && <span className="text-xs text-[#99a1af] shrink-0">{prefix}</span>}
       <input
         type="text"
         inputMode="decimal"
@@ -88,6 +89,29 @@ function NumInput({ value, onChange, suffix, disabled }: { value: number; onChan
 function TextInput({ value, onChange, placeholder, disabled }: { value: string; onChange: (s: string) => void; placeholder?: string; disabled?: boolean }) {
   if (disabled) return <p className="text-sm font-medium text-[#191f1d] truncate">{value || <span className="text-[#9ca3af]">{placeholder}</span>}</p>;
   return <input value={value} placeholder={placeholder} onChange={e => onChange(e.target.value)} className="w-full bg-transparent text-sm font-medium text-[#191f1d] placeholder:text-[#9ca3af] outline-none" />;
+}
+
+/** One row of the profitability waterfall. */
+function Line({ label, value, muted, strong, pct }: { label: string; value: string; muted?: boolean; strong?: boolean; pct?: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className={`text-sm ${strong ? 'font-semibold text-[#191f1d]' : 'text-[#7f8c85]'}`}>{label}</span>
+      <span className="flex items-center gap-2">
+        {pct && <span className="text-xs font-medium text-[#99a1af]">{pct}</span>}
+        <span className={`text-sm ${strong ? 'font-bold text-[var(--ds-brand)]' : muted ? 'text-[#99a1af]' : 'font-bold text-[#191f1d]'}`}>{value}</span>
+      </span>
+    </div>
+  );
+}
+
+/** Founder-only show/hide switch for a computed section. */
+function Toggle({ label, on, onToggle }: { label: string; on: boolean; onToggle: (v: boolean) => void }) {
+  return (
+    <label className="flex items-center gap-2 pl-1 py-1 cursor-pointer">
+      <input type="checkbox" checked={on} onChange={e => onToggle(e.target.checked)} className="accent-[var(--ds-brand)]" />
+      <span className="text-[11px] text-[#7f8c85]">{label}</span>
+    </label>
+  );
 }
 
 function Select<T extends string>({ value, onChange, opts, disabled }: { value: T; onChange: (v: T) => void; opts: { v: T; label: string }[]; disabled?: boolean }) {
@@ -269,8 +293,22 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
                   <button type="button" onClick={() => setRev(ri, { tiers: [...r.tiers, newTier()] })} className="mt-3 ml-auto flex w-fit items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] transition"><Plus className="w-4 h-4" /> Pricing Tier</button>
                 )}
 
+                {admin && (
+                  <div className="mt-4 border-t border-[#edf0f3] pt-3">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#7f8c85] mb-2">Cost of goods (optional)</p>
+                    <div className="flex items-end gap-2">
+                      <div className="flex-1"><Box label="Monthly COGS"><NumInput value={r.cogs || 0} prefix={r.cogsMode === 'percent' ? '' : '$'} suffix={r.cogsMode === 'percent' ? '%' : ''} onChange={v => setRev(ri, { cogs: v })} /></Box></div>
+                      <div className="w-32"><Box label="As"><Select value={r.cogsMode || 'amount'} opts={[{ v: 'amount', label: '$ / month' }, { v: 'percent', label: '% of rev' }]} onChange={v => setRev(ri, { cogsMode: v as any })} /></Box></div>
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-[#99a1af]">Leave at 0 to share revenue only. Add a cost to show gross margin.</p>
+                  </div>
+                )}
+
                 <div className="mt-4 border-t border-[#edf0f3] pt-3 space-y-2">
                   <div className="flex items-center justify-between"><span className="text-sm text-[#7f8c85]">Monthly Revenue</span><span className="text-sm font-bold text-[#191f1d]">{fmtUsd(rMonthly)}</span></div>
+                  {streamMonthlyCogs(r) > 0 && (
+                    <div className="flex items-center justify-between"><span className="text-sm text-[#7f8c85]">Monthly COGS</span><span className="text-sm font-bold text-[#191f1d]">{fmtUsd(streamMonthlyCogs(r))}</span></div>
+                  )}
                   <div className="flex items-center justify-between"><span className="text-sm font-semibold text-[#191f1d]">Annual Revenue</span><span className="text-sm font-bold text-[var(--ds-brand)]">{fmtUsd(rMonthly * 12)}</span></div>
                 </div>
               </div>
@@ -279,17 +317,29 @@ export function RevenueCalculator({ value, onChange, admin }: { value: DealBusin
         </div>
       )}
 
-      {m.revenues.length > 0 && <ModelAnalytics value={m} onChange={onChange} />}
+      {m.revenues.length > 0 && <ModelAnalytics value={m} onChange={onChange} admin={admin} />}
     </div>
   );
 }
 
 /** Revenue Mix Analysis, Global Metrics, and Growth Projections. Shared by the
  *  admin calculator and the investor view so the analytics stay identical. */
-export function ModelAnalytics({ value, onChange }: { value: DealBusinessModel; onChange: (m: DealBusinessModel) => void }) {
-  const m: DealBusinessModel = { revenues: value?.revenues || [], annualGrowthRate: value?.annualGrowthRate || 0 };
+export function ModelAnalytics({ value, onChange, admin }: { value: DealBusinessModel; onChange: (m: DealBusinessModel) => void; admin?: boolean }) {
+  // Carry expenses and show-flags through untouched. Rebuilding a fresh object
+  // here used to silently drop them, wiping the founder's cost inputs on edit.
+  const m: DealBusinessModel = {
+    revenues: value?.revenues || [],
+    annualGrowthRate: value?.annualGrowthRate || 0,
+    expenses: value?.expenses || [],
+    show: value?.show || {},
+  };
   const totals = computeBusinessModel(m);
   if (m.revenues.length === 0) return null;
+
+  const showMargin = totals.hasCogs && m.show?.margin !== false;
+  const showProfit = totals.hasExpenses && m.show?.profit !== false;
+  const setExpense = (i: number, patch: Partial<ExpenseLine>) =>
+    onChange({ ...m, expenses: (m.expenses || []).map((e, j) => j === i ? { ...e, ...patch } : e) });
   return (
     <>
       {/* Revenue Mix Analysis + Global Metrics */}
@@ -319,6 +369,54 @@ export function ModelAnalytics({ value, onChange }: { value: DealBusinessModel; 
           </div>
         </div>
       </div>
+
+      {/* Profitability. Appears once the founder has entered any cost. Everything
+          here is optional and gated on real data, so a revenue-only model never
+          shows an empty margin row. */}
+      {(admin || totals.hasCogs || totals.hasExpenses) && (
+        <div className="mt-6 rounded-2xl border border-[#edf0f3] bg-white p-6 shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)]">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-bold text-[#191f1d]">Costs &amp; Profitability</h3>
+            {admin && <span className="text-[11px] text-[#99a1af]">Optional. Fill in to show investors; leave blank to share revenue only.</span>}
+          </div>
+
+          {admin && (
+            <>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#7f8c85] mb-2">Monthly operating expenses</p>
+              <div className="space-y-2 mb-3">
+                {(m.expenses || []).map((e, i) => (
+                  <div key={e.id} className="flex items-end gap-2">
+                    <div className="flex-1"><Box label="Expense"><TextInput value={e.name} placeholder="Rent, salaries, tools..." onChange={v => setExpense(i, { name: v })} /></Box></div>
+                    <div className="w-40"><Box label="Monthly"><NumInput value={e.monthly} prefix="$" onChange={v => setExpense(i, { monthly: v })} /></Box></div>
+                    <button type="button" onClick={() => onChange({ ...m, expenses: (m.expenses || []).filter((_, j) => j !== i) })} className="mb-2 rounded-lg px-1 text-[#99a1af] hover:text-[#dc2626]" aria-label="Remove expense"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                ))}
+              </div>
+              <button type="button" onClick={() => onChange({ ...m, expenses: [...(m.expenses || []), { id: crypto.randomUUID(), name: '', monthly: 0 }] })} className="flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-sm font-semibold text-[#191f1d] bg-[#f5f6f8] hover:bg-[#edf0f3] transition mb-5"><Plus className="w-4 h-4" /> Expense line</button>
+            </>
+          )}
+
+          {/* The waterfall: revenue down to operating profit, each row only if
+              the layer above it has data. */}
+          <div className="space-y-2 border-t border-[#edf0f3] pt-4">
+            <Line label="Annual Revenue" value={fmtWhole(totals.totalAnnual)} />
+            {totals.hasCogs && <Line label="Cost of Goods" value={`(${fmtWhole(totals.cogsAnnual)})`} muted />}
+            {showMargin && (
+              <>
+                <Line label="Gross Margin" value={fmtWhole(totals.grossAnnual)} strong pct={`${Math.round(totals.grossMarginPct)}%`} />
+                {admin && <Toggle label="Show gross margin to investors" on={m.show?.margin !== false} onToggle={v => onChange({ ...m, show: { ...m.show, margin: v } })} />}
+              </>
+            )}
+            {totals.hasExpenses && <Line label="Operating Expenses" value={`(${fmtWhole(totals.expensesAnnual)})`} muted />}
+            {showProfit && (
+              <>
+                <Line label="Operating Profit" value={fmtWhole(totals.operatingAnnual)} strong pct={`${Math.round(totals.operatingMarginPct)}%`} />
+                {admin && <Toggle label="Show operating profit to investors" on={m.show?.profit !== false} onToggle={v => onChange({ ...m, show: { ...m.show, profit: v } })} />}
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Growth Projections */}
       <div className="mt-6 rounded-2xl border border-[#edf0f3] bg-white shadow-[0_8px_28px_-6px_rgba(12,16,34,0.14)] p-6">
