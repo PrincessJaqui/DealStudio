@@ -8,7 +8,7 @@
 import { webUrl } from '../../lib/runtime';
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, UserPlus, CreditCard, Shield, Home, BarChart3, Wallet, Users2 } from 'lucide-react';
+import { LayoutGrid, Presentation, Palette, Settings, LogOut, Menu, X, User, UserPlus, CreditCard, Shield, Home, BarChart3, Wallet, Users2, Newspaper } from 'lucide-react';
 import dsMark from '../../assets/dealstudio-mark.png';
 import { useAdminAuth } from './AdminGate';
 import { SetupChecklist } from './SetupChecklist';
@@ -18,6 +18,7 @@ import { supabase } from '../../lib/supabase';
 const DEAL_NAV = [
   { to: '/admin', label: 'Deal Studio', Icon: Presentation, end: true },
   { to: '/admin/dealflow', label: 'Deal Flow', Icon: Users2, end: false },
+  { to: '/admin/newsroom', label: 'NewsRoom', Icon: Newspaper, end: false },
 ];
 
 // Interface Studio edits DealStudio's OWN marketing site, so it is master-admin

@@ -19,6 +19,8 @@ import { MasterAdminScreen } from './components/screens/MasterAdminScreen';
 import { SignupScreen } from './components/screens/SignupScreen';
 import { WelcomeScreen } from './components/screens/WelcomeScreen';
 import { DealFlowScreen } from './components/screens/DealFlowScreen';
+import { NewsRoomScreen } from './components/screens/NewsRoomScreen';
+import { PublicNewsRoomScreen } from './components/screens/PublicNewsRoomScreen';
 import { DealManagerScreen } from './components/screens/DealManagerScreen';
 import { ResetPasswordScreen } from './components/screens/ResetPasswordScreen';
 import { TermsScreen } from './components/screens/TermsScreen';
@@ -42,6 +44,7 @@ export default function App() {
         <Route path="/" element={<LandingScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
         <Route path="/welcome" element={<WelcomeScreen />} />
+        <Route path="/news/:token" element={<PublicNewsRoomScreen />} />
         {/* People type /login. /admin already shows the sign-in form when signed
             out and the dashboard when signed in, so redirect rather than render a
             bare gate, which would be a blank page for anyone already signed in. */}
@@ -58,6 +61,7 @@ export default function App() {
         <Route path="/admin/d/:slug" element={<Admin><DealStudioScreen /></Admin>} />
         <Route path="/admin/deals" element={<Admin><DealManagerScreen /></Admin>} />
         <Route path="/admin/dealflow" element={<Admin><DealFlowScreen /></Admin>} />
+        <Route path="/admin/newsroom" element={<Admin><NewsRoomScreen /></Admin>} />
         <Route path="/admin/interface" element={<Admin><InterfaceStudioScreen /></Admin>} />
         <Route path="/admin/settings" element={<Admin><SystemSettingsScreen /></Admin>} />
         <Route path="/admin/billing" element={<Admin><BillingScreen /></Admin>} />
